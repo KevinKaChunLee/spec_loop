@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import json
+import re
 from collections import Counter
 from pathlib import Path
 
 from .runner import _parse_events
 
 PATH_KEYS = ("path", "file_path", "target_file", "targetFile", "filePath")
+SHELL_READ_RE = re.compile(r"(?:^|[;&|(]\s*|\s)(cat|head|tail|sed|nl|less|more|awk|bat)\s")
+SHELL_PATH_RE = re.compile(r"[\w./-]+\.(?:cpp|h|c|gn|gni|json)\b")
 
 
 def _rel(path: str, ws: Path) -> str:
@@ -41,6 +44,8 @@ def _summarize_call(kind: str, args: dict, result: dict | None, ws: Path, previe
     success = None
     if isinstance(result, dict):
         success = result.get("success")
+        if success is None and kind == "shell" and isinstance(result.get("failure"), dict):
+            success = result["failure"]
         if success is None:
             failed = True
             other = {k: v for k, v in result.items() if k != "isBackground"}
@@ -60,6 +65,8 @@ def _summarize_call(kind: str, args: dict, result: dict | None, ws: Path, previe
     elif kind == "shell":
         cmd = args.get("command", "")
         facts["command"] = cmd
+        if SHELL_READ_RE.search(cmd):
+            facts["shell_reads"] = [_rel(p, ws) for p in SHELL_PATH_RE.findall(cmd)]
         desc = f"shell `{_one_line(cmd, 300)}`"
         if isinstance(success, dict):
             code = success.get("exitCode")
@@ -231,6 +238,7 @@ def render(traj_path: Path, ws: Path, out_md: Path, out_stats: Path, cfg: dict,
             failures += int(failed)
             if "read" in facts:
                 files_read.add(facts["read"])
+            files_read.update(facts.get("shell_reads", []))
             if "written" in facts:
                 files_written.add(facts["written"])
             if facts.get("subagent"):
@@ -265,6 +273,8 @@ def render(traj_path: Path, ws: Path, out_md: Path, out_stats: Path, cfg: dict,
             for k in PATH_KEYS:
                 if inp.get(k):
                     sub_reads.add(_rel(inp[k], ws))
+        elif name.lower() == "shell" and SHELL_READ_RE.search(inp.get("command", "")):
+            sub_reads.update(_rel(p, ws) for p in SHELL_PATH_RE.findall(inp["command"]))
 
     hmos_prefix = hmos_dir.rstrip("/") + "/"
     hmos_root = ws / hmos_dir
