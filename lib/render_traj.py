@@ -202,8 +202,19 @@ def render(traj_path: Path, ws: Path, out_md: Path, out_stats: Path, cfg: dict,
             think_buf = []
 
     pending: dict[str, tuple[str, dict]] = {}
+    users_seen = 0
     for ev in events:
         t = ev.get("type")
+        if t == "user":
+            users_seen += 1
+            if users_seen > 1:
+                flush_think()
+                text = "".join(b.get("text", "") for b in (ev.get("message") or {}).get("content", [])
+                               if isinstance(b, dict))
+                step += 1
+                lines.append(f"**[{step:04d}] USER (resumed session)**: {_one_line(text, prev_n)}")
+                lines.append("")
+            continue
         if t == "thinking":
             if ev.get("subtype") == "delta":
                 think_buf.append(ev.get("text", ""))

@@ -13,14 +13,19 @@ from pathlib import Path
 from .common import log, write_json
 
 MAX_PROMPT_BYTES = 100_000
-# The CLI does not list the GLM 5.3 ids and intermittently rejects them at startup.
+# The CLI does not list the GLM 5.3 ids and intermittently rejects them (or returns HTTP 5xx)
+# at startup; long runs can also drop mid-way and are resumed in the same session.
 STARTUP_ATTEMPTS = 4
 STARTUP_RETRY_S = 30
+CONTINUE_ATTEMPTS = 3
+CONTINUE_PROMPT = ("Your previous turn was interrupted by a connection error. Continue the task from "
+                   "where you stopped, following all of the original instructions.")
 TRANSCRIPTS_ROOT = Path.home() / ".cursor" / "projects"
 
 
-def _parse_events(path: Path):
+def _parse_events(path: Path, offset: int = 0):
     with open(path, encoding="utf-8", errors="replace") as f:
+        f.seek(offset)
         for line in f:
             line = line.strip()
             if not line:
@@ -66,10 +71,16 @@ class _Progress:
         return f"{self.tool_calls} tool calls, last: {self.last_tool or '-'}"
 
 
+def _last_line(path: Path) -> str:
+    lines = path.read_text(encoding="utf-8", errors="replace").strip().splitlines()
+    return lines[-1][:160] if lines else "no stderr"
+
+
 def _run_once(cmd: list[str], ws: Path, traj: Path, errf: Path, label: str, started: float,
               timeout_min: float) -> tuple[int, bool]:
     progress = _Progress(traj)
-    with open(traj, "w", encoding="utf-8") as fout, open(errf, "w", encoding="utf-8") as ferr:
+    progress.offset = traj.stat().st_size
+    with open(traj, "a", encoding="utf-8") as fout, open(errf, "a", encoding="utf-8") as ferr:
         proc = subprocess.Popen(cmd, cwd=ws, stdout=fout, stderr=ferr, start_new_session=True)
         while True:
             try:
@@ -110,29 +121,44 @@ def run_agent(*, model: dict, ws: Path, prompt: str, out_dir: Path, label: str,
     errf = out_dir / f"{label}.stderr.log"
     (out_dir / f"{label}.prompt.md").write_text(prompt, encoding="utf-8")
 
-    cmd = ["agent", "-p", "--output-format", "stream-json", "--model", model["id"],
-           "--force", "--trust", "--sandbox", "enabled", "--workspace", str(ws)]
-    if resume_session:
-        cmd += ["--resume", resume_session]
-    cmd.append(prompt)
+    base = ["agent", "-p", "--output-format", "stream-json", "--model", model["id"],
+            "--force", "--trust", "--sandbox", "enabled", "--workspace", str(ws)]
 
     log(f"agent start: model={model['id']} ws={ws} label={label} timeout={timeout_min}m")
     started = time.time()
-    for attempt in range(1, STARTUP_ATTEMPTS + 1):
+    traj.write_text("", encoding="utf-8")
+    errf.write_text("", encoding="utf-8")
+    session, segment_prompt = resume_session, prompt
+    startup_failures = continuations = 0
+    while True:
+        cmd = base + (["--resume", session] if session else []) + [segment_prompt]
+        offset = traj.stat().st_size
         rc, timed_out = _run_once(cmd, ws, traj, errf, label, started, timeout_min)
-        err = errf.read_text(encoding="utf-8", errors="replace")
-        if traj.stat().st_size or "Cannot use this model" not in err or attempt == STARTUP_ATTEMPTS:
+        segment = list(_parse_events(traj, offset))
+        if not segment:
+            startup_failures += 1
+            if startup_failures >= STARTUP_ATTEMPTS:
+                break
+            log(f"  {label}: CLI failed before starting ({_last_line(errf)}); "
+                f"retry {startup_failures}/{STARTUP_ATTEMPTS - 1} in {STARTUP_RETRY_S}s")
+            time.sleep(STARTUP_RETRY_S)
+            continue
+        seg_init = next((e for e in segment if e.get("type") == "system"), {})
+        session = session or seg_init.get("session_id")
+        if timed_out or any(e.get("type") == "result" for e in segment):
             break
-        log(f"  {label}: CLI rejected model '{model['id']}' at startup "
-            f"(attempt {attempt}/{STARTUP_ATTEMPTS}); retrying in {STARTUP_RETRY_S}s")
+        if continuations >= CONTINUE_ATTEMPTS or not session:
+            break
+        continuations += 1
+        log(f"  {label}: run stopped without a result ({_last_line(errf)}); resuming session "
+            f"({continuations}/{CONTINUE_ATTEMPTS}) in {STARTUP_RETRY_S}s")
         time.sleep(STARTUP_RETRY_S)
+        segment_prompt = CONTINUE_PROMPT
 
-    init, result = {}, {}
-    for ev in _parse_events(traj):
-        if ev.get("type") == "system" and ev.get("subtype") == "init" and not init:
-            init = ev
-        elif ev.get("type") == "result":
-            result = ev
+    events = list(_parse_events(traj))
+    inits = [e for e in events if e.get("type") == "system" and e.get("subtype") == "init"]
+    init = inits[0] if inits else {}
+    result = next((e for e in reversed(events) if e.get("type") == "result"), {})
 
     session_id = init.get("session_id") or result.get("session_id") or resume_session or ""
     transcript_src = find_transcript(session_id)
@@ -153,12 +179,14 @@ def run_agent(*, model: dict, ws: Path, prompt: str, out_dir: Path, label: str,
         "model_id": model["id"],
         "model_expected": model["expect"],
         "model_reported": model_reported,
-        "model_ok": model_reported == model["expect"],
+        "model_ok": bool(inits) and all(e.get("model") == model["expect"] for e in inits),
         "session_id": session_id,
         "resumed_from": resume_session,
         "workspace": str(ws),
         "exit_code": rc,
         "timed_out": timed_out,
+        "startup_retries": startup_failures,
+        "continuations": continuations,
         "has_result": bool(result),
         "is_error": bool(result.get("is_error", not result)),
         "duration_s": round(time.time() - started, 1),
