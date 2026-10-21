@@ -1,5 +1,7 @@
 # spec_loop
 
+English | [简体中文](README_zh.md)
+
 **Teach a weaker model to write an OpenSpec.** A strong oracle model writes a reference OpenSpec that a human reviews and freezes. A weaker student model writes its own spec for the same task without ever seeing the reference. The oracle then scores the gap and writes a playbook, which the student receives on its next attempt. The loop repeats until the student's score stops improving.
 
 The task: port the HMOS `telephony_call_manager` module (OpenHarmony v6.0) to the liteOS watch platform, under the constraints in `communication_mcu/AGENTS.md`. This stage produces planning artifacts only: baseline capability specs of the HMOS module plus one migration change, `migrate-call-manager-to-liteos`. No production code is written.
