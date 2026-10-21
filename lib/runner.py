@@ -13,6 +13,9 @@ from pathlib import Path
 from .common import log, write_json
 
 MAX_PROMPT_BYTES = 100_000
+# The CLI does not list the GLM 5.3 ids and intermittently rejects them at startup.
+STARTUP_ATTEMPTS = 4
+STARTUP_RETRY_S = 30
 TRANSCRIPTS_ROOT = Path.home() / ".cursor" / "projects"
 
 
@@ -63,6 +66,27 @@ class _Progress:
         return f"{self.tool_calls} tool calls, last: {self.last_tool or '-'}"
 
 
+def _run_once(cmd: list[str], ws: Path, traj: Path, errf: Path, label: str, started: float,
+              timeout_min: float) -> tuple[int, bool]:
+    progress = _Progress(traj)
+    with open(traj, "w", encoding="utf-8") as fout, open(errf, "w", encoding="utf-8") as ferr:
+        proc = subprocess.Popen(cmd, cwd=ws, stdout=fout, stderr=ferr, start_new_session=True)
+        while True:
+            try:
+                return proc.wait(timeout=60), False
+            except subprocess.TimeoutExpired:
+                elapsed = time.time() - started
+                log(f"  {label}: {elapsed / 60:.0f}m, {progress.poll()}")
+                if elapsed > timeout_min * 60:
+                    log(f"  {label}: timeout after {timeout_min}m, terminating")
+                    os.killpg(proc.pid, signal.SIGTERM)
+                    try:
+                        return proc.wait(timeout=30), True
+                    except subprocess.TimeoutExpired:
+                        os.killpg(proc.pid, signal.SIGKILL)
+                        return proc.wait(), True
+
+
 def find_transcript(session_id: str) -> Path | None:
     if not session_id or not TRANSCRIPTS_ROOT.exists():
         return None
@@ -94,27 +118,14 @@ def run_agent(*, model: dict, ws: Path, prompt: str, out_dir: Path, label: str,
 
     log(f"agent start: model={model['id']} ws={ws} label={label} timeout={timeout_min}m")
     started = time.time()
-    timed_out = False
-    progress = _Progress(traj)
-    with open(traj, "w", encoding="utf-8") as fout, open(errf, "w", encoding="utf-8") as ferr:
-        proc = subprocess.Popen(cmd, cwd=ws, stdout=fout, stderr=ferr, start_new_session=True)
-        while True:
-            try:
-                rc = proc.wait(timeout=60)
-                break
-            except subprocess.TimeoutExpired:
-                elapsed = time.time() - started
-                log(f"  {label}: {elapsed / 60:.0f}m, {progress.poll()}")
-                if elapsed > timeout_min * 60:
-                    timed_out = True
-                    log(f"  {label}: timeout after {timeout_min}m, terminating")
-                    os.killpg(proc.pid, signal.SIGTERM)
-                    try:
-                        rc = proc.wait(timeout=30)
-                    except subprocess.TimeoutExpired:
-                        os.killpg(proc.pid, signal.SIGKILL)
-                        rc = proc.wait()
-                    break
+    for attempt in range(1, STARTUP_ATTEMPTS + 1):
+        rc, timed_out = _run_once(cmd, ws, traj, errf, label, started, timeout_min)
+        err = errf.read_text(encoding="utf-8", errors="replace")
+        if traj.stat().st_size or "Cannot use this model" not in err or attempt == STARTUP_ATTEMPTS:
+            break
+        log(f"  {label}: CLI rejected model '{model['id']}' at startup "
+            f"(attempt {attempt}/{STARTUP_ATTEMPTS}); retrying in {STARTUP_RETRY_S}s")
+        time.sleep(STARTUP_RETRY_S)
 
     init, result = {}, {}
     for ev in _parse_events(traj):

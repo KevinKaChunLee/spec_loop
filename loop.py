@@ -275,6 +275,7 @@ def cmd_oracle(args) -> None:
         fatal.append("files were written outside openspec/")
     if not result["leak"]["ok"]:
         fatal.append("the trajectory touched forbidden paths")
+    state = load_state(args.run)
     state["oracle"] = {
         "status": "failed" if fatal else "awaiting-review",
         "problems": fatal,
