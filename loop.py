@@ -548,6 +548,7 @@ def run_compare_sample(run_id: str, state: dict, k: int, sample: int, samples: i
 def cmd_compare(args) -> None:
     state = load_state(args.run)
     verify_frozen(args.run, state)
+    check_inputs_unchanged(args.run)
     k = args.iter
     samples = state["iters"].get(str(k), {}).get("samples", 1)
     with ThreadPoolExecutor(max_workers=samples) as pool:
@@ -566,6 +567,7 @@ def cmd_compare(args) -> None:
 def cmd_synthesize(args) -> None:
     state = load_state(args.run)
     verify_frozen(args.run, state)
+    check_inputs_unchanged(args.run)
     k = args.iter
     it = state["iters"].get(str(k), {})
     ok = [r for r in it.get("compare", []) if r.get("ok")]
