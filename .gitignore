@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+
+# Raw agent output and derived caches stay local; scores, reports, specs and playbooks are committed.
+runs/*/base/
+runs/*/hmos_index.json
+runs/**/*.jsonl
+runs/**/*.stderr.log
+runs/**/transcripts/
+runs/**/_staging/
+runs/**/*.log

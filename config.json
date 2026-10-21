@@ -1,0 +1,56 @@
+{
+  "repo": "/home/kevin/Work/telephony_migration/communication_mcu",
+  "cursor_dir": "/home/kevin/Work/telephony_migration/.cursor",
+  "base_sha": "8018137a362dc5c13ff5a85f698415b565601050",
+  "workspace_root": "/home/kevin/Work/spec-loop-ws",
+  "change_name": "migrate-call-manager-to-liteos",
+  "hmos_dir": "telephony_call_manager",
+  "preexisting_specs": ["pc-test-harness"],
+  "preexisting_changes": ["setup-pc-test-env"],
+
+  "models": {
+    "oracle":      {"id": "glm-5p3-max",  "expect": "GLM 5.3 Max"},
+    "judge":       {"id": "glm-5p3-max",  "expect": "GLM 5.3 Max"},
+    "synthesizer": {"id": "glm-5p3-max",  "expect": "GLM 5.3 Max"},
+    "student":     {"id": "glm-5p3-high", "expect": "GLM 5.3 High"}
+  },
+  "smoke_model": {"id": "glm-5p3-high", "expect": "GLM 5.3 High"},
+  "model_notes": "Probed 2026-10-21 with CLI 2026.10.19: glm-5p3-max and glm-5p3-high are accepted although `agent models` does not list them. Bracket overrides ([context=...], [effort=...]) are rejected for GLM, so the 1M / 200k context split cannot be set from the CLI.",
+
+  "timeouts_min": {
+    "oracle": 360,
+    "student": 240,
+    "judge": 120,
+    "synthesizer": 120,
+    "smoke": 40
+  },
+
+  "iterations": 3,
+  "plateau": 2,
+  "student_retries": 1,
+  "judge_fix_retries": 1,
+  "synth_fix_retries": 2,
+
+  "rubric_weights": {
+    "baseline_coverage": 20,
+    "trim_scope": 25,
+    "external_deps": 15,
+    "code_level_design": 15,
+    "testability_grounding": 15,
+    "readability_rules": 10
+  },
+
+  "playbook_limits": {
+    "max_lines": 300,
+    "ngram_chars": 40,
+    "max_span_chars": 80,
+    "max_total_copied_chars": 400,
+    "max_capability_id_share": 0.5
+  },
+
+  "render": {
+    "thinking_chars": 600,
+    "result_preview_chars": 240,
+    "assistant_chars": 4000
+  }
+}
