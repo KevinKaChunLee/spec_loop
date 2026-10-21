@@ -11,7 +11,7 @@ import time
 from pathlib import Path
 
 from .common import log, write_json
-from .stream import parse_events, tool_call_key
+from .stream import parse_events, tool_call_key, usage_total
 
 MAX_PROMPT_BYTES = 100_000
 # The CLI does not list the GLM 5.3 ids and intermittently rejects them (or returns HTTP 5xx)
@@ -21,6 +21,15 @@ STARTUP_RETRY_S = 30
 CONTINUE_ATTEMPTS = 3
 CONTINUE_PROMPT = ("Your previous turn was interrupted by a connection error. Continue the task from "
                    "where you stopped, following all of the original instructions.")
+# Headless runs end as soon as the model replies without a tool call, which a model can do
+# while still mid-task (for example after writing a plan as text).
+NUDGE_PROMPT = """Your turn ended, but the task is not finished. Still missing:
+
+{problems}
+
+Continue now. Use your tools to create the missing files (do not only describe a plan or draft
+instructions as text), follow all of the original instructions, and stop only when the task's
+completion criteria are met."""
 TRANSCRIPTS_ROOT = Path.home() / ".cursor" / "projects"
 
 
@@ -94,11 +103,15 @@ def find_transcript(session_id: str) -> Path | None:
 
 
 def run_agent(*, model: dict, ws: Path, prompt: str, out_dir: Path, label: str,
-              timeout_min: float, resume_session: str | None = None) -> dict:
+              timeout_min: float, resume_session: str | None = None,
+              completion_check=None, max_nudges: int = 0) -> dict:
     """Run `agent -p` in `ws`; write <label>.jsonl, <label>.stderr.log, <label>.run.json.
 
     Returns the run metadata. `ok` is True only if the stream ended with a
     non-error `result` event and the init event reported the expected model.
+    `completion_check()` returns the deliverables still missing; while it reports
+    any after a finished turn, the session is resumed with a nudge (at most
+    `max_nudges` times). Whatever is still missing at the end is in `incomplete`.
     """
     prompt_bytes = len(prompt.encode("utf-8"))
     if prompt_bytes > MAX_PROMPT_BYTES:
@@ -117,9 +130,10 @@ def run_agent(*, model: dict, ws: Path, prompt: str, out_dir: Path, label: str,
     traj.write_text("", encoding="utf-8")
     errf.write_text("", encoding="utf-8")
     session, segment_prompt = resume_session, prompt
-    startup_failures = continuations = 0
+    startup_failures = continuations = nudges = 0
     inits: list[dict] = []
-    result: dict = {}
+    results: list[dict] = []
+    problems: list[str] = []
     while True:
         cmd = base + (["--resume", session] if session else []) + [segment_prompt]
         offset = traj.stat().st_size
@@ -134,10 +148,20 @@ def run_agent(*, model: dict, ws: Path, prompt: str, out_dir: Path, label: str,
             time.sleep(STARTUP_RETRY_S)
             continue
         inits += [e for e in segment if e.get("type") == "system" and e.get("subtype") == "init"]
-        result = next((e for e in reversed(segment) if e.get("type") == "result"), result)
+        seg_results = [e for e in segment if e.get("type") == "result"]
+        results += seg_results
         session = session or (inits[0].get("session_id") if inits else None)
-        if timed_out or result:
+        if timed_out:
             break
+        if seg_results:
+            problems = completion_check() if completion_check else []
+            if not problems or nudges >= max_nudges or not session:
+                break
+            nudges += 1
+            log(f"  {label}: turn ended with deliverables missing ({'; '.join(problems)[:200]}); "
+                f"nudging ({nudges}/{max_nudges})")
+            segment_prompt = NUDGE_PROMPT.format(problems="\n".join(f"- {p}" for p in problems))
+            continue
         if continuations >= CONTINUE_ATTEMPTS or not session:
             break
         continuations += 1
@@ -147,6 +171,9 @@ def run_agent(*, model: dict, ws: Path, prompt: str, out_dir: Path, label: str,
         segment_prompt = CONTINUE_PROMPT
 
     init = inits[0] if inits else {}
+    result = results[-1] if results else {}
+    if completion_check:
+        problems = completion_check()
 
     session_id = init.get("session_id") or result.get("session_id") or resume_session or ""
     transcript_src = find_transcript(session_id)
@@ -175,10 +202,12 @@ def run_agent(*, model: dict, ws: Path, prompt: str, out_dir: Path, label: str,
         "timed_out": timed_out,
         "startup_retries": startup_failures,
         "continuations": continuations,
+        "nudges": nudges,
+        "incomplete": problems,
         "has_result": bool(result),
         "is_error": bool(result.get("is_error", not result)),
         "duration_s": round(time.time() - started, 1),
-        "usage": result.get("usage", {}),
+        "usage": usage_total(results),
         "final_text": (result.get("result") or "")[:4000],
         "transcript_project": transcript_src.parent.parent.name if transcript_src else None,
         "transcript_copy": str(transcript_dst) if transcript_dst else None,

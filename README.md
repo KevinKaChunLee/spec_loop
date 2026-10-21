@@ -164,6 +164,7 @@ Two caveats:
 | `timeouts_min` | Wall-clock limit per role |
 | `iterations`, `plateau` | Default iteration count; stop after this many iterations without improvement |
 | `student_retries`, `judge_fix_retries`, `synth_fix_retries` | Retries for an invalid student run, an invalid score.json, a rejected playbook |
+| `completion_nudges` | How many times an oracle or student session is resumed when its turn ends before the deliverables exist and validate |
 | `rubric_weights` | Weight per rubric dimension; keys must match `rubric.md` |
 | `playbook_limits` | Line cap, n-gram size, copied-passage limits, maximum share of reference capability ids |
 | `trajviz` | `bin` (path to agent-trajviz), `html_report`, `output_chars` (cap per tool output), `synth_views` (views given to the synthesizer) |
@@ -185,6 +186,7 @@ To change the task, the rubric or the base commit, edit the file and `prepare` a
 | `compare --run R --iter K` | Judge the student spec(s) of an iteration |
 | `synthesize --run R --iter K` | Write the playbook for iteration K+1 |
 | `iterate --run R [--iters N] [--start K] [--samples M]` | Repeat student, compare and synthesize |
+| `reset --run R --from-iter K` | Discard iterations K and later (outputs, state, score rows) so `iterate` redoes them |
 | `status --run R` | Oracle state, validity of each student run, scores |
 | `trajviz --run R [--stage S]` | (Re-)export runs for TrajViz |
 | `smoke --run R` | End-to-end plumbing test |
@@ -194,6 +196,8 @@ To change the task, the rubric or the base commit, edit the file and `prepare` a
 ## Common issues
 
 **`Cannot use this model` or `HTTP 502` at startup.** The GLM 5.3 ids (`glm-5p3-max`, `glm-5p3-high`) work but are not listed by `agent models`, and the CLI sometimes rejects them at startup. The runner retries startup failures (4 attempts, 30 s apart) and resumes a run that drops mid-way (up to 3 times, in the same session). A run that never reports the expected model fails.
+
+**An agent ends its turn before writing anything.** A headless run ends as soon as the model replies without a tool call, for example after writing a plan or subagent instructions as text. For oracle and student runs, the runner then checks the deliverables (baseline specs, the four change artifacts, `openspec validate --strict`) and resumes the same session with a short "not finished, still missing: ..." message, up to `completion_nudges` times. The count is recorded as `nudges` in the run metadata and `scores.csv`. A student run that is still incomplete counts as invalid and is retried from scratch.
 
 **The 1M / 200k context split is not enforced.** The CLI rejects bracket overrides such as `[context=1m]` for GLM, so oracle and student differ in reasoning effort only. Token usage is recorded per run.
 

@@ -1,0 +1,175 @@
+{
+  "dimensions": {
+    "baseline_coverage": {
+      "score": 3,
+      "rationale": "24 个能力覆盖面与参考对齐，145 条需求接地率高（1925/2018），且比参考更早发现真实存在但 AGENTS 未列的 AUDIO_SUPPORT/SUPPORT_VIBRATOR 守卫；但存在数个中等缺口：无 build-and-feature-flags 对应能力（gni/bundle.json/declare_args 无需求数据承载），CallManagerService 服务层入口行为（InputDialerSpecialCode、SendCallUiEvent 路由、拨号后语音信箱计数清零）与来电拒接语义（OOBE 开机向导、免打扰、一号双终端 ModifyEsimType）在基线与 delta 中均缺失。"
+    },
+    "trim_scope": {
+      "score": 3,
+      "rationale": "裁剪范围表与 delta 基本一一对应，整目录删除、宏分类、DSDS 恒 0、单卡预留 slotId、单主帐号、UT/MMI 保留等均正确；但存在 1 个高严重度缺口：VoIP 整通路被删除而非按 AGENTS '暂不支持待畅连' 保留+桩化（rubric 明确规定此歧义以参考为准）。另有中等缺口：proposal 宣称视频彩振/ESIM 不迁移但 delta 仍保留 Sound/PlaySoundtone 彩振链与 IsTwoCallBtCallAndESIM/IsTwoCallESIMCall 死分支；状态上报双路被无依据收敛为单路。"
+    },
+    "external_deps": {
+      "score": 5,
+      "rationale": "AGENTS 各外部依赖类全部覆盖且落到文件/函数级：todo 占位格式与 D7 标签表完整，stub/ 目录桩清单（XxxClient::GetInstance 单例桩、EventHandler 替代 ffrt、parameter/cJSON/libphonenumber/基础库桩）、sptr→智能指针、HiSysEvent/HITRACE→日志、PacMap→结构体、免权限/免 SystemAbility 直连均与参考实质一致。锁保留 std::mutex+ffrt::mutex 空桩、通知观察者保留文件+todo 与参考的全删读法均可辩护，不扣分。"
+    },
+    "code_level_design": {
+      "score": 3,
+      "rationale": "D2 删除清单（含真实文件名）、D5 并发替换落点表、D9 宏退役表、D13 gni/bundle.json/测试 target 重排都很详尽且大体贴源；但删除后的涟漪处理不闭环：telephony-interaction 仍保留 HandleVoipEventReportInfo 悬空转发和依赖视频升级的等待音触发链，CellularCallConnection 的去留在 delta 间自相矛盾（一处 MUST NOT 保留、一处保留为打桩适配器），client delta 在删除 proxy 后仍以 CallManagerProxy::RegisterCallBack 为主语，CALL_MANAGER_AUTO_START_OPTIMIZE 被误判为 '基线零引用'（实际 12 处引用）。数个中等缺口。"
+    },
+    "testability_grounding": {
+      "score": 4,
+      "rationale": "374 个场景大多具体到函数/参数/状态码级，可直接落 gtest；每个任务组都有 must-pass 门禁项，删源文件任务均含 callmanager.gni 同步，绝大多数改动配了具名 gtest；metrics 'not found' 名单核实多为 .cpp/.h 字面量误报或新代码命名。缺口较小：ECC（EccDialPolicy 卫星分支删除、紧急呼叫静音策略）仅列入需人工复核而无任何专属 gtest，参考有完整 ECC 用例组。"
+    },
+    "readability_rules": {
+      "score": 4,
+      "rationale": "中文行文+英文关键字、proposal 含逐能力裁剪范围表/非目标/需人工复核项、design 有决策索引和决策/理由/落点及 Open Questions、openspec validate --all --strict 通过。小瑕疵：多个 delta 出现成对重复场景把场景数撑到 374（参考 143），个别 requirement 标题混用英文、少数需求段落过长影响扫读。"
+    }
+  },
+  "gaps": [
+    {
+      "id": "trim_scope/voip-deleted-instead-of-stubbed",
+      "dimension": "trim_scope",
+      "severity": "high",
+      "tag": "student_wrong",
+      "summary": "参考按 AGENTS 'VoIP 暂不支持（依赖后续 meetime 畅连）' 保留整条 VoIP 通路并桩化（VoipCall/voip_call_connection/voipCallObjectList_ 双轨/冲突处理/HangUpVoipCall）；学生直接删除 VoIP 整通路只留枚举，还连带移除 VoIP 统计事件与 GetForegroundCall 的 VoIP 跳过分支。rubric 明确规定该歧义以参考为准。",
+      "evidence": "AGENTS.md 功能范围 'VoIP 暂不支持…待畅连'；reference design D15 与 changes/specs/call-object-model 保留处置；student design D10、Open Question 1 与 changes/specs/call-object-model REMOVED VoIP；源码 services/call/src/voip_call.cpp、call_control_manager.cpp HangUpVoipCall"
+    },
+    {
+      "id": "baseline_coverage/service-entry-behaviors-missing",
+      "dimension": "baseline_coverage",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "学生基线与 delta 均未覆盖 CallManagerService 的三组真实行为：拨号特殊码 InputDialerSpecialCode（supportSpecialCode_ 匹配 + COMMON_EVENT_SPECIAL_CODE 广播）、SendCallUiEvent 服务级事件路由（dealCeliaCallEvent/HandleDisplaySpecifiedCallPage 等）、拨号成功后语音信箱计数清零（GetVoiceMailNumber/SetVoiceMailCount）。参考对三者均有基线需求、delta 处置与 gtest。",
+      "evidence": "telephony_call_manager/services/call_manager_service/src/call_manager_service.cpp:329-331/1466-1483/1694；reference changes/specs/call-manager-service/spec.md（'拨号后语音信箱计数清零'/'拨号特殊码'/'通话界面事件'）"
+    },
+    {
+      "id": "baseline_coverage/incoming-rejection-oobe-dnd-missing",
+      "dimension": "baseline_coverage",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "学生仅在场景 WHEN 里点名 ShouldRejectIncomingCall，未描述其 OOBE 拒接语义（GetDevProvisioned/user_setup_complete 经 settingsdata）、免打扰拒接（NotificationHelper::IsNeedSilentInDoNotDisturbMode）与一号双终端判定（IsFromTheSameNumberAtTheSameTime→ModifyEsimType）；参考对三者均有需求、场景与 liteOS 落点（参数桩/不调用默认不拒接/不迁移）。",
+      "evidence": "telephony_call_manager/.../call_status_manager.cpp:1801-1826/2019-2026；reference specs/call-status-manager/spec.md:27-30 与 changes/specs/call-status-manager；student specs/call-status-management/spec.md 仅场景级提及"
+    },
+    {
+      "id": "baseline_coverage/build-system-capability-missing",
+      "dimension": "baseline_coverage",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "学生没有与 build-and-feature-flags 对应的基线能力：callmanager.gni 组件/守卫块、bundle.json inner_kits/component.features、BUILD.gn declare_args、sa_profile、测试 target 重组均无需求数据承载，构建侧决策只散落在 design D9/D13 与 tasks；参考有 6 需求基线 + 5 需求 delta 系统化覆盖。",
+      "evidence": "reference specs/build-and-feature-flags 与 changes/specs/build-and-feature-flags；metrics 能力清单（only student: js-ets-cj-binding，无对应构建能力）；student design D13/tasks 5.1 仅设计级"
+    },
+    {
+      "id": "trim_scope/crs-video-ring-chain-kept",
+      "dimension": "trim_scope",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "学生 proposal 宣称视频彩振不迁移，但 audio-management delta 仍保留 Sound/PlaySoundtone 彩振播放链（仅打 [audio] todo、只移除分布式 sink 条件）；参考显式 REMOVED 彩振链，并在铃声播放中删除 CRS 分支与 MuteNetWorkRingTone/NeedPlayVideoRing 联动，与裁剪声明自洽。",
+      "evidence": "student changes/specs/audio-management/spec.md 'Sound 播放'（88-96）；reference changes/specs/audio-control-manager REMOVED '视频彩振'；源码 audio_control_manager.cpp:172/268/492/834/1396"
+    },
+    {
+      "id": "code_level_design/removed-feature-ripple-inconsistent",
+      "dimension": "code_level_design",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "删除视频/VoIP 后涟漪处理不闭环：telephony-interaction delta 仍保留 HandleVoipEventReportInfo 转发和依赖视频升级的等待音触发链（ReceiveUpdateCallMediaModeRequest/ShouldStopWaitingTone），但这些链路的消费方/触发方已被删除，形成悬空转发与死链；参考统一以 REMOVED 收口或标注不可达。",
+      "evidence": "student changes/specs/telephony-interaction/spec.md vs changes/specs/call-object-model、call-status-management（VoIP/视频状态机 REMOVED）；reference changes/specs/telephony-interaction 的完整收口"
+    },
+    {
+      "id": "code_level_design/cellular-call-connection-contradiction",
+      "dimension": "code_level_design",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "CellularCallConnection 的去留在 delta 间自相矛盾：call-object-model/call-setting 称调用点直连 CellularCallClient::GetInstance() 且 'CellularCallConnection MUST NOT 保留'，而 call-manager-service/telephony-interaction 又保留其为打桩适配器（含 Init）；client-framework delta 还在 D2 删除 call_manager_proxy.cpp 后仍以 CallManagerProxy::RegisterCallBack 为主语。参考统一保留适配器并明确 client 直连边界。",
+      "evidence": "student changes/specs/call-object-model、call-setting vs changes/specs/call-manager-service、telephony-interaction、client-framework/spec.md:17；设计侧 design D6 与 D2 删除表"
+    },
+    {
+      "id": "trim_scope/state-report-dual-path-converged",
+      "dimension": "trim_scope",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "学生把状态上报的全局 UpdateCallState→ReportCallState + slotId UpdateCallStateForSlotId→ReportCallStateForCallId 双路收敛为仅 slotId 单路，属无依据的行为变更（AGENTS 要求逻辑与 HMOS 保持一致）；参考保留双路并用 TelephonyStateRegistryClient 同名桩承载。",
+      "evidence": "telephony_call_manager/services/call_report/src/call_state_report_proxy.cpp:52-138（双路并存）；student changes/specs/call-report/spec.md:45-54；reference changes/specs/call-report"
+    },
+    {
+      "id": "trim_scope/dead-esim-bt-branch-kept",
+      "dimension": "trim_scope",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "proposal 称 ESIM 不迁移，但 call-status-management delta 仍保留 IsTwoCallBtCallAndESIM/IsTwoCallESIMCall（BT 与 ESIM 均在不支持清单中）死条件及其 AutoAnswerSecondCall 分支；同时一号双终端判定链又整体缺席而非显式 REMOVED，裁剪执行与声明不一致。",
+      "evidence": "student changes/specs/call-status-management/spec.md:57-62 + proposal.md:11；源码 call_status_manager.cpp NOT_SUPPORT_MULTICALL 分支；reference changes/specs/call-status-manager 对应删除"
+    },
+    {
+      "id": "code_level_design/auto-start-optimize-misclassified",
+      "dimension": "code_level_design",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "学生 D9 宏表称 CALL_MANAGER_AUTO_START_OPTIMIZE '基线未出现（v6.0 零引用）'，实际 frameworks/native/BUILD.gn(rk3568)、call_manager_proxy.h/.cpp、zero_branch6_test.cpp、sa_profile/BUILD.gn 共 12 处引用；参考正确将其归入不支持宏删除。结果殊途同归（proxy 随 D2 删除）但事实判定错误。",
+      "evidence": "telephony_call_manager/frameworks/native/BUILD.gn:97、frameworks/native/include/call_manager_proxy.h、sa_profile/BUILD.gn:17；student design D9"
+    },
+    {
+      "id": "testability_grounding/ecc-gtest-missing",
+      "dimension": "testability_grounding",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "学生把 ECC（EccDialPolicy 卫星分支删除、紧急呼叫强制去静音等）标为需人工复核，但 tasks 中没有任何 ECC 专属 gtest；参考有 DialEmergencyNumber_BypassesMulticallLimitButChecksSimState、SetMute_ForcedOffDuringEmergencyCall 等成组用例，对安全相关行为形成回归保护。",
+      "evidence": "student tasks.md 9.2（仅复核标记、无用例）+ changes/specs/telephony-interaction ECC 需求；reference tasks 7.x ECC 用例组"
+    },
+    {
+      "id": "readability_rules/scenario-duplication",
+      "dimension": "readability_rules",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "多个 delta 出现成对近似重复场景（如 '断话触发组包不落库/蜂窝通话落库'、'超限清理/超限清理判定'、未接来电广播的双组包场景等），把场景数撑到 374（参考 143），稀释语义密度、提高阅读与维护成本。",
+      "evidence": "student changes/specs/call-state-observer/spec.md、changes/specs/call-object-model/spec.md 重复场景对；metrics delta scenarios 374 vs 143"
+    },
+    {
+      "id": "external_deps/locks-and-notification-files-kept",
+      "dimension": "external_deps",
+      "severity": "low",
+      "tag": "student_defensible",
+      "summary": "学生保留 std::mutex 并给 ffrt::mutex 留空桩、保留通知观察者文件与 IncomingCallWakeup 并在调用点打 [notification]/[powerLock] todo；参考则删除锁与通知文件、调用点改空操作骨架。两种读法分别对应 AGENTS '单线程不需要加锁' 与 '暂不调用 todo 占位、逻辑保留' 的字面要求，均可辩护，不扣分。",
+      "evidence": "AGENTS.md 外部依赖处理（锁/通知/功耗锁条目）；student design D5/D7 vs reference design D12 + tasks 2.4"
+    },
+    {
+      "id": "baseline_coverage/capability-split-and-runtime-home",
+      "dimension": "baseline_coverage",
+      "severity": "low",
+      "tag": "student_defensible",
+      "summary": "学生把 js/ets/cj 从客户端框架拆成独立能力、且不新增 liteos-runtime 能力（直调/todo 格式/桩目录/DSDS=0/参数桩等运行时约定分散在各 delta 的 Process/Outcome 与 design 中）；与参考的合并写法和新 ADDED 能力在内容上等价，属于可辩护的组织选择。",
+      "evidence": "metrics 能力清单（only student: js-ets-cj-binding；student delta ADDED=0）；reference ADDED liteos-runtime 7 需求"
+    },
+    {
+      "id": "code_level_design/reference-misses-audio-support-macro",
+      "dimension": "code_level_design",
+      "severity": "low",
+      "tag": "reference_questionable",
+      "summary": "参考的宏退役扫描未覆盖 call_status_manager.cpp 中真实存在的守卫宏 AUDIO_SUPPORT（两处 #ifdef），只处理了 tone.cpp 的 ABILITY_AUDIO_SUPPORT；学生正确列出两处并按未定义清理。建议人工复核参考宏表完整性。",
+      "evidence": "telephony_call_manager/core_service/../call_status_manager.cpp:880/1147；reference design.md 宏表（无 AUDIO_SUPPORT）；student design D9 + tasks 5.2"
+    },
+    {
+      "id": "trim_scope/reference-dnd-mechanism-mislabel",
+      "dimension": "trim_scope",
+      "severity": "low",
+      "tag": "reference_questionable",
+      "summary": "参考把免打扰拒接写成 '免打扰 DataShare 查询调用点占位'，实际调用 NotificationHelper::IsNeedSilentInDoNotDisturbMode（通知框架接口而非 DataShare）；处置结论（不调用、默认不拒接）正确，机制标注有误，建议人工更正。",
+      "evidence": "reference changes/specs/call-status-manager/spec.md；telephony_call_manager/.../call_status_manager.cpp:2019-2026"
+    },
+    {
+      "id": "trim_scope/reference-power-notification-file-deletion",
+      "dimension": "trim_scope",
+      "severity": "low",
+      "tag": "reference_questionable",
+      "summary": "参考直接删除 incoming_call_wake_up.cpp/.h、incoming_call_notification.cpp/.h 等文件，但 AGENTS 将 ABILITY_POWER_SUPPORT 列为支持宏且通知/功耗按 '暂不调用、todo 占位' 处理——参考的文件级删除比字面规则更激进；学生的 '保留文件+todo' 读法同样有据。建议人工定夺文件级删除与保留的尺度。",
+      "evidence": "AGENTS.md 特性宏支持范围（ABILITY_POWER_SUPPORT）与外部依赖处理（通知/功耗锁）；reference design D12 + tasks 2.4 vs student design D7"
+    }
+  ],
+  "total": 71.0,
+  "weights": {
+    "baseline_coverage": 20,
+    "trim_scope": 25,
+    "external_deps": 15,
+    "code_level_design": 15,
+    "testability_grounding": 15,
+    "readability_rules": 10
+  }
+}

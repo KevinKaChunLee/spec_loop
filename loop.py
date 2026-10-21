@@ -46,7 +46,7 @@ DIMENSIONS = list(CFG["rubric_weights"])
 SEVERITIES = {"high", "medium", "low"}
 TAGS = {"student_wrong", "student_defensible", "reference_questionable"}
 CSV_FIELDS = ["iter", "sample", "total", *DIMENSIONS, "gaps_student_wrong", "gaps_high",
-              "validate_ok", "leak_ok", "no_code_ok", "hmos_coverage", "subagents",
+              "validate_ok", "leak_ok", "no_code_ok", "hmos_coverage", "subagents", "nudges",
               "input_tokens", "output_tokens", "duration_min", "model"]
 
 REVISE_PROMPT = """A human reviewer read the OpenSpec you wrote in this workspace and asks for the changes below.
@@ -161,6 +161,36 @@ def trajviz_stage(out_dir: Path, label: str, ws: Path, title: str) -> None:
         log(f"  trajviz: {err}")
 
 
+def missing_deliverables(ws: Path) -> list[str]:
+    """What an oracle or student workspace still lacks against the task's completion criteria."""
+    os_root = ws / "openspec"
+    name = CFG["change_name"]
+    change = os_root / "changes" / name
+    pre = set(CFG.get("preexisting_specs", []))
+    missing = []
+    if not any(p.parent.name not in pre for p in (os_root / "specs").glob("*/spec.md")):
+        missing.append("baseline specs: openspec/specs/<capability-id>/spec.md")
+    missing += [f"openspec/changes/{name}/{f}" for f in ("proposal.md", "design.md", "tasks.md")
+                if not (change / f).exists()]
+    if not any((change / "specs").glob("*/spec.md")):
+        missing.append(f"delta specs: openspec/changes/{name}/specs/<capability-id>/spec.md")
+    if not missing:
+        v = guards.validate(ws)
+        if not v["ok"]:
+            issues = [f"{f['id']}: {i}" for f in v.get("failed", []) for i in f["issues"][:2]]
+            missing.append("`openspec validate --all --strict` fails: " +
+                           ("; ".join(issues[:5]) or str(v.get("error", ""))[:300]))
+    return missing
+
+
+def spec_run(state: dict, role: str, ws: Path, prompt_text: str, out_dir: Path, label: str,
+             resume_session: str | None = None) -> dict:
+    return run_agent(model=model_for(state, role), ws=ws, prompt=prompt_text, out_dir=out_dir,
+                     label=label, timeout_min=timeout_for(state, role), resume_session=resume_session,
+                     completion_check=lambda: missing_deliverables(ws),
+                     max_nudges=CFG.get("completion_nudges", 0))
+
+
 def run_labels(out_dir: Path) -> list[str]:
     return sorted(p.name.removesuffix(".run.json") for p in out_dir.glob("*.run.json"))
 
@@ -271,7 +301,6 @@ def cmd_oracle(args) -> None:
     if state.get("frozen"):
         die("the oracle spec is frozen; it cannot be regenerated or revised")
     od = oracle_dir(args.run)
-    om = model_for(state, "oracle")
     ostate = state["oracle"]
     feedback = args.revise
     if args.revise_file:
@@ -280,8 +309,7 @@ def cmd_oracle(args) -> None:
     if feedback is None:
         ws = workspace.build(CFG, args.run, "oracle")
         labels = ["trajectory"]
-        meta = run_agent(model=om, ws=ws, prompt=task_text(state), out_dir=od, label="trajectory",
-                         timeout_min=timeout_for(state, "oracle"))
+        meta = spec_run(state, "oracle", ws, task_text(state), od, "trajectory")
     else:
         if ostate.get("status") in (None, "pending") or not ostate.get("session_id"):
             die("there is no oracle session to revise; run `loop.py oracle` first")
@@ -293,14 +321,15 @@ def cmd_oracle(args) -> None:
         labels = ostate.get("labels", ["trajectory"])
         label = f"revise{sum(1 for x in labels if x.startswith('revise')) + 1}"
         labels = [*labels, label]
-        meta = run_agent(model=om, ws=ws, prompt=REVISE_PROMPT.format(feedback=feedback.strip()),
-                         out_dir=od, label=label, timeout_min=timeout_for(state, "oracle"),
-                         resume_session=ostate["session_id"])
+        meta = spec_run(state, "oracle", ws, REVISE_PROMPT.format(feedback=feedback.strip()), od,
+                        label, resume_session=ostate["session_id"])
 
     result = post_spec_stage(args.run, ws, od, labels, "oracle")
     fatal = []
     if not meta["ok"]:
         fatal.append("the agent run did not finish cleanly (see the .run.json)")
+    if meta["incomplete"]:
+        fatal.append("deliverables missing after nudges: " + "; ".join(meta["incomplete"]))
     if not result["no_code"]["ok"]:
         fatal.append("files were written outside openspec/")
     if not result["leak"]["ok"]:
@@ -376,17 +405,18 @@ def run_student_sample(run_id: str, state: dict, k: int, sample: int, samples: i
     attempts = CFG.get("student_retries", 0) + 1
     for attempt in range(1, attempts + 1):
         ws = workspace.build(CFG, run_id, f"iter-{k:02d}-student{sfx}")
-        meta = run_agent(model=model_for(state, "student"), ws=ws, prompt=text, out_dir=out_dir,
-                         label="trajectory", timeout_min=timeout_for(state, "student"))
+        meta = spec_run(state, "student", ws, text, out_dir, "trajectory")
         result = post_spec_stage(run_id, ws, out_dir, ["trajectory"], f"student iter {k}{sfx}")
-        valid = meta["ok"] and result["leak"]["ok"]
+        valid = meta["ok"] and result["leak"]["ok"] and not meta["incomplete"]
         if valid or attempt == attempts:
             break
         log(f"student iter {k}{sfx}: invalid run (agent ok={meta['ok']}, "
-            f"leak-free={result['leak']['ok']}); retrying ({attempt}/{attempts - 1})")
+            f"leak-free={result['leak']['ok']}, missing={meta['incomplete']}); "
+            f"retrying ({attempt}/{attempts - 1})")
     return {"sample": sfx or "-", "valid": valid, "agent_ok": meta["ok"],
             "leak_ok": result["leak"]["ok"], "no_code_ok": result["no_code"]["ok"],
-            "validate_ok": result["validate"]["ok"], "session_id": meta.get("session_id"),
+            "validate_ok": result["validate"]["ok"], "nudges": meta["nudges"],
+            "incomplete": meta["incomplete"], "session_id": meta.get("session_id"),
             "workspace": str(ws), "attempts": attempt}
 
 
@@ -534,6 +564,7 @@ def run_compare_sample(run_id: str, state: dict, k: int, sample: int, samples: i
            "no_code_ok": stu_guards.get("no_code", {}).get("ok"),
            "hmos_coverage": stu_stats.get("hmos_coverage"),
            "subagents": stu_stats.get("subagents"),
+           "nudges": read_json(stu_dir / "trajectory.run.json", {}).get("nudges", 0),
            "input_tokens": usage.get("inputTokens"), "output_tokens": usage.get("outputTokens"),
            "duration_min": round((stu_stats.get("duration_ms") or 0) / 60000, 1),
            "model": stu_stats.get("model_reported")}
@@ -689,6 +720,19 @@ def cmd_iterate(args) -> None:
     log(f"finished iterations {args.start}..{last}")
 
 
+def cmd_reset(args) -> None:
+    state = load_state(args.run)
+    gone = sorted(int(k) for k in state["iters"] if int(k) >= args.from_iter)
+    for k in gone:
+        remove_tree(iter_dir(args.run, k))
+        del state["iters"][str(k)]
+    save_state(args.run, state)
+    csv_path = run_dir(args.run) / "scores.csv"
+    if csv_path.exists():
+        write_csv(csv_path, [r for r in read_csv(csv_path) if int(r["iter"]) < args.from_iter])
+    log(f"discarded iterations {gone or 'none'} of run '{args.run}'")
+
+
 def cmd_status(args) -> None:
     state = load_state(args.run)
     o = state["oracle"]
@@ -817,6 +861,11 @@ def main() -> None:
     p.add_argument("--start", type=int, default=0)
     p.add_argument("--samples", type=int, default=1)
     p.set_defaults(fn=cmd_iterate)
+
+    p = sub.add_parser("reset", help="discard iterations K and later (outputs, state, score rows)")
+    p.add_argument("--run", required=True)
+    p.add_argument("--from-iter", type=int, required=True)
+    p.set_defaults(fn=cmd_reset)
 
     p = sub.add_parser("status", help="show the state and score history of a run")
     p.add_argument("--run", required=True)

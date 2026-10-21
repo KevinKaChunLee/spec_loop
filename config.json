@@ -28,6 +28,7 @@
   "iterations": 3,
   "plateau": 2,
   "student_retries": 1,
+  "completion_nudges": 2,
   "judge_fix_retries": 1,
   "synth_fix_retries": 2,
 

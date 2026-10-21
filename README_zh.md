@@ -164,6 +164,7 @@ python3 loop.py trajviz --run r1 --stage oracle
 | `timeouts_min` | 每个角色的运行时间上限 |
 | `iterations`、`plateau` | 默认轮数；连续多少轮无提升即停止 |
 | `student_retries`、`judge_fix_retries`、`synth_fix_retries` | 无效 student 运行、无效 score.json、被拒 playbook 的重试次数 |
+| `completion_nudges` | oracle 或 student 的一轮在交付物尚未写完或校验未通过时就结束，会话最多被恢复的次数 |
 | `rubric_weights` | 各评分维度的权重；键名必须与 `rubric.md` 一致 |
 | `playbook_limits` | 行数上限、n-gram 长度、抄袭段落限制、参考能力 id 的最大占比 |
 | `trajviz` | `bin`（agent-trajviz 路径）、`html_report`、`output_chars`（每次工具输出的截断长度）、`synth_views`（提供给 synthesizer 的视图） |
@@ -185,6 +186,7 @@ python3 loop.py trajviz --run r1 --stage oracle
 | `compare --run R --iter K` | 评审某一轮 student 的 spec |
 | `synthesize --run R --iter K` | 为第 K+1 轮写 playbook |
 | `iterate --run R [--iters N] [--start K] [--samples M]` | 反复执行 student、compare 和 synthesize |
+| `reset --run R --from-iter K` | 丢弃第 K 轮及之后的轮次（产出、状态、分数行），之后 `iterate` 会重做 |
 | `status --run R` | oracle 状态、每次 student 运行是否有效、分数 |
 | `trajviz --run R [--stage S]` | （重新）为 TrajViz 导出运行记录 |
 | `smoke --run R` | 端到端冒烟测试 |
@@ -194,6 +196,8 @@ python3 loop.py trajviz --run r1 --stage oracle
 ## 常见问题
 
 **启动时报 `Cannot use this model` 或 `HTTP 502`。** GLM 5.3 的 id（`glm-5p3-max`、`glm-5p3-high`）可以使用，但 `agent models` 不会列出它们，CLI 有时会在启动时拒绝。runner 会重试启动失败（最多 4 次，间隔 30 秒），并在运行中途断开时恢复同一会话继续（最多 3 次）。始终没有报告预期模型的运行判为失败。
+
+**agent 还没写任何东西就结束了这一轮。** 无界面运行时，只要模型的回复里没有工具调用，这一轮就会结束，例如模型把计划或给子 agent 的指令写成了文字。对于 oracle 和 student 的运行，runner 会随即检查交付物（baseline 规格、change 的四个产出物、`openspec validate --strict`），并用一句简短的"尚未完成，仍缺少：……"恢复同一会话，最多 `completion_nudges` 次。次数记录在运行元数据和 `scores.csv` 的 `nudges` 中。仍未完成的 student 运行判为无效，并从头重试。
 
 **1M / 200k 上下文的区分并未生效。** 对 GLM，CLI 拒绝 `[context=1m]` 这类方括号参数，所以 oracle 和 student 只在推理强度上有区别。每次运行都会记录 token 用量。
 

@@ -2,7 +2,7 @@
   "run": "r1",
   "smoke": false,
   "oracle": {
-    "status": "awaiting-review",
+    "status": "frozen",
     "problems": [],
     "session_id": "bb18212c-bbb9-4233-9f12-85ccb3054f61",
     "workspace": "/home/kevin/Work/spec-loop-ws/r1/oracle",
@@ -11,7 +11,7 @@
     ],
     "validate_ok": true
   },
-  "frozen": false,
+  "frozen": true,
   "iters": {
     "0": {
       "samples": 1,
@@ -27,7 +27,23 @@
           "workspace": "/home/kevin/Work/spec-loop-ws/r1/iter-00-student",
           "attempts": 1
         }
-      ]
+      ],
+      "compare": [
+        {
+          "sample": "-",
+          "ok": true,
+          "total": 71.0
+        }
+      ],
+      "score": 71.0,
+      "playbook": {
+        "ok": true,
+        "problems": [],
+        "from_sample": "-",
+        "lines": 137,
+        "copied_chars": 76
+      }
     }
-  }
+  },
+  "frozen_at": "2026-10-21T15:11:12+0800"
 }

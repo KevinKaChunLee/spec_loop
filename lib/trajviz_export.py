@@ -14,7 +14,7 @@ import subprocess
 import time
 from pathlib import Path
 
-from .stream import bookends, content_text, parse_events, tool_call_key
+from .stream import bookends, content_text, parse_events, tool_call_key, usage_total
 
 TOOL_NAMES = {
     "read": "Read", "shell": "Shell", "edit": "StrReplace", "write": "Write", "delete": "Delete",
@@ -297,7 +297,7 @@ def convert(traj: Path, ws: Path, transcripts: Path | None, title: str, output_c
         "model": model, "modelConfig": {"modelName": model},
         "time": {"created": first_ts, "updated": last_ts},
         "summary": {"additions": additions, "deletions": deletions, "files": len(files)},
-        "usageData": result.get("usage", {}),
+        "usageData": usage_total(events),
         "subagentComposerIds": [c for c, _ in children],
     }
     return {

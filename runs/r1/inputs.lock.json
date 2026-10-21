@@ -46,6 +46,7 @@
   "smoke": false,
   "notes": [
     "2026-10-21 10:55: synthesize.md and config.json gained TrajViz inputs before any synthesize/compare stage of this run used them.",
-    "2026-10-21 11:55: rubric.md no longer pre-decides VoIP (defers to the reviewed reference); no compare stage had run."
+    "2026-10-21 11:55: rubric.md no longer pre-decides VoIP (defers to the reviewed reference); no compare stage had run.",
+    "2026-10-21 15:58: iteration 1 discarded (student ended its turn without writing files; harness accepted it). Added completion nudges (completion_nudges=2) for oracle and student runs; config.json changed accordingly."
   ]
 }

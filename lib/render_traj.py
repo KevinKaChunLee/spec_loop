@@ -8,7 +8,7 @@ from collections import Counter
 from pathlib import Path
 
 from .common import write_json
-from .stream import bookends, content_text, parse_events, tool_call_key
+from .stream import bookends, content_text, parse_events, tool_call_key, usage_total
 
 PATH_KEYS = ("path", "file_path", "target_file", "targetFile", "filePath")
 SHELL_READ_RE = re.compile(r"(?:^|[;&|(]\s*|\s)(cat|head|tail|sed|nl|less|more|awk|bat)\s")
@@ -284,7 +284,7 @@ def render(traj_path: Path, ws: Path, out_md: Path, out_stats: Path, cfg: dict,
     all_hmos = main_hmos | {p for p in sub_reads if p.startswith(hmos_prefix)
                             and p.endswith((".cpp", ".h"))}
 
-    usage = result.get("usage", {})
+    usage = usage_total(events)
     stats = {
         "model_reported": init.get("model"),
         "session_id": init.get("session_id"),

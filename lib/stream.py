@@ -37,6 +37,17 @@ def content_text(ev: dict, block_type: str | None = None) -> str:
                    if isinstance(b, dict) and (block_type is None or b.get("type") == block_type))
 
 
+def usage_total(events) -> dict:
+    """Token usage summed over every `result` event; a resumed run has one result per segment."""
+    total: dict = {}
+    for e in events:
+        if e.get("type") == "result":
+            for k, v in (e.get("usage") or {}).items():
+                if isinstance(v, (int, float)):
+                    total[k] = total.get(k, 0) + v
+    return total
+
+
 def bookends(events: list[dict]) -> tuple[dict, dict]:
     """The first system event and the last result event of a stream."""
     init = next((e for e in events if e.get("type") == "system"), {})
