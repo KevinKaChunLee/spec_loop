@@ -12,8 +12,9 @@ from .render_traj import tool_calls, transcript_tool_uses
 from .runner import _parse_events
 from .workspace import changed_paths
 
-ABS_PATH_RE = re.compile(r"(?:~|/)[^\s'\"`<>|;&(){}*?,]+")
-REL_UP_RE = re.compile(r"(?:^|[\s'\"=:(])(\.\.(?:/[^\s'\"`<>|;&(){}*?,]*)?)(?=$|[\s'\"`;|&)])")
+_PATH_CHARS = r"[^\s'\"`<>|;&(){}*?,\u3000-\u303f\u4e00-\u9fff\uff00-\uffef]"
+ABS_PATH_RE = re.compile(rf"(?:~|/){_PATH_CHARS}+")
+REL_UP_RE = re.compile(rf"(?:^|[\s'\"=:(])(\.\.(?:/{_PATH_CHARS}*)?)(?=$|[\s'\"`;|&)]|[\u3000-\u303f\uff00-\uffef])")
 
 
 def no_code(ws: Path, allowed_prefixes: tuple[str, ...]) -> dict:
