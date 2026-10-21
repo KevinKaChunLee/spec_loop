@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 import json
 import os
 import re
@@ -9,7 +10,7 @@ import subprocess
 from pathlib import Path
 
 from .render_traj import tool_calls, transcript_tool_uses
-from .runner import _parse_events
+from .stream import parse_events
 from .workspace import changed_paths
 
 _PATH_CHARS = r"[^\s'\"`<>|;&(){}*?,\u3000-\u303f\u4e00-\u9fff\uff00-\uffef]"
@@ -48,19 +49,19 @@ CONTENT_KEYS = {"streamContent", "content", "contents", "new_string", "old_strin
                 "newString", "oldString", "fileText", "text", "todos", "parsingResult"}
 
 
-def _strings(obj):
+def _strings(obj, skip=CONTENT_KEYS):
     if isinstance(obj, str):
         yield obj
     elif isinstance(obj, dict):
         for k, v in obj.items():
-            if k not in CONTENT_KEYS:
-                yield from _strings(v)
+            if k not in skip:
+                yield from _strings(v, skip)
     elif isinstance(obj, list):
         for v in obj:
-            yield from _strings(v)
+            yield from _strings(v, skip)
 
 
-def _forbidden_reason(path: str, ws: Path, cfg: dict, run_root: Path, own_project: str | None,
+def _forbidden_reason(path: str, ws: Path, cfg: dict, own_project: str | None,
                       spec_loop_root: Path) -> tuple[str, str] | None:
     """Return (severity, reason) for a path the agent must not touch, else None."""
     p = os.path.normpath(os.path.expanduser(path))
@@ -89,26 +90,26 @@ def _forbidden_reason(path: str, ws: Path, cfg: dict, run_root: Path, own_projec
 
 
 def leak_check(cfg: dict, ws: Path, traj: Path, transcripts: Path | None,
-               own_project: str | None, spec_loop_root: Path, run_root: Path) -> dict:
+               own_project: str | None, spec_loop_root: Path) -> dict:
     violations, warnings = [], []
     seen = set()
+    markers = (str(spec_loop_root / "runs"), str(Path(cfg["repo"]).parent))
 
     def scan(where: str, tool: str, args, result=None, cwd: str = ""):
-        texts = list(_strings(args))
-        for text in texts:
+        for text in _strings(args):
             cands = ABS_PATH_RE.findall(text)
             base = Path(cwd) if cwd.startswith("/") else ws
             cands += [str(base / m) for m in REL_UP_RE.findall(text)]
             for c in cands:
-                r = _forbidden_reason(c, ws, cfg, run_root, own_project, spec_loop_root)
+                r = _forbidden_reason(c, ws, cfg, own_project, spec_loop_root)
                 if r and (r[1], c, tool) not in seen:
                     seen.add((r[1], c, tool))
                     entry = {"where": where, "tool": tool, "path": c[:300], "reason": r[1]}
                     (violations if r[0] == "violation" else warnings).append(entry)
         if result is not None:
-            blob = json.dumps(result, ensure_ascii=False)
-            for marker in (str(spec_loop_root / "runs"), str(Path(cfg["repo"]).parent)):
-                if marker in blob:
+            result_strings = list(_strings(result, skip=frozenset()))
+            for marker in markers:
+                if any(marker in s for s in result_strings):
                     entry = {"where": where, "tool": tool, "path": marker,
                              "reason": "tool output exposed a forbidden path"}
                     if (entry["reason"], marker, tool) not in seen:
@@ -117,7 +118,7 @@ def leak_check(cfg: dict, ws: Path, traj: Path, transcripts: Path | None,
         if "web" in tool.lower():
             warnings.append({"where": where, "tool": tool, "path": "", "reason": "web tool used"})
 
-    for kind, args, result in tool_calls(_parse_events(traj)):
+    for kind, args, result in tool_calls(parse_events(traj)):
         cwd = args.get("workingDirectory", "") if isinstance(args, dict) else ""
         scan("stream", kind, args, result, cwd)
     for agent, name, inp in transcript_tool_uses(transcripts):
@@ -132,10 +133,10 @@ def _norm(text: str) -> str:
     return _NORM_RE.sub("", text)
 
 
-def overlap(playbook: str, reference: str, allowed: str, n: int) -> list[str]:
+def overlap(playbook: str, reference: str, allowed_norm: str, n: int) -> list[str]:
     """Spans of the playbook (normalized) that also occur in the reference spec and are
-    not explained by the shared inputs (`allowed`)."""
-    pb, ref, ok = _norm(playbook), _norm(reference), _norm(allowed)
+    not explained by the shared inputs (`allowed_norm`, already normalized)."""
+    pb, ref = _norm(playbook), _norm(reference)
     if len(pb) < n or len(ref) < n:
         return []
     grams = {ref[i:i + n] for i in range(len(ref) - n + 1)}
@@ -151,11 +152,24 @@ def overlap(playbook: str, reference: str, allowed: str, n: int) -> list[str]:
         elif not c and start is not None:
             spans.append(pb[start:i])
             start = None
-    return [s for s in spans if s not in ok]
+    return [s for s in spans if s not in allowed_norm]
+
+
+@functools.lru_cache(maxsize=4)
+def _allowed_corpus(base: Path, hmos_dir: str, task_text: str) -> str:
+    """Normalized text of the shared inputs; a playbook may repeat anything found here."""
+    parts = [(base / rel).read_text(encoding="utf-8", errors="replace")
+             for rel in ("AGENTS.md", "openspec/config.yaml") if (base / rel).exists()]
+    entries = list((base / hmos_dir).rglob("*"))
+    parts.append("\n".join(p.relative_to(base).as_posix() for p in entries))
+    parts += [p.read_text(encoding="utf-8", errors="replace") for p in entries
+              if p.is_file() and p.suffix in (".cpp", ".h", ".gn", ".gni", ".json")]
+    parts.append(task_text)
+    return _norm("\n".join(parts))
 
 
 def check_playbook(cfg: dict, playbook_path: Path, reference_root: Path, base: Path,
-                   reference_caps: list[str]) -> dict:
+                   reference_caps: list[str], task_text: str) -> dict:
     lim = cfg["playbook_limits"]
     problems = []
     if not playbook_path.exists():
@@ -168,19 +182,8 @@ def check_playbook(cfg: dict, playbook_path: Path, reference_root: Path, base: P
     ref_text = "\n".join(p.read_text(encoding="utf-8", errors="replace")
                          for p in sorted((reference_root / "openspec").rglob("*.md"))
                          if "pc-test-harness" not in p.parts and "setup-pc-test-env" not in p.parts)
-    allowed_parts = []
-    for rel in ("AGENTS.md", "openspec/config.yaml"):
-        if (base / rel).exists():
-            allowed_parts.append((base / rel).read_text(encoding="utf-8", errors="replace"))
-    hmos = base / cfg["hmos_dir"]
-    allowed_parts.append("\n".join(p.relative_to(base).as_posix() for p in hmos.rglob("*")))
-    for p in hmos.rglob("*"):
-        if p.is_file() and p.suffix in (".cpp", ".h", ".gn", ".gni", ".json"):
-            allowed_parts.append(p.read_text(encoding="utf-8", errors="replace"))
-    task = Path(__file__).resolve().parents[1] / "prompts" / "task.md"
-    allowed_parts.append(task.read_text(encoding="utf-8"))
-
-    spans = overlap(text, ref_text, "\n".join(allowed_parts), lim["ngram_chars"])
+    allowed = _allowed_corpus(base.resolve(), cfg["hmos_dir"], task_text)
+    spans = overlap(text, ref_text, allowed, lim["ngram_chars"])
     total = sum(len(s) for s in spans)
     long_spans = [s for s in spans if len(s) >= lim["max_span_chars"]]
     if long_spans:

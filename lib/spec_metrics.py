@@ -74,7 +74,7 @@ def _classify(token: str):
     parts = t.split("/")
     if len(parts) > 1 and all(IDENT_FULL.fullmatch(p) for p in parts) and "." not in t:
         if any(_code_like(p) for p in parts):
-            return "idents", t
+            return "ident", t
         if not t.startswith("//") and not any(p[:1].islower() for p in parts if p):
             return None
     if "/" in t or t.endswith(PATH_EXT):
@@ -117,8 +117,9 @@ def _path_resolves(t: str, base: Path, hmos_dir: str, index: dict) -> bool:
 
 
 def _ident_resolves(t: str, index: dict) -> bool:
-    known = index["idents"] | index.get("agents_idents", set())
-    return all(part.lstrip("~") in known for part in t.replace("/", "::").split("::") if part)
+    agents = index.get("agents_idents", set())
+    return all(part.lstrip("~") in index["idents"] or part.lstrip("~") in agents
+               for part in t.replace("/", "::").split("::") if part)
 
 
 def _md_files(root: Path):

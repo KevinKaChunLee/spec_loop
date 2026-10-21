@@ -81,10 +81,15 @@ def save_state(run_id: str, state: dict) -> None:
     write_json(run_dir(run_id) / "state.json", state)
 
 
+def remove_tree(path: Path) -> None:
+    """Delete a directory tree, including read-only files such as a frozen spec copy."""
+    if path.exists():
+        make_writable(path)
+        shutil.rmtree(path)
+
+
 def copy_tree(src: Path, dst: Path) -> None:
-    if dst.exists():
-        make_writable(dst)
-        shutil.rmtree(dst)
+    remove_tree(dst)
     shutil.copytree(src, dst, symlinks=True)
 
 
@@ -105,11 +110,9 @@ def make_readonly(path: Path) -> None:
             os.chmod(p, mode & ~(stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH))
 
 
-def render_template(text: str, **values: str) -> str:
+def prompt(name: str, **values: str) -> str:
+    """Read prompts/<name> and substitute {{key}} placeholders."""
+    text = (PROMPTS / name).read_text(encoding="utf-8")
     for key, value in values.items():
         text = text.replace("{{" + key + "}}", value)
     return text
-
-
-def prompt(name: str, **values: str) -> str:
-    return render_template((PROMPTS / name).read_text(encoding="utf-8"), **values)

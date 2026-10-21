@@ -6,7 +6,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from .common import git, log, make_writable
+from .common import git, log, remove_tree
 
 GIT_ID = ["-c", "user.name=spec-loop", "-c", "user.email=spec-loop@localhost"]
 
@@ -15,10 +15,10 @@ def ws_path(cfg: dict, run_id: str, stage: str) -> Path:
     return Path(cfg["workspace_root"]) / run_id / stage
 
 
-def extract(cfg: dict, dest: Path, paths: list[str] | None = None) -> None:
-    """Extract the tree at base_sha (optionally limited to `paths`) into dest."""
+def extract(cfg: dict, dest: Path) -> None:
+    """Extract the tree at base_sha into dest."""
     dest.mkdir(parents=True, exist_ok=True)
-    archive = git(cfg["repo"], "archive", cfg["base_sha"], *(paths or []))
+    archive = git(cfg["repo"], "archive", cfg["base_sha"])
     subprocess.run(["tar", "-x", "-C", str(dest)], input=archive, check=True)
 
 
@@ -30,9 +30,7 @@ def build(cfg: dict, run_id: str, stage: str, inputs: dict[str, Path] | None = N
     files are placed under `_inputs/` and `_outputs/` is created for the results.
     """
     ws = ws_path(cfg, run_id, stage)
-    if ws.exists():
-        make_writable(ws)
-        shutil.rmtree(ws)
+    remove_tree(ws)
     extract(cfg, ws)
 
     cursor_src = Path(cfg["cursor_dir"])

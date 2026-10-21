@@ -223,6 +223,7 @@ prompts/
 lib/
   workspace.py          history-free snapshots
   runner.py             agent -p wrapper: stream capture, retries, resume, model check, transcripts
+  stream.py             stream-json / transcript readers shared by the modules below
   guards.py             no-code guard, validation, leak check, playbook checker
   render_traj.py        trajectory.md and stats.json
   spec_metrics.py       deterministic spec metrics and the reference/student diff

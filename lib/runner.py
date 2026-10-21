@@ -11,6 +11,7 @@ import time
 from pathlib import Path
 
 from .common import log, write_json
+from .stream import parse_events, tool_call_key
 
 MAX_PROMPT_BYTES = 100_000
 # The CLI does not list the GLM 5.3 ids and intermittently rejects them (or returns HTTP 5xx)
@@ -21,19 +22,6 @@ CONTINUE_ATTEMPTS = 3
 CONTINUE_PROMPT = ("Your previous turn was interrupted by a connection error. Continue the task from "
                    "where you stopped, following all of the original instructions.")
 TRANSCRIPTS_ROOT = Path.home() / ".cursor" / "projects"
-
-
-def _parse_events(path: Path, offset: int = 0):
-    with open(path, encoding="utf-8", errors="replace") as f:
-        f.seek(offset)
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                yield json.loads(line)
-            except json.JSONDecodeError:
-                continue
 
 
 class _Progress:
@@ -63,11 +51,10 @@ class _Progress:
                 continue
             if ev.get("type") == "tool_call" and ev.get("subtype") == "started":
                 self.tool_calls += 1
-                tc = ev.get("tool_call") or {}
-                kind = next(iter(tc), "?")
-                args = (tc.get(kind) or {}).get("args") or {}
+                kind, body = tool_call_key(ev) or ("?", {})
+                args = body.get("args") or {}
                 detail = args.get("path") or args.get("command") or args.get("pattern") or ""
-                self.last_tool = f"{kind.replace('ToolCall', '')} {str(detail)[:80]}"
+                self.last_tool = f"{kind} {str(detail)[:80]}"
         return f"{self.tool_calls} tool calls, last: {self.last_tool or '-'}"
 
 
@@ -113,8 +100,9 @@ def run_agent(*, model: dict, ws: Path, prompt: str, out_dir: Path, label: str,
     Returns the run metadata. `ok` is True only if the stream ended with a
     non-error `result` event and the init event reported the expected model.
     """
-    if len(prompt.encode("utf-8")) > MAX_PROMPT_BYTES:
-        raise ValueError(f"prompt is {len(prompt.encode('utf-8'))} bytes; the limit is "
+    prompt_bytes = len(prompt.encode("utf-8"))
+    if prompt_bytes > MAX_PROMPT_BYTES:
+        raise ValueError(f"prompt is {prompt_bytes} bytes; the limit is "
                          f"{MAX_PROMPT_BYTES} (Linux caps one argv string at 128 KiB)")
     out_dir.mkdir(parents=True, exist_ok=True)
     traj = out_dir / f"{label}.jsonl"
@@ -130,11 +118,13 @@ def run_agent(*, model: dict, ws: Path, prompt: str, out_dir: Path, label: str,
     errf.write_text("", encoding="utf-8")
     session, segment_prompt = resume_session, prompt
     startup_failures = continuations = 0
+    inits: list[dict] = []
+    result: dict = {}
     while True:
         cmd = base + (["--resume", session] if session else []) + [segment_prompt]
         offset = traj.stat().st_size
         rc, timed_out = _run_once(cmd, ws, traj, errf, label, started, timeout_min)
-        segment = list(_parse_events(traj, offset))
+        segment = list(parse_events(traj, offset))
         if not segment:
             startup_failures += 1
             if startup_failures >= STARTUP_ATTEMPTS:
@@ -143,9 +133,10 @@ def run_agent(*, model: dict, ws: Path, prompt: str, out_dir: Path, label: str,
                 f"retry {startup_failures}/{STARTUP_ATTEMPTS - 1} in {STARTUP_RETRY_S}s")
             time.sleep(STARTUP_RETRY_S)
             continue
-        seg_init = next((e for e in segment if e.get("type") == "system"), {})
-        session = session or seg_init.get("session_id")
-        if timed_out or any(e.get("type") == "result" for e in segment):
+        inits += [e for e in segment if e.get("type") == "system" and e.get("subtype") == "init"]
+        result = next((e for e in reversed(segment) if e.get("type") == "result"), result)
+        session = session or (inits[0].get("session_id") if inits else None)
+        if timed_out or result:
             break
         if continuations >= CONTINUE_ATTEMPTS or not session:
             break
@@ -155,10 +146,7 @@ def run_agent(*, model: dict, ws: Path, prompt: str, out_dir: Path, label: str,
         time.sleep(STARTUP_RETRY_S)
         segment_prompt = CONTINUE_PROMPT
 
-    events = list(_parse_events(traj))
-    inits = [e for e in events if e.get("type") == "system" and e.get("subtype") == "init"]
     init = inits[0] if inits else {}
-    result = next((e for e in reversed(events) if e.get("type") == "result"), {})
 
     session_id = init.get("session_id") or result.get("session_id") or resume_session or ""
     transcript_src = find_transcript(session_id)

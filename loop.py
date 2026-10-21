@@ -36,8 +36,8 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from lib import guards, render_traj, spec_metrics, trajviz_export, workspace
-from lib.common import (PROMPTS, ROOT, copy_tree, die, iter_dir, load_config, load_state, log,
-                        make_readonly, make_writable, prompt, read_json, run_dir, sample_suffix,
+from lib.common import (PROMPTS, ROOT, copy_tree, die, git, iter_dir, load_config, load_state, log,
+                        make_readonly, prompt, read_json, remove_tree, run_dir, sample_suffix,
                         save_state, sha256_bytes, sha256_file, write_json)
 from lib.runner import run_agent
 
@@ -161,27 +161,44 @@ def trajviz_stage(out_dir: Path, label: str, ws: Path, title: str) -> None:
         log(f"  trajviz: {err}")
 
 
+def run_labels(out_dir: Path) -> list[str]:
+    return sorted(p.name.removesuffix(".run.json") for p in out_dir.glob("*.run.json"))
+
+
+def finish_io_stage(run_id: str, ws: Path, out_dir: Path, outputs: tuple[str, ...], title: str) -> None:
+    """For judge and synthesizer stages: copy the agent's _outputs/ files, render its trajectory,
+    export every run for TrajViz and record that it wrote only under _outputs/."""
+    for name in outputs:
+        if (ws / "_outputs" / name).exists():
+            shutil.copy2(ws / "_outputs" / name, out_dir / name)
+    render_traj.render(out_dir / "trajectory.jsonl", ws, out_dir / "trajectory.md",
+                       out_dir / "stats.json", CFG, out_dir / "transcripts" / "trajectory", title=title)
+    for label in run_labels(out_dir):
+        trajviz_stage(out_dir, label, ws, f"{run_id} {title} ({label})")
+    write_json(out_dir / "guards.json", {"no_code": guards.no_code(ws, ("_outputs/",))})
+
+
 def post_spec_stage(run_id: str, ws: Path, out_dir: Path, labels: list[str], title: str) -> dict:
     """Copy openspec/ out of the workspace, run guards, render trajectories, compute metrics."""
     spec_root = out_dir / "spec"
     copy_tree(ws / "openspec", spec_root / "openspec")
     transcripts = out_dir / "transcripts"
-    meta = read_json(out_dir / f"{labels[-1]}.run.json", {})
     result = {
         "no_code": guards.no_code(ws, ("openspec/",)),
         "validate": guards.validate(spec_root),
         "leak": {"ok": True, "violations": [], "warnings": []},
     }
     for label in labels:
+        meta = read_json(out_dir / f"{label}.run.json", {})
         leak = guards.leak_check(CFG, ws, out_dir / f"{label}.jsonl", transcripts / label,
-                                 meta.get("transcript_project"), ROOT, run_dir(run_id))
+                                 meta.get("transcript_project"), ROOT)
         result["leak"]["ok"] &= leak["ok"]
         result["leak"]["violations"] += leak["violations"]
         result["leak"]["warnings"] += leak["warnings"]
         suffix = "" if label == "trajectory" else f".{label}"
         render_traj.render(out_dir / f"{label}.jsonl", ws, out_dir / f"trajectory{suffix}.md",
-                           out_dir / f"stats{suffix}.json", CFG, CFG["hmos_dir"],
-                           transcripts / label, title=f"{title} ({label})")
+                           out_dir / f"stats{suffix}.json", CFG, transcripts / label,
+                           title=f"{title} ({label})")
         trajviz_stage(out_dir, label, ws, f"{run_id} {title} ({label})")
     write_json(out_dir / "guards.json", result)
     metrics = spec_metrics.collect(spec_root, base_dir(run_id), CFG, hmos_index(run_id))
@@ -219,15 +236,9 @@ def cmd_prepare(args) -> None:
     if (rd / "state.json").exists() and not args.force:
         die(f"run '{args.run}' already exists (use --force to re-prepare)")
     rd.mkdir(parents=True, exist_ok=True)
-    if base_dir(args.run).exists():
-        make_writable(base_dir(args.run))
-        shutil.rmtree(base_dir(args.run))
+    remove_tree(base_dir(args.run))
     workspace.extract(CFG, base_dir(args.run))
     repo, sha = CFG["repo"], CFG["base_sha"]
-
-    def blob(path: str) -> str:
-        return sha256_bytes(subprocess.run(["git", "-C", repo, "show", f"{sha}:{path}"],
-                                           stdout=subprocess.PIPE, check=True).stdout)
 
     skills = {p.parent.name: sha256_file(p)
               for p in sorted(Path(CFG["cursor_dir"]).glob("skills/openspec-*/SKILL.md"))}
@@ -235,9 +246,9 @@ def cmd_prepare(args) -> None:
     lock = {
         "created": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "base_sha": sha,
-        "files": {p: blob(p) for p in ("AGENTS.md", "openspec/config.yaml")},
-        "hmos_tree": subprocess.run(["git", "-C", repo, "rev-parse", f"{sha}:{CFG['hmos_dir']}"],
-                                    stdout=subprocess.PIPE, text=True, check=True).stdout.strip(),
+        "files": {p: sha256_bytes(git(repo, "show", f"{sha}:{p}"))
+                  for p in ("AGENTS.md", "openspec/config.yaml")},
+        "hmos_tree": git(repo, "rev-parse", f"{sha}:{CFG['hmos_dir']}").decode().strip(),
         "skills": skills,
         "prompts": {p: sha256_file(ROOT / p) for p in prompt_files},
         "config": sha256_file(ROOT / "config.json"),
@@ -278,7 +289,6 @@ def cmd_oracle(args) -> None:
         copy = oracle_spec(args.run) / "openspec"
         if copy.exists() and manifest_text(copy) != manifest_text(ws / "openspec"):
             log("syncing reviewer edits from runs/.../oracle/spec into the oracle workspace")
-            make_writable(ws / "openspec")
             copy_tree(copy, ws / "openspec")
         labels = ostate.get("labels", ["trajectory"])
         label = f"revise{sum(1 for x in labels if x.startswith('revise')) + 1}"
@@ -501,15 +511,7 @@ def run_compare_sample(run_id: str, state: dict, k: int, sample: int, samples: i
         meta = run_agent(model=jm, ws=ws, prompt=JUDGE_FIX_PROMPT.format(errors="\n".join(
             f"- {e}" for e in errors)), out_dir=out_dir, label=f"fix{attempt + 1}",
             timeout_min=timeout_for(state, "judge"), resume_session=meta["session_id"])
-    for name in ("score.json", "report.md"):
-        if (ws / "_outputs" / name).exists():
-            (out_dir / name).write_bytes((ws / "_outputs" / name).read_bytes())
-    render_traj.render(out_dir / "trajectory.jsonl", ws, out_dir / "trajectory.md",
-                       out_dir / "stats.json", CFG, CFG["hmos_dir"], out_dir / "transcripts" / "trajectory",
-                       title=f"judge iter {k}{sfx}")
-    for label in sorted(p.name[:-len(".run.json")] for p in out_dir.glob("*.run.json")):
-        trajviz_stage(out_dir, label, ws, f"{run_id} judge iter {k}{sfx} ({label})")
-    write_json(out_dir / "guards.json", {"no_code": guards.no_code(ws, ("_outputs/",))})
+    finish_io_stage(run_id, ws, out_dir, ("score.json", "report.md"), f"judge iter {k}{sfx}")
     shutil.rmtree(tmp, ignore_errors=True)
     if errors:
         log(f"compare iter {k}{sfx} FAILED: " + "; ".join(errors[:5]))
@@ -627,7 +629,7 @@ def cmd_synthesize(args) -> None:
     retries = CFG.get("synth_fix_retries", 0)
     for attempt in range(retries + 1):
         report = guards.check_playbook(CFG, ws / "_outputs" / "playbook.md", oracle_spec(args.run),
-                                       base_dir(args.run), ref_caps)
+                                       base_dir(args.run), ref_caps, task_text(state))
         if report["ok"] or not meta.get("session_id") or attempt == retries:
             break
         log(f"playbook rejected ({'; '.join(report['problems'])}); asking for a rewrite")
@@ -637,17 +639,9 @@ def cmd_synthesize(args) -> None:
             out_dir=out_dir, label=f"fix{attempt + 1}", timeout_min=timeout_for(state, "synthesizer"),
             resume_session=meta["session_id"])
     write_json(out_dir / "overlap_report.json", report)
-    for name in ("playbook.md", "changelog.md"):
-        if (ws / "_outputs" / name).exists():
-            (out_dir / name).write_bytes((ws / "_outputs" / name).read_bytes())
+    finish_io_stage(args.run, ws, out_dir, ("playbook.md", "changelog.md"), f"synthesizer iter {k}")
     if not report["ok"] and (out_dir / "playbook.md").exists():
         (out_dir / "playbook.md").rename(out_dir / "playbook.rejected.md")
-    render_traj.render(out_dir / "trajectory.jsonl", ws, out_dir / "trajectory.md",
-                       out_dir / "stats.json", CFG, CFG["hmos_dir"], out_dir / "transcripts" / "trajectory",
-                       title=f"synthesizer iter {k}")
-    for label in sorted(p.name[:-len(".run.json")] for p in out_dir.glob("*.run.json")):
-        trajviz_stage(out_dir, label, ws, f"{args.run} synthesizer iter {k} ({label})")
-    write_json(out_dir / "guards.json", {"no_code": guards.no_code(ws, ("_outputs/",))})
     shutil.rmtree(tmp, ignore_errors=True)
     state = load_state(args.run)
     state["iters"].setdefault(str(k), {})["playbook"] = {
@@ -722,9 +716,8 @@ def cmd_trajviz(args) -> None:
     stages = [rd / args.stage] if args.stage else \
         sorted({p.parent for p in rd.rglob("*.run.json") if "transcripts" not in p.parts})
     for out_dir in stages:
-        for run_json in sorted(out_dir.glob("*.run.json")):
-            label = run_json.name[:-len(".run.json")]
-            meta = read_json(run_json, {})
+        for label in run_labels(out_dir):
+            meta = read_json(out_dir / f"{label}.run.json", {})
             title = f"{args.run} {out_dir.relative_to(rd).as_posix()} ({label})"
             trajviz_stage(out_dir, label, Path(meta.get("workspace", ".")), title)
             html = out_dir / "trajviz" / f"{label}.html"

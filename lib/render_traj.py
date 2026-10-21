@@ -7,7 +7,8 @@ import re
 from collections import Counter
 from pathlib import Path
 
-from .runner import _parse_events
+from .common import write_json
+from .stream import bookends, content_text, parse_events, tool_call_key
 
 PATH_KEYS = ("path", "file_path", "target_file", "targetFile", "filePath")
 SHELL_READ_RE = re.compile(r"(?:^|[;&|(]\s*|\s)(cat|head|tail|sed|nl|less|more|awk|bat)\s")
@@ -125,14 +126,10 @@ def tool_calls(events):
     order: list[str] = []
     done: dict[str, dict | None] = {}
     for ev in events:
-        if ev.get("type") != "tool_call":
+        parsed = tool_call_key(ev) if ev.get("type") == "tool_call" else None
+        if parsed is None:
             continue
-        tc = ev.get("tool_call") or {}
-        if not tc:
-            continue
-        key = next(iter(tc))
-        body = tc[key] or {}
-        kind = key[:-len("ToolCall")] if key.endswith("ToolCall") else key
+        kind, body = parsed
         cid = ev.get("call_id") or f"anon-{len(order)}"
         if ev.get("subtype") == "started":
             started[cid] = (kind, body.get("args") or {})
@@ -154,30 +151,26 @@ def transcript_tool_uses(transcript_dir: Path | None):
     files = [transcript_dir] if transcript_dir.is_file() else sorted(transcript_dir.rglob("*.jsonl"))
     for f in files:
         agent = "subagent" if "subagents" in f.parts else "main"
-        for line in f.read_text(encoding="utf-8", errors="replace").splitlines():
-            try:
-                ev = json.loads(line)
-            except json.JSONDecodeError:
-                continue
+        for ev in parse_events(f):
             for block in (ev.get("message") or {}).get("content") or []:
                 if isinstance(block, dict) and block.get("type") == "tool_use":
                     yield agent, block.get("name", ""), block.get("input") or {}
 
 
 def render(traj_path: Path, ws: Path, out_md: Path, out_stats: Path, cfg: dict,
-           hmos_dir: str, transcripts: Path | None = None, title: str = "") -> dict:
+           transcripts: Path | None = None, title: str = "") -> dict:
     rc = cfg.get("render", {})
     think_n = rc.get("thinking_chars", 600)
     prev_n = rc.get("result_preview_chars", 240)
     say_n = rc.get("assistant_chars", 4000)
+    hmos_dir = cfg["hmos_dir"]
 
-    events = list(_parse_events(traj_path))
+    events = list(parse_events(traj_path))
     types = Counter((e.get("type"), e.get("subtype")) for e in events)
     known = {"system", "user", "thinking", "assistant", "tool_call", "result"}
     unknown = sorted({str(e.get("type")) for e in events if e.get("type") not in known})
 
-    init = next((e for e in events if e.get("type") == "system"), {})
-    result = next((e for e in reversed(events) if e.get("type") == "result"), {})
+    init, result = bookends(events)
 
     lines: list[str] = []
     step = 0
@@ -209,8 +202,7 @@ def render(traj_path: Path, ws: Path, out_md: Path, out_stats: Path, cfg: dict,
             users_seen += 1
             if users_seen > 1:
                 flush_think()
-                text = "".join(b.get("text", "") for b in (ev.get("message") or {}).get("content", [])
-                               if isinstance(b, dict))
+                text = content_text(ev)
                 step += 1
                 lines.append(f"**[{step:04d}] USER (resumed session)**: {_one_line(text, prev_n)}")
                 lines.append("")
@@ -222,8 +214,7 @@ def render(traj_path: Path, ws: Path, out_md: Path, out_stats: Path, cfg: dict,
             continue
         if t == "assistant":
             flush_think()
-            text = "".join(b.get("text", "") for b in (ev.get("message") or {}).get("content", [])
-                           if isinstance(b, dict) and b.get("type") == "text")
+            text = content_text(ev, "text")
             if text.strip():
                 assistant_chars += len(text)
                 step += 1
@@ -232,12 +223,10 @@ def render(traj_path: Path, ws: Path, out_md: Path, out_stats: Path, cfg: dict,
             continue
         if t == "tool_call":
             flush_think()
-            tc = ev.get("tool_call") or {}
-            if not tc:
+            parsed = tool_call_key(ev)
+            if parsed is None:
                 continue
-            key = next(iter(tc))
-            body = tc[key] or {}
-            kind = key[:-len("ToolCall")] if key.endswith("ToolCall") else key
+            kind, body = parsed
             cid = ev.get("call_id") or ""
             if ev.get("subtype") == "started":
                 pending[cid] = (kind, body.get("args") or {})
@@ -343,5 +332,5 @@ def render(traj_path: Path, ws: Path, out_md: Path, out_stats: Path, cfg: dict,
         "",
     ]
     out_md.write_text("\n".join(header + lines) + "\n", encoding="utf-8")
-    out_stats.write_text(json.dumps(stats, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    write_json(out_stats, stats)
     return stats

@@ -14,7 +14,7 @@ import subprocess
 import time
 from pathlib import Path
 
-from .runner import _parse_events
+from .stream import bookends, content_text, parse_events, tool_call_key
 
 TOOL_NAMES = {
     "read": "Read", "shell": "Shell", "edit": "StrReplace", "write": "Write", "delete": "Delete",
@@ -104,24 +104,11 @@ def _fill_result(part: dict, kind: str, result, cap: int) -> None:
 def _subagent_sessions(transcripts: Path | None) -> list[tuple[str, list[dict]]]:
     if not transcripts or not transcripts.exists():
         return []
-    out = []
-    for f in sorted(transcripts.rglob("subagents/*.jsonl")):
-        events = []
-        for line in f.read_text(encoding="utf-8", errors="replace").splitlines():
-            try:
-                events.append(json.loads(line))
-            except json.JSONDecodeError:
-                continue
-        out.append((f.stem, events))
-    return out
+    return [(f.stem, list(parse_events(f))) for f in sorted(transcripts.rglob("subagents/*.jsonl"))]
 
 
 def _first_user_text(events: list[dict]) -> str:
-    for ev in events:
-        if ev.get("role") == "user":
-            return "".join(b.get("text", "") for b in (ev.get("message") or {}).get("content", [])
-                           if isinstance(b, dict) and b.get("type") == "text")
-    return ""
+    return next((content_text(ev, "text") for ev in events if ev.get("role") == "user"), "")
 
 
 def _subagent_messages(child: str, parent: str, events: list[dict], model: str) -> list[dict]:
@@ -154,9 +141,8 @@ def _subagent_messages(child: str, parent: str, events: list[dict], model: str) 
 
 
 def convert(traj: Path, ws: Path, transcripts: Path | None, title: str, output_cap: int = 20000) -> dict:
-    events = list(_parse_events(traj))
-    init = next((e for e in events if e.get("type") == "system"), {})
-    result = next((e for e in reversed(events) if e.get("type") == "result"), {})
+    events = list(parse_events(traj))
+    init, result = bookends(events)
     sid = init.get("session_id") or result.get("session_id") or traj.stem
     model = init.get("model") or ""
 
@@ -186,9 +172,8 @@ def convert(traj: Path, ws: Path, transcripts: Path | None, title: str, output_c
             last_ts = max(last_ts, ts)
         if t == "user":
             msg = new_message("user")
-            text = "".join(b.get("text", "") for b in (ev.get("message") or {}).get("content", [])
-                           if isinstance(b, dict))
-            msg["parts"].append({"type": "text", "text": text, "id": f"{msg['info']['id']}:text:0",
+            msg["parts"].append({"type": "text", "text": content_text(ev),
+                                 "id": f"{msg['info']['id']}:text:0",
                                  "sessionID": sid, "messageID": msg["info"]["id"]})
             stamp(msg, ts)
             cur = None
@@ -206,12 +191,10 @@ def convert(traj: Path, ws: Path, transcripts: Path | None, title: str, output_c
                                      "sessionID": sid, "messageID": cur["info"]["id"]})
             stamp(cur, ts)
         elif t == "tool_call":
-            tc = ev.get("tool_call") or {}
-            if not tc:
+            parsed = tool_call_key(ev)
+            if parsed is None:
                 continue
-            key = next(iter(tc))
-            body = tc[key] or {}
-            kind = key[:-len("ToolCall")] if key.endswith("ToolCall") else key
+            kind, body = parsed
             name = TOOL_NAMES.get(kind, kind[:1].upper() + kind[1:])
             cid = ev.get("call_id") or body.get("toolCallId") or f"{sid}:tool:{len(pending)}"
             mcid = ev.get("model_call_id")
@@ -242,8 +225,7 @@ def convert(traj: Path, ws: Path, transcripts: Path | None, title: str, output_c
             if cur is not None:
                 stamp(cur, ts)
         elif t == "assistant":
-            text = "".join(b.get("text", "") for b in (ev.get("message") or {}).get("content", [])
-                           if isinstance(b, dict) and b.get("type") == "text")
+            text = content_text(ev, "text")
             if not text:
                 continue
             if cur is None:
@@ -256,15 +238,16 @@ def convert(traj: Path, ws: Path, transcripts: Path | None, title: str, output_c
             cur["info"]["finish"] = "error" if ev.get("is_error") else "success"
 
     children = _subagent_sessions(transcripts)
-    linked: dict[str, str] = {}
+    first_prompts = {child: _first_user_text(evs) for child, evs in children}
+    linked: set[str] = set()
     for msg in messages:
         for part in msg["parts"]:
             if part.get("type") != "tool" or part["tool"] != "Task":
                 continue
-            prompt = str(part["state"]["input"].get("prompt", ""))[:300]
-            for child, evs in children:
-                if child not in linked.values() and prompt and prompt[:200] in _first_user_text(evs):
-                    linked[part["callID"]] = child
+            prompt = str(part["state"]["input"].get("prompt", ""))[:200]
+            for child, first_prompt in first_prompts.items():
+                if child not in linked and prompt and prompt in first_prompt:
+                    linked.add(child)
                     part["state"]["metadata"]["sessionId"] = child
                     part["state"]["metadata"]["parentSessionId"] = sid
                     break
