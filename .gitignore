@@ -8,4 +8,5 @@ runs/**/*.jsonl
 runs/**/*.stderr.log
 runs/**/transcripts/
 runs/**/_staging/
+runs/**/trajviz/
 runs/**/*.log

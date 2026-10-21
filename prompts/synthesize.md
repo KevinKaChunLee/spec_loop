@@ -9,6 +9,7 @@ A weaker model (the student) receives the same task as the reference author (`_i
 - `_inputs/task.md`: the task.
 - `_inputs/reference/openspec/` and `_inputs/student/openspec/`: the reference spec and the student's spec (ignore `pc-test-harness` and `setup-pc-test-env`; they predate the task).
 - `_inputs/trajectory.md`: what the student did, step by step (tool calls, excerpts of its thinking). `_inputs/stats.json`: totals (tokens, files read, share of HMOS files read, subagents, failed validations).
+- `_inputs/trajviz/` (if present): TrajViz analysis views of the student trajectory as JSON (health checks, issues, failure patterns and chains, fruitless search streaks, tool-selection anti-patterns, repeated searches, edit thrash, bottlenecks, workflow phases). Its token numbers are estimates; use `stats.json` for real totals.
 - `_inputs/report.md` and `_inputs/score.json`: the judge's gap analysis of this student spec.
 - `_inputs/previous_playbook.md` (if present): the playbook the student had in this iteration. `_inputs/changelog_history.md` (if present): earlier changelogs.
 - `_inputs/scores.csv`: the score history across iterations.

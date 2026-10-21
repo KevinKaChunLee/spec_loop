@@ -15,6 +15,10 @@ Single stages: `student`, `compare`, `synthesize` (all take --iter K).
 
 Plumbing test with a tiny task and the smoke model for every role:
   loop.py smoke --run smoke1
+
+Every agent run is also exported for TrajViz under <stage>/trajviz/ (`<label>.trajviz.json`
+to upload into the dashboard, `<label>.views/` and `<label>.html`); `loop.py trajviz --run r1`
+re-exports existing runs.
 """
 
 from __future__ import annotations
@@ -31,7 +35,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from lib import guards, render_traj, spec_metrics, workspace
+from lib import guards, render_traj, spec_metrics, trajviz_export, workspace
 from lib.common import (PROMPTS, ROOT, copy_tree, die, iter_dir, load_config, load_state, log,
                         make_readonly, make_writable, prompt, read_json, run_dir, sample_suffix,
                         save_state, sha256_bytes, sha256_file, write_json)
@@ -142,6 +146,21 @@ def tool_version(cmd: list[str]) -> str:
         return "unknown"
 
 
+def trajviz_stage(out_dir: Path, label: str, ws: Path, title: str) -> None:
+    """TrajViz export (+ views and HTML report when TrajViz is installed) of one agent run."""
+    traj = out_dir / f"{label}.jsonl"
+    if not traj.exists() or not traj.stat().st_size:
+        return
+    try:
+        st = trajviz_export.export(CFG, traj, ws, out_dir / "transcripts" / label,
+                                   out_dir / "trajviz", label, title)
+    except Exception as e:  # analysis output must never break the loop
+        log(f"  trajviz export failed for {out_dir.name}/{label}: {e}")
+        return
+    for err in st["errors"]:
+        log(f"  trajviz: {err}")
+
+
 def post_spec_stage(run_id: str, ws: Path, out_dir: Path, labels: list[str], title: str) -> dict:
     """Copy openspec/ out of the workspace, run guards, render trajectories, compute metrics."""
     spec_root = out_dir / "spec"
@@ -163,6 +182,7 @@ def post_spec_stage(run_id: str, ws: Path, out_dir: Path, labels: list[str], tit
         render_traj.render(out_dir / f"{label}.jsonl", ws, out_dir / f"trajectory{suffix}.md",
                            out_dir / f"stats{suffix}.json", CFG, CFG["hmos_dir"],
                            transcripts / label, title=f"{title} ({label})")
+        trajviz_stage(out_dir, label, ws, f"{run_id} {title} ({label})")
     write_json(out_dir / "guards.json", result)
     metrics = spec_metrics.collect(spec_root, base_dir(run_id), CFG, hmos_index(run_id))
     write_json(out_dir / "metrics.json", metrics)
@@ -487,6 +507,8 @@ def run_compare_sample(run_id: str, state: dict, k: int, sample: int, samples: i
     render_traj.render(out_dir / "trajectory.jsonl", ws, out_dir / "trajectory.md",
                        out_dir / "stats.json", CFG, CFG["hmos_dir"], out_dir / "transcripts" / "trajectory",
                        title=f"judge iter {k}{sfx}")
+    for label in sorted(p.name[:-len(".run.json")] for p in out_dir.glob("*.run.json")):
+        trajviz_stage(out_dir, label, ws, f"{run_id} judge iter {k}{sfx} ({label})")
     write_json(out_dir / "guards.json", {"no_code": guards.no_code(ws, ("_outputs/",))})
     shutil.rmtree(tmp, ignore_errors=True)
     if errors:
@@ -571,6 +593,19 @@ def cmd_synthesize(args) -> None:
               "report.md": cmp_dir / "report.md", "score.json": cmp_dir / "score.json"}
     if (run_dir(args.run) / "scores.csv").exists():
         inputs["scores.csv"] = run_dir(args.run) / "scores.csv"
+    views_dir = stu_dir / "trajviz" / "trajectory.views"
+    if not views_dir.is_dir():
+        meta = read_json(stu_dir / "trajectory.run.json", {})
+        trajviz_stage(stu_dir, "trajectory", Path(meta.get("workspace", ".")),
+                      f"{args.run} student iter {k}{sfx}")
+    if views_dir.is_dir():
+        picked = tmp / "trajviz"
+        picked.mkdir(exist_ok=True)
+        for view in CFG.get("trajviz", {}).get("synth_views", []):
+            if (views_dir / f"{view}.json").exists():
+                shutil.copy2(views_dir / f"{view}.json", picked / f"{view}.json")
+        if any(picked.iterdir()):
+            inputs["trajviz"] = picked
     prev = iter_dir(args.run, k - 1) / "playbook" / "playbook.md"
     if k > 0 and prev.exists():
         inputs["previous_playbook.md"] = prev
@@ -608,6 +643,8 @@ def cmd_synthesize(args) -> None:
     render_traj.render(out_dir / "trajectory.jsonl", ws, out_dir / "trajectory.md",
                        out_dir / "stats.json", CFG, CFG["hmos_dir"], out_dir / "transcripts" / "trajectory",
                        title=f"synthesizer iter {k}")
+    for label in sorted(p.name[:-len(".run.json")] for p in out_dir.glob("*.run.json")):
+        trajviz_stage(out_dir, label, ws, f"{args.run} synthesizer iter {k} ({label})")
     write_json(out_dir / "guards.json", {"no_code": guards.no_code(ws, ("_outputs/",))})
     shutil.rmtree(tmp, ignore_errors=True)
     state = load_state(args.run)
@@ -676,6 +713,21 @@ def cmd_status(args) -> None:
         print("\n  " + "  ".join(f"{c}" for c in ("iter", "sample", "total", *DIMENSIONS)))
         for r in rows:
             print("  " + "  ".join(str(r.get(c, "")) for c in ("iter", "sample", "total", *DIMENSIONS)))
+
+
+def cmd_trajviz(args) -> None:
+    rd = run_dir(args.run)
+    stages = [rd / args.stage] if args.stage else \
+        sorted({p.parent for p in rd.rglob("*.run.json") if "transcripts" not in p.parts})
+    for out_dir in stages:
+        for run_json in sorted(out_dir.glob("*.run.json")):
+            label = run_json.name[:-len(".run.json")]
+            meta = read_json(run_json, {})
+            title = f"{args.run} {out_dir.relative_to(rd).as_posix()} ({label})"
+            trajviz_stage(out_dir, label, Path(meta.get("workspace", ".")), title)
+            html = out_dir / "trajviz" / f"{label}.html"
+            log(f"{out_dir.relative_to(rd)}/{label}: {out_dir / 'trajviz' / (label + '.trajviz.json')}"
+                + (f"  report: {html}" if html.exists() else ""))
 
 
 def cmd_smoke(args) -> None:
@@ -774,6 +826,11 @@ def main() -> None:
     p = sub.add_parser("status", help="show the state and score history of a run")
     p.add_argument("--run", required=True)
     p.set_defaults(fn=cmd_status)
+
+    p = sub.add_parser("trajviz", help="(re)export agent runs for TrajViz: JSON, views, HTML report")
+    p.add_argument("--run", required=True)
+    p.add_argument("--stage", help="e.g. oracle or iter-00/student (default: every stage)")
+    p.set_defaults(fn=cmd_trajviz)
 
     p = sub.add_parser("smoke", help="end-to-end plumbing test with the smoke task")
     p.add_argument("--run", required=True)

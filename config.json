@@ -48,6 +48,15 @@
     "max_capability_id_share": 0.5
   },
 
+  "trajviz": {
+    "bin": "/home/kevin/Work/AgentDebugger/TrajViz/.venv/bin/agent-trajviz",
+    "html_report": true,
+    "output_chars": 20000,
+    "synth_views": ["summary", "health", "issues", "failure_patterns", "failure_chains",
+                    "fruitless_streaks", "tool_selection", "repeated_searches", "edit_thrash",
+                    "bottlenecks", "phases"]
+  },
+
   "render": {
     "thinking_chars": 600,
     "result_preview_chars": 240,
