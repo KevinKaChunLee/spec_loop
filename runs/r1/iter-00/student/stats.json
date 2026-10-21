@@ -1,0 +1,58 @@
+{
+  "model_reported": "GLM 5.3 High",
+  "session_id": "8dc3c5d3-b226-4b61-83fe-c96d0fd622aa",
+  "has_result": true,
+  "duration_ms": 1746654,
+  "usage": {
+    "inputTokens": 29660,
+    "outputTokens": 22669,
+    "cacheReadTokens": 2280547,
+    "cacheWriteTokens": 0
+  },
+  "events": 39923,
+  "event_types": {
+    "assistant/None": 18,
+    "connection/reconnected": 1,
+    "connection/reconnecting": 1,
+    "result/success": 1,
+    "retry/resuming": 1,
+    "retry/starting": 1,
+    "system/init": 1,
+    "thinking/completed": 33,
+    "thinking/delta": 39743,
+    "tool_call/completed": 61,
+    "tool_call/started": 61,
+    "user/None": 1
+  },
+  "unknown_event_types": [
+    "connection",
+    "retry"
+  ],
+  "tool_calls_total": 61,
+  "tool_calls": {
+    "shell": 30,
+    "task": 17,
+    "read": 8,
+    "edit": 5,
+    "getMcpTools": 1
+  },
+  "tool_failures": 1,
+  "files_read": 15,
+  "files_written": [
+    "openspec/changes/migrate-call-manager-to-liteos/design.md",
+    "openspec/changes/migrate-call-manager-to-liteos/proposal.md",
+    "openspec/changes/migrate-call-manager-to-liteos/tasks.md"
+  ],
+  "hmos_files_total": 454,
+  "hmos_files_read_main": 0,
+  "hmos_files_read_incl_subagents": 203,
+  "hmos_coverage": 0.447,
+  "outside_workspace_reads": [],
+  "openspec_validate_runs": 5,
+  "openspec_validate_failures": 0,
+  "subagents": 17,
+  "subagent_tool_uses": 718,
+  "web_calls": 0,
+  "thinking_chars": 142936,
+  "assistant_chars": 2826
+}

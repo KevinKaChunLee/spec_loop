@@ -1,0 +1,33 @@
+{
+  "no_code": {
+    "ok": true,
+    "allowed": [
+      "openspec/"
+    ],
+    "changed": 53,
+    "violations": [],
+    "ignored": []
+  },
+  "validate": {
+    "ok": true,
+    "exit_code": 0,
+    "totals": {
+      "items": 27,
+      "passed": 27,
+      "failed": 0
+    },
+    "failed": []
+  },
+  "leak": {
+    "ok": true,
+    "violations": [],
+    "warnings": [
+      {
+        "where": "transcript:subagent",
+        "tool": "Shell",
+        "path": "/home/kevin/Work/spec-loop-ws/r1/iter-00-student/../../include",
+        "reason": "parent of the stage workspaces"
+      }
+    ]
+  }
+}

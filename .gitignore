@@ -9,4 +9,5 @@ runs/**/*.stderr.log
 runs/**/transcripts/
 runs/**/_staging/
 runs/**/trajviz/
+runs/smoke*/
 runs/**/*.log

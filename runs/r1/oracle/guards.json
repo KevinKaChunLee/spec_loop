@@ -1,0 +1,26 @@
+{
+  "no_code": {
+    "ok": true,
+    "allowed": [
+      "openspec/"
+    ],
+    "changed": 54,
+    "violations": [],
+    "ignored": []
+  },
+  "validate": {
+    "ok": true,
+    "exit_code": 0,
+    "totals": {
+      "items": 27,
+      "passed": 27,
+      "failed": 0
+    },
+    "failed": []
+  },
+  "leak": {
+    "ok": true,
+    "violations": [],
+    "warnings": []
+  }
+}

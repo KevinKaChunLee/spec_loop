@@ -1,0 +1,50 @@
+{
+  "created": "2026-10-21T10:41:56+0800",
+  "base_sha": "8018137a362dc5c13ff5a85f698415b565601050",
+  "files": {
+    "AGENTS.md": "7d513865128aaaf322145081b40cc52cd36656dc8e7066b268eb2e0f5d41e66f",
+    "openspec/config.yaml": "42d172a186e4f688e1a3b55e6c8c39c358d96c5ae0d31c0ae0f5b32417aa40ca"
+  },
+  "hmos_tree": "65e9ffc9e97dc962ea9999c4905dc56d36a9c2e0",
+  "skills": {
+    "openspec-apply-change": "6ccac69b7e5fe892c74112d171648cb8a57794358325398e84a2c10ed007de7a",
+    "openspec-archive-change": "f004ed327ddafd84ff7b7863fbcc2cb480d3058449e5ffb1624b0d576c5d398c",
+    "openspec-explore": "37fc57793962db8fa430dac34507c0c0e657b978fc9117a5c411aea806fd59f8",
+    "openspec-propose": "c0723954fbd0b51666b46af8312b4b1a47d1480ab33438db491bc3b189ad3c0a",
+    "openspec-sync-specs": "c992a1f2f06fee17b5b3d43569d5255082954e07b3b639e6115aef45984dd911",
+    "openspec-update-change": "1d6f7cd55bbce2f90be0fc3822e9341826a348650435bb9dbd5e90e96354674e"
+  },
+  "prompts": {
+    "rubric.md": "80956656c18d68dcdb77c58256799c23bb3fd0a687718e257bbdabae2baa2b59",
+    "prompts/compare.md": "f77215e182aa18e6b39b9640680fb401919ce6d6b78d12f0decf0dbc564d858d",
+    "prompts/playbook_rules.md": "a12bffd590c1e5f84de804ee8d8d29e0f5391794e7cdf1a010b73a83ff6c34e6",
+    "prompts/smoke_task.md": "f06284ea53dd376f0ebbe8a3cbde9f6c32f6cd21ef2449043c8fde97e6f74148",
+    "prompts/synthesize.md": "4cdb5eca62e85461a139f4b2baf42edc19f5e1693f7ef57e85dd67133213ad2c",
+    "prompts/task.md": "d0db73c9a507a682816ace15975e4ddf8110e0b3fd727272d1d8acfd0364b7b1"
+  },
+  "config": "917f06dea17fdd3900fd49276b1f746790a37afa85aeaccc5b744ddc5a38646c",
+  "models": {
+    "oracle": {
+      "id": "glm-5p3-max",
+      "expect": "GLM 5.3 Max"
+    },
+    "judge": {
+      "id": "glm-5p3-max",
+      "expect": "GLM 5.3 Max"
+    },
+    "synthesizer": {
+      "id": "glm-5p3-max",
+      "expect": "GLM 5.3 Max"
+    },
+    "student": {
+      "id": "glm-5p3-high",
+      "expect": "GLM 5.3 High"
+    }
+  },
+  "agent_cli": "2026.10.19-6bbf2c4",
+  "openspec_cli": "1.13.1",
+  "smoke": false,
+  "notes": [
+    "2026-10-21 10:55: synthesize.md and config.json gained TrajViz inputs before any synthesize/compare stage of this run used them."
+  ]
+}

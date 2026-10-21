@@ -1,0 +1,33 @@
+{
+  "run": "r1",
+  "smoke": false,
+  "oracle": {
+    "status": "awaiting-review",
+    "problems": [],
+    "session_id": "bb18212c-bbb9-4233-9f12-85ccb3054f61",
+    "workspace": "/home/kevin/Work/spec-loop-ws/r1/oracle",
+    "labels": [
+      "trajectory"
+    ],
+    "validate_ok": true
+  },
+  "frozen": false,
+  "iters": {
+    "0": {
+      "samples": 1,
+      "student": [
+        {
+          "sample": "-",
+          "valid": true,
+          "agent_ok": true,
+          "leak_ok": true,
+          "no_code_ok": true,
+          "validate_ok": true,
+          "session_id": "8dc3c5d3-b226-4b61-83fe-c96d0fd622aa",
+          "workspace": "/home/kevin/Work/spec-loop-ws/r1/iter-00-student",
+          "attempts": 1
+        }
+      ]
+    }
+  }
+}
