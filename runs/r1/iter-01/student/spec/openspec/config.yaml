@@ -1,0 +1,101 @@
+schema: spec-driven
+
+context: |
+  Language: zh-CN
+  All artifacts must be written in zh-CN.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  ## 项目是什么
+  把 OpenHarmony 手机平台的通话管理部件 telephony_call_manager（SA 4005，进程 foundation，C++17）
+  移植到基于 LiteOS + MCU 的手表平台。原则：
+  - 尽量复用原仓代码，保持 C++ 语言不变；功能做裁剪而不是重写。
+  - 裁剪/修改以 OpenSpec change 表达，每个 change 的 specs/ 是相对 baseline 的 delta。
+  - 产出代码放在目标仓 communication_mcu/ 下；仓内 telephony_call_manager/ 是只读的移植源（唯一基线）。
+  - 项目约束文件 AGENTS.md（本仓根目录）规定功能范围、特性宏与外部依赖处理；其中的路径
+    ./HMOS/telephony_call_manager/ → ./liteOS/call_manager/ 对应本仓 telephony_call_manager/ → telephony_call_manager_mini/。
+  - 代码逻辑与基线保持一致，除非基线本身有问题；编码规范参照基线；新增或修改的代码注释用英文。
+  - 代码按功能实现，不能因为没有外部接口而丢弃功能：暂不可用的外部接口只换掉调用（todo 占位），逻辑保留。
+  - 宏是否迁移按基线实际代码判断，不按宏的描述判断。
+  - 目录结构与文件命名与基线保持一致；架构上不合理处先与用户讨论。与用户沟通使用中文。
+
+  ## 工作区布局
+  本 OpenSpec 工程的根是目标仓 communication_mcu/（git clone of gitcode.com/tang-x/communication_mcu），
+  openspec/ 位于该仓内，这是唯一有效的 spec 工程路径。所有 openspec CLI 命令必须在 communication_mcu/
+  目录下执行。下列路径均相对 communication_mcu/：
+  - ../telephony_call_manager/   （可选，可能不存在）上游 git 克隆，可能停在任意 ref。**不是基线，不要读它**；
+                                 实施本仓 change 不需要它。
+  - ./                           目标仓（手表/MCU），所有改动都发生在这里：
+      telephony_call_manager/    **唯一基线**：OpenHarmony-v6.0-Release（commit f99813be，2025-09-01）快照，
+                                 已纳入本仓 git，一字不改；tag baseline-unmodified。test/ 的桩层 API 面与该 tag 对齐。
+                                 v6.0 快照**没有** AGENTS.md 与 docs/agents/（那是 master 才有的文档）；
+                                 需要的领域红线已写进本文件「关键技术事实」与各 change 的 design.md。
+      telephony_call_manager_mini/ 移植产物：由同级 telephony_call_manager/ 整棵拷贝而来，
+                                 裁剪与修改只在此进行（尚不存在）。外部接口的桩统一放在
+                                 其根目录的 stub/。
+      test/                      PC 化测试工程（Linux 主机 + clang-18 + libc++ + GN），按原仓 BUILD.gn
+                                 编译业务与 gtest，桩层 API 面与 OpenHarmony-v6.0-Release 对齐
+                                （约 143 个 .h）。其 //base/telephony/call_manager 应指向
+                                 telephony_call_manager_mini/（移植产物），门禁验证裁剪后的代码。
+      openspec/specs/            baseline 规格：描述 OpenHarmony-v6.0-Release 移植源的当前行为
+                                 与 PC 测试工程当前行为。每个能力对应原仓一个模块群，
+                                 Purpose 里标注源码落点与编译开关。目前只有 pc-test-harness，
+                                 移植源的 baseline 能力尚未编写。
+
+  ## 关键技术事实（写 change 时直接引用，不要重复考证）
+  - 构建真源是 telephony_call_manager/callmanager.gni：call_manager_sources / include_dirs /
+    external_deps / 能力宏（12 个 global_parts_info 块）在此；feature 开关的 declare_args() 只在根
+    BUILD.gn（call_manager_feature_hfp_async_enable、call_manager_feature_not_support_multicall 两项），
+    bundle.json 的 component.features 与之成对。
+  - 原仓编译约束：-fno-exceptions -fno-rtti，禁止 try/catch 与 dynamic_cast；PC 测试工程为了 gtest
+    通过黑名单剔除了这两个 flag，但移植代码仍须遵守原仓约束。
+  - 并发模型：ffrt 队列 + 锁（std::mutex 约 72 个文件、ffrt::mutex 约 41 个、shared_mutex 5 个，均非递归）。
+    上行状态处理是单队列 report_call_info_queue（report_call_info_handler.cpp）串行。
+  - 对象模型：sptr<CallBase> + 全局静态对象表 CallObjectManager；VoIP 通话走独立 map。
+  - IPC 枚举值即 ABI，只能末尾追加。
+  - 隐私：号码、联系人名不进日志，用 callId / slotId / index 定位。
+  - 目标平台的 LiteOS 内核桩已存在于 test/stubs/include/liteos/
+    （los_base/task/sem/mux/event/tick，签名对齐 kernel_liteos_m）。
+  - mini 约束（AGENTS.md）：单进程单线程，不加锁，新增线程须先与用户对齐；callmanager 不继承 SystemAbility、
+    不实现 IPC，CallManagerClient 直接调用 CallManagerService；不做权限校验；DSDS 恒为 0；只支持单卡
+    （保留 slotId 供双卡扩展）；只支持单主帐号；ffrt 改为打桩的 EventHandler；sptr 改 std::shared_ptr；
+    PacMap 改结构体；HiSysEvent/hitrace 改日志；与 cellular_call、core_service、cellular_data、sms_mms、
+    TelephonyCust 的交互写成 XxxClient::GetInstance().Xxx() 并打桩；音频、DataShare、公共事件、功耗锁、
+    通知、骚扰来电、号码识别、RTT 文件节点暂不调用，调用点写
+    // todo!!! [<标签>] ref to <文件> <函数>。
+
+  ## 术语
+  下行 = 应用→协议栈；上行 = 协议栈→应用。CS/IMS/OTT/VoIP/卫星/蓝牙 = 六类通话。
+  DSDA = 双卡双通。ECC = 紧急呼叫。HFP/SCO = 蓝牙免提及其音频链路。
+  index/phoneIndex = 协议栈侧序号；callId = 本仓自增 ID，两者不可互换。
+
+rules:
+  proposal:
+    - 必须有「裁剪范围」小节：逐条列出从 baseline 移除 / 保留 / 修改的能力（按 openspec/specs 的能力 id）。
+    - 必须有「非目标」小节。
+    - 涉及 ECC、权限校验、IPC 枚举、跨部件结构体的改动必须标注「需人工复核」。
+  specs:
+    - delta 只针对已存在的 baseline 能力写 REMOVED / MODIFIED；新增手表专属能力才用 ADDED。
+    - 每条 Requirement 的 Scenario 必须能在本仓 test/ 的 gtest 中落成用例。
+    - 引用落点（文件/函数名）即可，不要大段复制源码；名称必须能在 telephony_call_manager/（v6.0）中 rg 命中，
+      或是该 change 的 design 给出的新代码（桩、结构体、todo 标签）。
+  design:
+    - 必须说明被裁剪功能在代码层的处理方式：删源文件 / 退役宏清理 / 支持宏去守卫 / 桩化，并给理由。
+    - 外部依赖必须按 AGENTS.md 的分类说明处置：暂不调用（todo 占位）/ 客户端单例打桩 / 同名桩 / 替代。
+    - 必须列出受影响的 callmanager.gni 条目与 bundle.json features。
+    - 涉及并发的改动必须说明 ffrt 队列与锁的落点，以及在 LiteOS 上的对应原语。
+  tasks:
+    - 每个任务组以「must-pass 门禁仍为 PASS」作为完成条件之一。
+    - 删除源文件的任务必须同时包含同步 callmanager.gni 的子任务。
+    - 每个改动至少一条 gtest 用例，用例名自解释触发条件。
+
+operations:
+  apply:
+    guidance:
+      - 只修改本仓 communication_mcu/ 下的文件；仓内 telephony_call_manager/ 是只读基线，一字不改。
+      - 每个 change 自带实施所需的全部规则与新代码（design）和门禁命令（tasks.md 开头），默认按 tasks.md 的顺序执行。
+      - 主 agent 只编排，大任务按文件拆给子 agent；做到一半的任务留在工作区不提交；不做 WIP / 暂停提交，
+        不 reset / amend / rebase；不以“输出预算”“上下文”为由停下或缩减范围。
+      - 无 OHOS 设备构建环境时，如实报告「仅完成静态自检 / PC 门禁」，不要含混。
+  archive:
+    guidance:
+      - 归档前确认 delta 已同步进 openspec/specs，并复述 must-pass 门禁结果。

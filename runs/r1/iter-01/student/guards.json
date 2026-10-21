@@ -1,0 +1,81 @@
+{
+  "no_code": {
+    "ok": true,
+    "allowed": [
+      "openspec/"
+    ],
+    "changed": 53,
+    "violations": [],
+    "ignored": []
+  },
+  "validate": {
+    "ok": true,
+    "exit_code": 0,
+    "totals": {
+      "items": 27,
+      "passed": 27,
+      "failed": 0
+    },
+    "failed": []
+  },
+  "leak": {
+    "ok": true,
+    "violations": [],
+    "warnings": [
+      {
+        "where": "transcript:subagent",
+        "tool": "Shell",
+        "path": "/home/kevin/Work/spec-loop-ws/r1/",
+        "reason": "parent of the stage workspaces"
+      },
+      {
+        "where": "transcript:subagent",
+        "tool": "Shell",
+        "path": "/home/kevin/Work/spec-loop-ws/r1/iter-01-student/../../call_manager_special_test/src",
+        "reason": "parent of the stage workspaces"
+      },
+      {
+        "where": "transcript:subagent",
+        "tool": "Shell",
+        "path": "/home/kevin/Work/spec-loop-ws/r1/iter-01-student/..",
+        "reason": "parent of the stage workspaces"
+      },
+      {
+        "where": "transcript:subagent",
+        "tool": "Shell",
+        "path": "/home/kevin/Work/spec-loop-ws/r1/iter-01-student/../openspec/specs",
+        "reason": "parent of the stage workspaces"
+      },
+      {
+        "where": "transcript:subagent",
+        "tool": "Shell",
+        "path": "/home/kevin/Work/spec-loop-ws/r1/iter-01-student/../openspec/specs/spam-call-identification",
+        "reason": "parent of the stage workspaces"
+      },
+      {
+        "where": "transcript:subagent",
+        "tool": "Shell",
+        "path": "/home/kevin/Work/spec-loop-ws/r1/iter-01-student/../openspec/specs/antifraud-call",
+        "reason": "parent of the stage workspaces"
+      },
+      {
+        "where": "transcript:subagent",
+        "tool": "Shell",
+        "path": "/home/kevin/Work/spec-loop-ws/r1/iter-01-student/../openspec/specs/number-identity",
+        "reason": "parent of the stage workspaces"
+      },
+      {
+        "where": "transcript:subagent",
+        "tool": "Shell",
+        "path": "/home/kevin/Work/spec-loop-ws/r1/iter-01-student/../openspec/specs/earthquake-alarm-call",
+        "reason": "parent of the stage workspaces"
+      },
+      {
+        "where": "transcript:subagent",
+        "tool": "Shell",
+        "path": "/home/kevin/Work/spec-loop-ws/r1/iter-01-student/../../specs/$c/spec.md",
+        "reason": "parent of the stage workspaces"
+      }
+    ]
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "model_reported": "GLM 5.3 High",
+  "session_id": "2bceaf86-3079-44cd-938b-283e0fdbcbaf",
+  "has_result": true,
+  "duration_ms": 2855180,
+  "usage": {
+    "inputTokens": 102431,
+    "outputTokens": 42620,
+    "cacheReadTokens": 2127616,
+    "cacheWriteTokens": 0
+  },
+  "events": 13109,
+  "event_types": {
+    "assistant/None": 28,
+    "connection/reconnected": 1,
+    "connection/reconnecting": 1,
+    "result/success": 2,
+    "retry/resuming": 1,
+    "retry/starting": 1,
+    "system/init": 2,
+    "thinking/completed": 42,
+    "thinking/delta": 12882,
+    "tool_call/completed": 74,
+    "tool_call/started": 73,
+    "user/None": 2
+  },
+  "unknown_event_types": [
+    "connection",
+    "retry"
+  ],
+  "tool_calls_total": 74,
+  "tool_calls": {
+    "shell": 30,
+    "edit": 18,
+    "task": 17,
+    "read": 5,
+    "getMcpTools": 3,
+    "updateTodos": 1
+  },
+  "tool_failures": 4,
+  "files_read": 13,
+  "files_written": [
+    "/home/kebin/placeholder/path",
+    "openspec/changes/migrate-call-manager-to-liteos/design.md",
+    "openspec/changes/migrate-call-manager-to-liteos/proposal.md",
+    "openspec/changes/migrate-call-manager-to-liteos/specs/liteos-stub-layer/spec.md",
+    "openspec/changes/migrate-call-manager-to-liteos/specs/pc-test-harness/spec.md",
+    "openspec/changes/migrate-call-manager-to-liteos/tasks.md"
+  ],
+  "hmos_files_total": 454,
+  "hmos_files_read_main": 8,
+  "hmos_files_read_incl_subagents": 163,
+  "hmos_coverage": 0.359,
+  "outside_workspace_reads": [],
+  "openspec_validate_runs": 3,
+  "openspec_validate_failures": 0,
+  "subagents": 17,
+  "subagent_tool_uses": 694,
+  "web_calls": 0,
+  "thinking_chars": 124266,
+  "assistant_chars": 1676
+}

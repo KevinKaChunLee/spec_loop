@@ -1,0 +1,103 @@
+{
+  "dimensions": {
+    "baseline_coverage": {
+      "score": 5,
+      "rationale": "学生基线 24 个能力与 reference 按内容一一对应（仅命名不同，如 call-control-management↔call-control-manager、liteos-stub-layer↔liteos-runtime），共 275 需求/732 场景；每个 Purpose 落到源码目录、关键类与宏清单。抽查约 35 处引用（HandleCallWaitingNumTwo/One/Zero、TELEPHONY_VOIP_CALL_MANAGER_SYS_ABILITY_ID=65968、unittest 组成员 zero1/zero3 组外等）均在 v6.0 源码中证实，仅零星拼写笔误（CallManagerManager::Init、USER_IMPROLAN_SWITCH），无实质能力缺口；覆盖与接地深度不亚于 reference。"
+    },
+    "trim_scope": {
+      "score": 4,
+      "rationale": "裁剪裁决与 reference 实质一致：9 个不支持模块整体删除、audio 内部精确拆分（仅删 BLUETOOTH/OTT/有线耳机子态）、可裁/保留列表的全部宏正确分类、DSDS/DSDA 按 0 处理、超级隐私/来电闪光/状态栏/贴耳灭屏/星闪/ESIM 全删、UT/MMI 补充业务保留。学生对 NOT_SUPPORT_MULTICALL 骨架（eSIM/蓝牙判定族）与 HoldOrDisconnectedCall 等待矩阵的删减经源码核实（仅 IsDsdsMode5 分支可达）比 reference 更精确。唯一实质性缺陷是 call-report 与 call-control-management 两个 delta 对 AppStateObserver 注册点一处删一处留，内部矛盾。"
+    },
+    "external_deps": {
+      "score": 5,
+      "rationale": "AGENTS 各类外部依赖全部覆盖且处置一致：五模块交互改为 XxxClient::GetInstance() 客户端桩（另加 state_registry 出口与 voip 桩）、sptr→std 智能指针、ffrt→打桩 EventHandler、HiSysEvent/HITRACE→日志桩、cJSON/libphonenumber/parameter/securec/c_utils/log 同名桩、CallConnectAbility 拉起打桩、数据库/广播/通知/骚扰/号码识别调用点统一 todo 标签并给出默认失败语义、liteos-stub-layer 能力约束桩目录与不回引依赖。未发现遗漏类别，todo 拆类与默认语义比 reference 更系统。"
+    },
+    "code_level_design": {
+      "score": 4,
+      "rationale": "设计含决策索引与 22 条决策（决策/理由/落点三段式），逐宏处置表附场点、删除文件表、新 stub 文件级设计、零引用宏核验方法、任务依赖与编译/门禁验证手段具体；智能指针改造、IPC 迁移形态（删 stub/proxy/death recipient）与 reference 相同。扣分点：个别符号误写（report_call_info_queue_ 实为全局 reportCallInfoQueue、PublishCallManagerService 不存在），且设计未拦截两个 delta 间的 AppStateObserver 矛盾。"
+    },
+    "testability_grounding": {
+      "score": 4,
+      "rationale": "每个 delta 的需求附测试落点且指向真实套件（zero_branch4/6/9/10、special 系、fuzz 套件均实测存在）；任务按组推进并每组以 must-pass 门禁收尾，含源文件删除同步 gni、bundle.json、测试组织同步与零引用宏核验等具体验证手段，测试可操作性强。扣分点：少数捏造/错名符号（CallControlManager::InitEvents 实为 CallStateObserve()、GetSimState 不存在、USER_IMPROLAN_SWITCH 拼错），其中 InitEvents 出现在 delta 场景 WHEN 内会误导实现与测试编写。"
+    },
+    "readability_rules": {
+      "score": 5,
+      "rationale": "proposal 结构齐备（Why/What Changes/Capabilities/裁剪范围表/非目标/BREAKING 附需人工复核标记），design 以决策索引开头、含 Open Questions 与 5 个迁移阶段任务依赖表，delta 均用 ADDED/MODIFIED/REMOVED + Reason/Migration，中文行文保留英文结构关键字与 SHALL/MUST。openspec validate --all --strict 通过，且提案补齐了 reference 缺失的非目标小节，结构完整度优于 reference。"
+    }
+  },
+  "gaps": [
+    {
+      "id": "trim_scope/app-state-observer-contradiction",
+      "dimension": "trim_scope",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "学生在 call-report delta 中删除 app_state_observer.cpp/.h 并声明 RegisterApplicationStateObserver 注册点不迁移，但其 call-control-management delta 的 SetVoIPCallState 需求仍要求‘经 AppStateObserver 向 AppMgr 注册应用状态观察者（照抄保留）’，同一变更内部矛盾，实现者无法同时满足。Reference 的处理一致明确（删观察者，保留 SetVoIPCallState/ClearVoipList 复位函数）。",
+      "evidence": "_inputs/student/openspec/changes/migrate-call-manager-to-liteos/specs/call-report/spec.md（REMOVED 系统应用进程死亡复位 VoIP 状态）vs .../specs/call-control-management/spec.md:422；源码 telephony_call_manager/services/call/src/call_control_manager.cpp:1392-1410"
+    },
+    {
+      "id": "trim_scope/notification-observer-removal",
+      "dimension": "trim_scope",
+      "severity": "medium",
+      "tag": "reference_questionable",
+      "summary": "Reference 将 IncomingCallWakeup/MissedCallNotification/IncomingCallNotification 观察者连源文件整体删除，而学生保留观察者类、仅对 NotificationHelper/功耗锁等外部调用点打 todo 桩。AGENTS 将通知与功耗锁列入‘暂不调用、打桩占位’类而非‘不迁移’类，且要求‘不能因无外部接口丢弃功能’；HMOS 的 callmanager.gni 无条件编译这些文件，宏只守卫单行调用。学生读法更有依据，reference 的删除偏激进，供人工复核，学生不扣分。",
+      "evidence": "_inputs/reference/openspec/changes/migrate-call-manager-to-liteos/tasks.md:17（删除 incoming_call_wakeup 等）；AGENTS.md 外部依赖处理（通知/功耗锁）与约束条目；telephony_call_manager/callmanager.gni:52-54"
+    },
+    {
+      "id": "testability_grounding/hallucinated-symbol-names",
+      "dimension": "testability_grounding",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "学生 spec 存在少量违反‘引用名必须在源码中存在’硬规则的符号：CallControlManager::InitEvents（真实为 CallStateObserve()）、GetSimState（树中不存在）、CallManagerManager::Init（拼写）、USER_IMPROLAN_SWITCH（实为 USER_IMPROPLAN_SWITCH）、PublishCallManagerService（实为 OnStart/AddSystemAbility 链路）。量级相对其 3405 个已核实引用很小，但 InitEvents 位于 delta 场景 WHEN 内，会误导实现与测试。",
+      "evidence": "_inputs/student/.../specs/call-report/spec.md（通话事件上报场景 WHEN）；.../specs/telephony-interaction/spec.md（GetSimState）；.../design.md:46；.../proposal.md 基线 antifraud-call/call-manager-service"
+    },
+    {
+      "id": "code_level_design/report-queue-member-misnomer",
+      "dimension": "code_level_design",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "学生把 HMOS 的全局 ffrt 队列对象 reportCallInfoQueue（report_call_info_queue 只是队列名字符串）误写成成员名 report_call_info_queue_，并据此在 design D8、call-report 与 liteos-stub-layer delta 中描述 EventHandler 替换形态。命名错误不影响功能语义，但与 reference（正确引用 reportCallInfoQueue）相比属实现落点误差。",
+      "evidence": "telephony_call_manager/services/call_report/src/report_call_info_handler.cpp:31（reportCallInfoQueue 全局定义）；_inputs/student/.../design.md（D8）与 .../specs/call-report/spec.md、.../specs/liteos-stub-layer/spec.md"
+    },
+    {
+      "id": "code_level_design/gni-supported-macro-block-conditionality",
+      "dimension": "code_level_design",
+      "severity": "low",
+      "tag": "student_defensible",
+      "summary": "对支持宏的 gni 部件块处置不同：学生保留 global_parts_info 条件块（照抄，依赖测试兼容层/部件信息注入），reference 直接改恒定义。AGENTS‘支持宏（无需显示定义宏）’语义两读皆可，学生方案已自洽记录（组外仅在产品无对应部件时会缺 define）。不扣分。",
+      "evidence": "_inputs/student/.../specs/build-config/spec.md vs _inputs/reference/.../specs/build-and-feature-flags/spec.md；AGENTS.md 特性宏支持范围"
+    },
+    {
+      "id": "external_deps/spam-ipc-shell-retention",
+      "dimension": "external_deps",
+      "severity": "low",
+      "tag": "student_defensible",
+      "summary": "学生保留 SpamCallProxy/SpamCallStub/SpamCallConnection 的可编译最小空壳并用 todo 桩驱动回环（OQ6 登记待复核），reference 直接删除 Proxy/Stub IPC 类。AGENTS 仅要求骚扰接口暂不调用、不用 dlopen，两种读法都有依据；同类差异还有 voip_call_manager_proxy 保留桩化（学生）vs 删除（reference）。不扣分。",
+      "evidence": "_inputs/student/.../specs/spam-call-identification/spec.md vs _inputs/reference/.../specs/spam-call/spec.md（REMOVED 检测命令 IPC）；AGENTS.md 外部依赖处理（骚扰来电）"
+    },
+    {
+      "id": "trim_scope/celia-newcall-trim",
+      "dimension": "trim_scope",
+      "severity": "low",
+      "tag": "student_defensible",
+      "summary": "学生依据 AGENTS‘新通话不支持’删除 Celia 相关路由（dealCeliaCallEvent、HandleCeliaAutoAnswerCall 及其调用点），reference 予保留。源码中这些符号实存，但‘新通话=Celia 事件’的映射无直接证据（Celia 更可能是小艺语音场景），两端解读各有依据，学生已记录理由（design 决策）。不扣分。",
+      "evidence": "_inputs/student/.../design.md（Celia 处置决策）vs _inputs/reference/.../specs/distributed-call/spec.md（celia 事件保留）；telephony_call_manager/.../distributed_communication_manager.cpp（IsCeliaCall）"
+    },
+    {
+      "id": "readability_rules/reference-proposal-missing-non-goals",
+      "dimension": "readability_rules",
+      "severity": "low",
+      "tag": "reference_questionable",
+      "summary": "任务明确要求 proposal.md 的裁剪范围表后接非目标小节，reference 的提案只有 Why/WhatChanges/裁剪范围/Capabilities/Impact，缺少非目标；学生提案含裁剪范围表与非目标且 BREAKING 附需人工复核标记。属 reference 可读性缺陷，供人工复核，不影响学生得分。",
+      "evidence": "_inputs/task.md Readability 节；_inputs/reference/.../proposal.md（无 ## 非目标）vs _inputs/student/.../proposal.md:67（## 非目标）"
+    }
+  ],
+  "total": 89.0,
+  "weights": {
+    "baseline_coverage": 20,
+    "trim_scope": 25,
+    "external_deps": 15,
+    "code_level_design": 15,
+    "testability_grounding": 15,
+    "readability_rules": 10
+  }
+}

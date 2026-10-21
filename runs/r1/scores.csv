@@ -1,2 +1,3 @@
 iter,sample,total,baseline_coverage,trim_scope,external_deps,code_level_design,testability_grounding,readability_rules,gaps_student_wrong,gaps_high,validate_ok,leak_ok,no_code_ok,hmos_coverage,subagents,nudges,input_tokens,output_tokens,duration_min,model
 0,-,71.0,3,3,5,3,4,4,12,1,True,True,True,0.447,17,,29660,22669,29.1,GLM 5.3 High
+1,-,89.0,5,4,5,4,4,5,3,0,True,True,True,0.359,17,1,102431,42620,47.6,GLM 5.3 High

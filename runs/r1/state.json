@@ -43,6 +43,32 @@
         "lines": 137,
         "copied_chars": 76
       }
+    },
+    "1": {
+      "samples": 1,
+      "student": [
+        {
+          "sample": "-",
+          "valid": true,
+          "agent_ok": true,
+          "leak_ok": true,
+          "no_code_ok": true,
+          "validate_ok": true,
+          "nudges": 1,
+          "incomplete": [],
+          "session_id": "2bceaf86-3079-44cd-938b-283e0fdbcbaf",
+          "workspace": "/home/kevin/Work/spec-loop-ws/r1/iter-01-student",
+          "attempts": 1
+        }
+      ],
+      "compare": [
+        {
+          "sample": "-",
+          "ok": true,
+          "total": 89.0
+        }
+      ],
+      "score": 89.0
     }
   },
   "frozen_at": "2026-10-21T15:11:12+0800"
