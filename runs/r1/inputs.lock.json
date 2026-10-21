@@ -15,7 +15,7 @@
     "openspec-update-change": "1d6f7cd55bbce2f90be0fc3822e9341826a348650435bb9dbd5e90e96354674e"
   },
   "prompts": {
-    "rubric.md": "80956656c18d68dcdb77c58256799c23bb3fd0a687718e257bbdabae2baa2b59",
+    "rubric.md": "a2afeaf401b24d80b38b68e4cd4c27f7cea5a2eaa547375c61cc12b3e1dbae1f",
     "prompts/compare.md": "f77215e182aa18e6b39b9640680fb401919ce6d6b78d12f0decf0dbc564d858d",
     "prompts/playbook_rules.md": "a12bffd590c1e5f84de804ee8d8d29e0f5391794e7cdf1a010b73a83ff6c34e6",
     "prompts/smoke_task.md": "f06284ea53dd376f0ebbe8a3cbde9f6c32f6cd21ef2449043c8fde97e6f74148",
@@ -45,6 +45,7 @@
   "openspec_cli": "1.13.1",
   "smoke": false,
   "notes": [
-    "2026-10-21 10:55: synthesize.md and config.json gained TrajViz inputs before any synthesize/compare stage of this run used them."
+    "2026-10-21 10:55: synthesize.md and config.json gained TrajViz inputs before any synthesize/compare stage of this run used them.",
+    "2026-10-21 11:55: rubric.md no longer pre-decides VoIP (defers to the reviewed reference); no compare stage had run."
   ]
 }

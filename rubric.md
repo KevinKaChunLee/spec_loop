@@ -22,7 +22,7 @@ How completely and correctly the student's baseline specs describe the HMOS modu
 ## trim_scope
 
 Whether the change removes, keeps and modifies the right things.
-- Features AGENTS.md lists as unsupported are removed; supported features are kept, including VoIP being deferred rather than kept.
+- Features AGENTS.md lists as unsupported are removed and supported features are kept. Where AGENTS.md is ambiguous (for example VoIP, which is "暂不支持" pending the meetime integration), follow the reviewed reference unless the source or AGENTS.md clearly contradicts it.
 - Feature macros are classified as AGENTS.md says (unsupported: code not migrated; supported: no explicit define needed), and decisions follow actual code usage, not macro descriptions.
 - The explanatory notes in AGENTS.md are respected (for example the meaning of CALL_MANAGER_CALL_TRANSFER versus UT supplementary services, both branches of CONFIG_FACTORY_VERSION, DSDS mode fixed to 0, single SIM with room for dual SIM, single primary account).
 - The proposal's 裁剪范围 matches the delta specs (every removed or modified capability has a matching delta).
