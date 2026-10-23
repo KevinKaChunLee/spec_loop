@@ -1,0 +1,647 @@
+{
+  "scoring": "decisions-v2",
+  "total": 90.5,
+  "dimensions": {
+    "agents_compliance": {
+      "value": 0.9604,
+      "score": 4.8,
+      "parts": {
+        "agents_compliance": 0.9604
+      }
+    },
+    "open_decisions": {
+      "value": 1.0,
+      "score": 5.0,
+      "parts": {
+        "open_decisions": 1.0
+      }
+    },
+    "baseline_coverage": {
+      "value": 0.8469,
+      "score": 4.23,
+      "parts": {
+        "module_coverage": 1.0,
+        "behaviour_coverage": 0.8448,
+        "requirements_correctness": 0.8
+      },
+      "rationale": "学生基线规格的事实准确度极高：抽查的全部高风险论断（ProximitySensor 在 HasCallExist() 为真时灭屏、IsTwoCallESIMCall 恒 false、SetDialingCallProcessing 的 PostTask 反判、GetBindTime 每次刷新、call_status_manager.cpp:1214/1243/2262 行号、ENABLE_DEVICE_* 与 audio_state 文件名、focus_mode_enable 链、SetCallPreferenceMode 缺判空）均与源码一致，多处比参考实现更精确（参考在贴耳灭屏上描述错误）；Purpose 均落到真实源码位置并如实标注'本仓未定义恒关闭'的宏状态，判定链逐分支展开。扣分点：native-client-api 与 call-utils 两个基线规格末尾各含一条'手表移植预计移除面'需求，描述的是 liteOS 迁移计划而非 HMOS 现状（场景写'具体由裁剪 delta 决定'，不可测）；call-report 规格引用了不存在的 CallControlManager::InitEvents（实际为 CallStateObserve()，学生自己的 call-control-management 规格用的是正确名）。均为小缺口，故 4 分。"
+    },
+    "code_level_design": {
+      "value": 0.86,
+      "score": 4.3,
+      "parts": {
+        "build_coverage": 1.0,
+        "design_quality": 0.8
+      },
+      "rationale": "整体设计到代码层的落点非常完整：每条 REMOVED 需求都有 Reason（AGENTS 条文）+ Migration（删文件、gni 同步、下游悬空引用清扫、恢复条件），D7 宏表逐宏给出 rg 核实的场点与处置，锁/ffrt/直调架构/桩目录在各工件间高度一致（powerLock/callUi/spam/database 等标签在 design、delta、tasks 三处可对上）。扣分点：一处同一决策两种说法——call-control-management delta 称 AppStateObserver 注册'照抄保留'，而 call-report delta 已将 app_state_observer.cpp 删除且注册点不迁移（中等严重）；design D6 表写 spam 三文件'删除'与 OQ6/delta/tasks 的'保留可编译最小形'相左（低）；design 的 ffrt 枚举漏掉音频场景队列 reportAudioStateChangeQueue（仅 delta 覆盖，参考 design 有列，低）；spam delta 保留 cv_.wait_until 阻塞语义与单线程同步桩存在 3s/5s 卡顿隐患而未像参考那样显式裁决（低）；tasks 7.4 的 fuzz 删除清单与 build-config delta 的实际清单不符（低）。一处中等 + 数处轻微，故 4 分。"
+    },
+    "testability_grounding": {
+      "value": 0.9352,
+      "score": 4.68,
+      "parts": {
+        "grounding_rate": 0.92,
+        "task_rules": 0.8758,
+        "scenario_quality": 1.0
+      },
+      "rationale": "732 个基线场景均有具体触发（输入/状态/桩注入）与可观察结果（错误码、函数、状态位），可直接落 gtest；delta 规格为每条需求标注'测试落点'（具名套件 + 用例族），可测试性落点比参考实现更完整。安全相关行为覆盖充分：紧急呼叫有拨号豁免、EccDialPolicy 清理矩阵、HasNormalCall 豁免、ECC 强制不静音等场景，且 tasks 5.2 将'ECC 豁免链必须整组具名 gtest 全过'设为子任务完成条件、tasks 9.1 单列 ECC 判定链复核；拒接链（RejectCall 默认目标、IsRejectCall 三级判定、HandleRejectCall 拦截/未接落账、spam 拦截）场景与 gtest 齐备。未发现近重复凑数场景，数量大源于判定链的逐分支展开。"
+    },
+    "readability_rules": {
+      "value": 0.9284,
+      "score": 4.64,
+      "parts": {
+        "rule_checklist": 0.9835,
+        "readability": 0.8
+      },
+      "rationale": "zh-CN 行文 + 英文结构关键词，proposal 裁剪范围表 26 行齐整、design 决策索引与 D6/D7/D10 枚举表规范、Open Questions 为真实源码疑点（IsTwoCallESIMCall 恒 false、PostTask 反判等）、无超长代码块、'需人工复核'标注清晰，易于人工评审。主要代价在 delta 体量：275 条需求中 161 条被标 MODIFIED 并整段复述（含未变化场景逐字照抄 + '（照抄）'注记），变更全文约 4148 行（参考约 1040 行），实际改动埋在逐句括注里，人工需在 500 行级的单能力 delta 中做人工 diff；该写法在 OpenSpec MODIFIED 需全文的格式下可辩护，且注释体系系统化，但评审负担确实高于参考的手术式 delta。一处中等负担 + 整体规范，故 4 分。"
+    }
+  },
+  "weights": {
+    "agents_compliance": 10,
+    "open_decisions": 15,
+    "baseline_coverage": 35,
+    "code_level_design": 15,
+    "testability_grounding": 15,
+    "readability_rules": 10
+  },
+  "agreement": {
+    "open": {
+      "items": 6,
+      "agree_code": 5,
+      "agree_ruling": 1,
+      "value": 1.0,
+      "code_value": 0.8333
+    },
+    "settled": {
+      "items": 101,
+      "agree_code": 93,
+      "agree_ruling": 4,
+      "value": 0.9604,
+      "code_value": 0.9208
+    },
+    "modules": {
+      "items": 22,
+      "agree_code": 21,
+      "agree_ruling": 1,
+      "value": 1.0,
+      "code_value": 0.9545
+    },
+    "features": {
+      "items": 24,
+      "agree_code": 24,
+      "agree_ruling": 0,
+      "value": 1.0,
+      "code_value": 1.0
+    },
+    "macros": {
+      "items": 34,
+      "agree_code": 26,
+      "agree_ruling": 4,
+      "value": 0.8824,
+      "code_value": 0.7647
+    },
+    "dependencies": {
+      "items": 22,
+      "agree_code": 22,
+      "agree_ruling": 0,
+      "value": 1.0,
+      "code_value": 1.0
+    },
+    "architecture": {
+      "items": 5,
+      "agree_code": 5,
+      "agree_ruling": 0,
+      "value": 1.0,
+      "code_value": 1.0
+    }
+  },
+  "code_share": {
+    "code_points": 63.9,
+    "llm_points": 26.6,
+    "code_share_of_total": 0.706,
+    "code_share_of_weights": 0.715
+  },
+  "disputes": 9,
+  "gaps": [
+    {
+      "id": "module/services/call_setting",
+      "dimension": "agents_compliance",
+      "severity": "low",
+      "tag": "student_defensible",
+      "summary": "services/call_setting：参考 modify（修改），学生 keep（保留）。两侧迁移结果一致：均按 AGENTS「特性宏支持范围」说明 1 保留 UT/USSD/USSD/MMI 补充业务，cellular_call 出口经 CellularCallClient 桩、设置项 DataShare 查询 todo，差异仅在裁剪范围表的标签。reference 因其设计（CallSettingManager 直接改调 CellularCallClient，替代 cellularCallConnectionPtr_ 转发）标「修改」，student 因该目录自身代码零改动（适配器改造落在 telephony-interaction）标「保留」；源码中 call_setting_manager.cpp 确实只经 DelayedSingleton<CellularCallConnection>::GetInstance() 转发，两种归因均有依据，属同一结果的不同表达。",
+      "evidence": "telephony_call_manager/services/call_setting/src/call_setting_manager.cpp:26；AGENTS.md「特性宏支持范围」说明 1",
+      "source": "decision"
+    },
+    {
+      "id": "macro/ABILITY_NOTIFICATION_SUPPORT",
+      "dimension": "agents_compliance",
+      "severity": "medium",
+      "tag": "student_defensible",
+      "summary": "不支持宏：ABILITY_NOTIFICATION_SUPPORT：参考 remove（宏及其守卫的代码不迁移：按未定义处理，删除对应分支或构建块），学生 unguard（守卫的代码迁移并生效：去掉守卫，或在构建中恒定义）。AGENTS.md 两条规则对此文件真实冲突：「特性宏支持范围」把该宏列入不支持宏（代码无需迁移），「外部依赖处理」却规定 NotificationHelper 调用点迁移时以 todo 注释占位、待通知接口适配。student 保留观察者并把发布/撤销点 todo 桩化，reference 整文件删除，两读法各有条文支撑；且行为等价（IsFullScreen 恒 false，liteOS 上均不真正发通知）。注意 PublishNotification 调用点本就无宏守卫（仅 Cancel 分支受宏控制），「调用点用 todo 占位」规则只能落在 student 的保留方案上。",
+      "evidence": "telephony_call_manager/services/call/call_state_observer/src/incoming_call_notification.cpp:95,101；AGENTS.md「外部依赖处理」通知行 vs「特性宏支持范围」不支持宏清单",
+      "source": "decision"
+    },
+    {
+      "id": "macro/ABILITY_DISPLAY_SUPPORT",
+      "dimension": "agents_compliance",
+      "severity": "low",
+      "tag": "student_defensible",
+      "summary": "不支持宏：ABILITY_DISPLAY_SUPPORT：参考 remove（宏及其守卫的代码不迁移：按未定义处理，删除对应分支或构建块），学生 unguard（守卫的代码迁移并生效：去掉守卫，或在构建中恒定义）。两 spec 对该宏守卫代码的实质处置相同：DisplayManager::IsFullScreen 调用均不迁移、IsFullScreen() 恒返回 false（等价基线默认构建，该宏在仓内 gni 从未定义），仅提取值标签不同（unguard vs remove）。文件整体去留的差异已由 ABILITY_NOTIFICATION_SUPPORT 争议覆盖，本条本身无实质分歧。",
+      "evidence": "telephony_call_manager/services/call/call_state_observer/src/incoming_call_notification.cpp:109-112；telephony_call_manager/callmanager.gni（无 ABILITY_DISPLAY_SUPPORT 定义块）",
+      "source": "decision"
+    },
+    {
+      "id": "macro/ABILITY_CELLULAR_SUPPORT",
+      "dimension": "agents_compliance",
+      "severity": "low",
+      "tag": "student_defensible",
+      "summary": "支持宏：ABILITY_CELLULAR_SUPPORT：参考 unguard（守卫的代码迁移并生效：去掉守卫，或在构建中恒定义），学生 keep（宏作为开关保留，两个分支的代码都迁移）。该宏唯一场点 cellular_call_connection.cpp:147 仅守卫 ReConnectService 的单次重连判定，student 的 pc-test-harness delta 与 tasks 7.5 明确保留兼容层注入 ABILITY_CELLULAR_SUPPORT=0x1，与 reference 的 gni 恒定义在规格定义的构建（PC 门禁）中同为生效。AGENTS 规定的 CellularCallClient::GetInstance().Xxx() 桩形态位于守卫之外、两者均存活，实际差异仅剩 gni 机制（部件条件块照抄 vs 恒定义），影响很小。",
+      "evidence": "telephony_call_manager/services/telephony_interaction/src/cellular_call_connection.cpp:147；_inputs/student/openspec/changes/migrate-call-manager-to-liteos/tasks.md:63",
+      "source": "decision"
+    },
+    {
+      "id": "macro/ABILITY_SMS_SUPPORT",
+      "dimension": "agents_compliance",
+      "severity": "high",
+      "tag": "student_wrong",
+      "summary": "支持宏：ABILITY_SMS_SUPPORT：参考 unguard（守卫的代码迁移并生效：去掉守卫，或在构建中恒定义），学生 keep（宏作为开关保留，两个分支的代码都迁移）。AGENTS 把该宏列入支持宏并规定 sms_mms 交互「使用SmsClient::GetInstance().Xxx()的形式替代、对应接口通过打桩实现」，但 student 保留 global_parts_info 部件条件块且兼容层仅注入 ABILITY_CELLULAR_SUPPORT（liteOS 无 sms_mms 部件、PC 构建无 global_parts_info），reject_call_sms.cpp:37 守卫内的 SmsClient 桩发送在规格定义的一切构建中均为死代码，拒接短信功能被静默丢弃，其自身「发送条件」场景也不可达，违背「不能因为无外部接口而丢弃功能」与支持宏语义。reference 恒定义使该链路存活。",
+      "evidence": "telephony_call_manager/services/call/call_state_observer/src/reject_call_sms.cpp:37；AGENTS.md「外部依赖处理」sms_mms 行＋「特性宏支持范围」支持宏清单",
+      "source": "decision"
+    },
+    {
+      "id": "macro/CELLULAR_DATA_SUPPORT",
+      "dimension": "agents_compliance",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "支持宏：CELLULAR_DATA_SUPPORT：参考 unguard（守卫的代码迁移并生效：去掉守卫，或在构建中恒定义），学生 keep（宏作为开关保留，两个分支的代码都迁移）。call_number_utils.cpp:256 守卫内正是 AGENTS 规定的 CellularDataClient::GetInstance().GetDefaultCellularDataSlotId() 桩回退，student 的构建设计（部件条件块照抄、兼容层不注入该宏）使其恒被编译裁掉，SelectAccountId 静默失去默认数据卡这最后一级回退，违背支持宏语义与 cellular_data 替代规则。reference 恒定义使该回退存活，属单函数内局部分支的差异。",
+      "evidence": "telephony_call_manager/utils/src/call_number_utils.cpp:256；AGENTS.md「外部依赖处理」cellular_data 行",
+      "source": "decision"
+    },
+    {
+      "id": "macro/ABILITY_POWER_SUPPORT",
+      "dimension": "open_decisions",
+      "severity": "high",
+      "tag": "reference_questionable",
+      "summary": "支持宏：ABILITY_POWER_SUPPORT（功耗锁接口本身暂不调用，见外部依赖）：参考 remove（宏及其守卫的代码不迁移：按未定义处理，删除对应分支或构建块），学生 keep（宏作为开关保留，两个分支的代码都迁移）。AGENTS「特性宏支持范围」明确把 ABILITY_POWER_SUPPORT 列入支持宏，「外部依赖处理」对功耗锁的规定是调用点以 todo 注释占位而非删文件，但 reference 把该 gni 块归入「gni 不支持块」删除（design D12、tasks 3.1）并整体删除 incoming_call_wake_up.*（tasks 2.4），「来电亮屏与运行锁」完整功能被无条文依据地移除——功能范围不支持清单只有贴耳灭屏（proximity_sensor），并无来电亮屏。student 保留观察者并把 RunningLock/WakeupDevice 调用点 todo 桩化，更贴合 AGENTS 的支持宏与 todo 占位规定。",
+      "evidence": "AGENTS.md「特性宏支持范围」支持宏清单＋「外部依赖处理」功耗锁行；_inputs/reference/openspec/changes/migrate-call-manager-to-liteos/tasks.md:16,24",
+      "source": "decision"
+    },
+    {
+      "id": "macro/TELEPHONY_CUST_SUPPORT",
+      "dimension": "agents_compliance",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "支持宏：TELEPHONY_CUST_SUPPORT：参考 unguard（守卫的代码迁移并生效：去掉守卫，或在构建中恒定义），学生 keep（宏作为开关保留，两个分支的代码都迁移）。call_data_base_helper.cpp:451（QueryContactInfoEnhanced）与 call_status_manager.cpp:702（后缀匹配增强分支）守卫内正是 AGENTS 规定的 TelephonyCustClient::GetInstance() 桩替换落点，student 的构建设计使该宏在一切已定义构建中不被定义，增强查询分支与 cust 桩全部成为死代码，违背支持宏语义与「与TelephonyCust模块进行通信时使用TelephonyCustClient::GetInstance().Xxx()的形式替代」的规定。reference 恒定义使该分支存活；差异限于联系人查询的一条增强分支，属局部差异。",
+      "evidence": "telephony_call_manager/services/call/call_state_observer/src/call_data_base_helper.cpp:451；telephony_call_manager/services/call/src/call_status_manager.cpp:702；AGENTS.md「外部依赖处理」TelephonyCust 行",
+      "source": "decision"
+    },
+    {
+      "id": "macro/OHOS_BUILD_ENABLE_TELEPHONY_CUST",
+      "dimension": "agents_compliance",
+      "severity": "high",
+      "tag": "student_wrong",
+      "summary": "支持宏：OHOS_BUILD_ENABLE_TELEPHONY_CUST：参考 unguard（守卫的代码迁移并生效：去掉守卫，或在构建中恒定义），学生 keep（宏作为开关保留，两个分支的代码都迁移）。该宏守卫 TelephonyCustWrapper 的初始化与 IsChangeDialNumberToTwEmc_ 改号判定（call_manager_service.cpp:52/90/319），是整条 TelephonyCust 定制链的开关（通话记录隐藏判定也依赖 wrapper 初始化）。student 保留部件条件块且不注入该宏，整链在规格定义的构建中失效，AGENTS 规定的 TelephonyCustClient::GetInstance().Xxx() 桩形态成为死代码，整条定制功能被静默丢弃；reference 恒定义使整链存活。",
+      "evidence": "telephony_call_manager/services/call_manager_service/src/call_manager_service.cpp:52,90,319；AGENTS.md「外部依赖处理」TelephonyCust 行＋「特性宏支持范围」支持宏清单",
+      "source": "decision"
+    },
+    {
+      "id": "coverage/behaviour",
+      "dimension": "baseline_coverage",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "参考 baseline 引用的 1295 个 HMOS 名称中，学生覆盖 84%；缺失示例：`ACTION_TYPE`、`AddDeathRecipient`、`AntiFraudDetectResListener`、`AutoAnswer`、`BindAsync`、`CALL_ANSWER_FAILED_EVENT`、`CALL_ANSWER_IN_SUPER_PRIVACY`、`CALL_DIAL_CLOSE_SUPER_PRIVACY`、`CALL_DIAL_FAILED_EVENT`、`CALL_DIAL_IN_SUPER_PRIVACY`、`CALL_FAILED_CTCARD_NO_IMS`、`CALL_FAILED_DUE_TO_FDN`",
+      "evidence": "baseline specs 中反引号引用的 HMOS 名称",
+      "source": "code"
+    },
+    {
+      "id": "rule/design_decision_structure",
+      "dimension": "readability_rules",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "规则检查 design_decision_structure = 0.818（9/11 decisions have 决策/理由/落点）",
+      "evidence": "config.yaml / task.md",
+      "source": "code"
+    },
+    {
+      "id": "rule/tasks-gtest",
+      "dimension": "testability_grounding",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "tasks.md 规则 gtest 满足率 0.9",
+      "evidence": "config.yaml rules.tasks",
+      "source": "code"
+    },
+    {
+      "id": "rule/tasks-gni_sync",
+      "dimension": "testability_grounding",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "tasks.md 规则 gni_sync 满足率 0.727",
+      "evidence": "config.yaml rules.tasks",
+      "source": "code"
+    },
+    {
+      "id": "code_level_design/appstate-observer-two-ways",
+      "dimension": "code_level_design",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "同一决策两种说法：call-control-management delta 的'VoIP 状态注入与畅连冲突'场景称 IDLE/UNKNOWN 时注销/注册 ApplicationStateObserver'照抄保留'，而 call-report delta 已 REMOVED '系统应用进程死亡复位 VoIP 状态'并删除 app_state_observer.cpp/.h、明确 RegisterApplicationStateObserver 注册点不迁移。",
+      "evidence": "_inputs/student/openspec/changes/migrate-call-manager-to-liteos/specs/call-control-management/spec.md:422 vs .../specs/call-report/spec.md REMOVED '系统应用进程死亡复位 VoIP 状态'；telephony_call_manager/services/call/src/call_control_manager.cpp:1587-1609",
+      "source": "judge"
+    },
+    {
+      "id": "readability_rules/delta-full-restatement",
+      "dimension": "readability_rules",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "delta 以全文复述方式呈现：161/275 条需求标 MODIFIED（参考 63 条），未变化场景逐字重抄并加'（照抄）'注记，单能力 delta 达 300-500 行（call-control-management 504 行 vs 参考 59 行），实际改动混在逐句括注中，人工评审需自行 diff。",
+      "evidence": "_inputs/student/openspec/changes/migrate-call-manager-to-liteos/specs/call-control-management/spec.md (504 行) vs _inputs/reference/.../specs/call-control-manager/spec.md (59 行)；metrics: delta MODIFIED 161 vs 63",
+      "source": "judge"
+    },
+    {
+      "id": "baseline_coverage/migration-preview-in-baseline",
+      "dimension": "baseline_coverage",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "native-client-api 与 call-utils 两个基线规格各含一条'手表移植预计移除面'需求，描述 liteOS 迁移计划而非'HMOS 现状'（task.md 要求基线只写移植前行为），其场景（'具体由裁剪 delta 决定'）无法落 gtest。",
+      "evidence": "_inputs/student/openspec/specs/native-client-api/spec.md '手表移植预计移除面（native 层）'；_inputs/student/openspec/specs/call-utils/spec.md '手表移植预计移除面（utils 层）'；_inputs/task.md 交付物 1",
+      "source": "judge"
+    },
+    {
+      "id": "baseline_coverage/hallucinated-init-events",
+      "dimension": "baseline_coverage",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "call-report 基线与 delta 的'状态监听接入'需求引用不存在的 CallControlManager::InitEvents，实际注册函数为 CallStateObserve()；学生自己的 call-control-management 规格用了正确函数名，属自相矛盾的虚构引用（行为描述本身正确）。",
+      "evidence": "_inputs/student/openspec/specs/call-report/spec.md 与 .../changes/.../specs/call-report/spec.md '状态监听接入'；telephony_call_manager/services/call/src/call_control_manager.cpp:1648 CallStateObserve()",
+      "source": "judge"
+    },
+    {
+      "id": "code_level_design/spam-file-disposal-two-ways",
+      "dimension": "code_level_design",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "spam_call_proxy/stub/connection 三文件处置两种说法：design D6 表写'文件删除'，而 OQ6/delta/tasks 默认'保留可编译最小形'（OQ 登记部分缓解了矛盾）。",
+      "evidence": "_inputs/student/.../design.md D6 骚扰来电行 vs Open Questions 6；spam-call-identification delta '检测 IPC 携带结果回调桩'；tasks.md 5.4",
+      "source": "judge"
+    },
+    {
+      "id": "code_level_design/ffrt-audio-queue-design-gap",
+      "dimension": "code_level_design",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "design D6/D8 的 ffrt 落点枚举漏掉音频场景队列 reportAudioStateChangeQueue（audio_scene_processor.cpp），该队列仅在 audio delta 中覆盖；参考 design D6 明确列出该队列。",
+      "evidence": "_inputs/student/.../design.md D8 落点清单 vs _inputs/reference/.../design.md D6；_inputs/student/.../specs/audio-device-management/spec.md '音频场景状态机'",
+      "source": "judge"
+    },
+    {
+      "id": "code_level_design/timewait-single-thread",
+      "dimension": "code_level_design",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "spam delta 为 TimeWaitHelper 保留 cv_.wait_until 阻塞等待语义，与 design D8 '桩内同步逐条执行、不新增线程'组合后，响一声/骚扰检测窗口会阻塞唯一线程 3-5 秒；参考实现显式裁决'单线程下等待立即按超时返回'。",
+      "evidence": "_inputs/student/.../specs/spam-call-identification/spec.md '同步等待检测结果' vs _inputs/reference/.../design.md D7 TimeWaitHelper 行；_inputs/student/.../design.md D8",
+      "source": "judge"
+    },
+    {
+      "id": "code_level_design/tasks-fuzz-list-mismatch",
+      "dimension": "code_level_design",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "tasks 7.4 称要删除'conference/bluetooth/satellite/antifraud/spam connection 系 fuzz' target，但基线 fuzz 清单（19 个）中不存在这些 target；build-config delta 给出的实际删除清单（6 个 + voice assistant 目录）与之不符。",
+      "evidence": "_inputs/student/.../tasks.md 7.4 vs _inputs/student/.../specs/build-config/spec.md 'fuzztest 与 mock 组织' 与基线 build-config 规格的 19 fuzzer 清单",
+      "source": "judge"
+    },
+    {
+      "id": "baseline_coverage/ref-proximity-sensor-inverted",
+      "dimension": "baseline_coverage",
+      "severity": "medium",
+      "tag": "reference_questionable",
+      "summary": "参考基线称 ProximitySensor 在 CallDestroyed 且 HasCallExist() 为假时灭屏；源码实为'为真时灭屏、为假时不操作'（上游反直觉现状）。学生基线如实记录了该现状，比参考准确，不扣学生分。",
+      "evidence": "telephony_call_manager/services/call/call_state_observer/src/proximity_sensor.cpp:36-42 vs _inputs/reference/openspec/specs/call-state-observer/spec.md '贴耳灭屏'",
+      "source": "judge"
+    },
+    {
+      "id": "code_level_design/ref-powerlock-wakeup-removal",
+      "dimension": "code_level_design",
+      "severity": "medium",
+      "tag": "reference_questionable",
+      "summary": "参考删除 incoming_call_wake_up.cpp 并将 ABILITY_POWER_SUPPORT 的 gni 块列入'删块'，但 AGENTS 将 ABILITY_POWER_SUPPORT 列为支持宏、外部依赖处理要求功耗锁调用点 todo 占位，且参考自身 D4/D12 又写'功耗锁调用点按 D4 todo 占位'——内部张力，疑似过度裁剪；学生保留观察者并 [powerLock] todo 桩化，与 AGENTS 更一致。",
+      "evidence": "AGENTS.md 特性宏支持范围/外部依赖处理；_inputs/reference/.../design.md D12/D17 与 specs/call-state-observer/spec.md REMOVED '来电亮屏与电源锁'",
+      "source": "judge"
+    },
+    {
+      "id": "code_level_design/ref-celia-chain-kept",
+      "dimension": "code_level_design",
+      "severity": "medium",
+      "tag": "reference_questionable",
+      "summary": "AGENTS 功能范围明确'新通话'不支持，但参考的 call-manager-service delta 保留 EVENT_IS_CELIA_CALL→dealCeliaCallEvent 与 EVENT_CELIA_AUTO_ANSWER_CALL_ON/OFF 路由、tasks 7.6 写'celia 事件保留'，疑似漏裁；学生移除 Celia 链并用 rg 证明 IsNewCallAllowed 与新通话无关而保留该接口。",
+      "evidence": "AGENTS.md 功能范围 '新通话'；_inputs/reference/.../specs/call-manager-service/spec.md 'UI 事件路由' 与 tasks.md 7.6；_inputs/student/.../design.md D9",
+      "source": "judge"
+    },
+    {
+      "id": "baseline_coverage/ref-call-setting-datashare",
+      "dimension": "baseline_coverage",
+      "severity": "low",
+      "tag": "reference_questionable",
+      "summary": "参考 proposal 的 call-setting 行写'设置项 DataShare 查询 todo 占位'，但 services/call_setting 目录无任何 DataShare 使用（其 delta 也未提 DataShare），该行理由不实。",
+      "evidence": "_inputs/reference/.../proposal.md 裁剪范围 call-setting 行；rg 'DataShare|datashare' telephony_call_manager/services/call_setting/ 无命中",
+      "source": "judge"
+    },
+    {
+      "id": "code_level_design/ref-rtt-file-node-label",
+      "dimension": "code_level_design",
+      "severity": "low",
+      "tag": "reference_questionable",
+      "summary": "参考 D14 将本仓 CellularCallConnection::StartRtt/StopRtt 转发称为'RTT 的文件节点读写调用点'；本仓 RTT 链路无文件节点操作（文件节点在 cellular_call 侧），学生的表述（'本仓 RTT 链路不含文件节点操作，在适配器出口标 [rtt] todo'）更精确，两者实际处置一致。",
+      "evidence": "_inputs/reference/.../design.md D14 vs _inputs/student/.../design.md D6 RTT 行；telephony_call_manager/services/telephony_interaction/src/cellular_call_connection.cpp",
+      "source": "judge"
+    }
+  ],
+  "code_checks": {
+    "module_coverage": {
+      "value": 1.0,
+      "missing": []
+    },
+    "behaviour_coverage": {
+      "value": 0.8448,
+      "recall": 0.8448,
+      "padding_factor": 1.0,
+      "reference_names": 1295,
+      "student_names": 2517,
+      "missing": [
+        "ACTION_TYPE",
+        "AddDeathRecipient",
+        "AntiFraudDetectResListener",
+        "AutoAnswer",
+        "BindAsync",
+        "CALL_ANSWER_FAILED_EVENT",
+        "CALL_ANSWER_IN_SUPER_PRIVACY",
+        "CALL_DIAL_CLOSE_SUPER_PRIVACY",
+        "CALL_DIAL_FAILED_EVENT",
+        "CALL_DIAL_IN_SUPER_PRIVACY",
+        "CALL_FAILED_CTCARD_NO_IMS",
+        "CALL_FAILED_DUE_TO_FDN",
+        "CALL_FAILED_IN_AIRPLANE_MODE",
+        "CALL_FAILED_NO_SERVICE",
+        "CALL_FAILED_NO_SIM_CARD",
+        "CALL_HANGUP_FAILED_EVENT",
+        "CALL_INCOMING_FAILED_EVENT",
+        "CALL_MANAGER",
+        "CALL_MUTE_RINGER_URI",
+        "CALL_REJECT_IN_SUPER_PRIVACY",
+        "CS_CALL_TYPE",
+        "CURRENT_DATA_REQ",
+        "CURRENT_DATA_RSP",
+        "CallFilterCompleteResult",
+        "CallManagerErrorCode",
+        "CallStateToApp",
+        "CallStatusActive",
+        "CallStatusInterfaceCode",
+        "CallSupplementType",
+        "CarrierAndVoipConflictProcess",
+        "CloseToEarMotionEventCallback",
+        "CommonBroadcastSubscriber",
+        "ContactInfo",
+        "ContactsBroadcastSubscriber",
+        "CopyFormatNumberToE164ToRecord",
+        "CopyFormatNumberToRecord",
+        "CreateNewCallByCallType",
+        "CreateNewCallByCallTypeEx",
+        "DATA_REQ",
+        "DATA_RSP",
+        "DECISION_REASON",
+        "DECLARE_NAPI_FUNCTION",
+        "DECLARE_SYSTEM_ABILITY",
+        "DETECT_DETAILS",
+        "DETECT_RESULT",
+        "DMError",
+        "DM_OK",
+        "DcCallHfpListener",
+        "DcCallSourceHfpListener",
+        "DealKeyMuteLongPressed",
+        "DealKeyMuteShortPressed",
+        "DelayedRefSingleton",
+        "DialParaInfo",
+        "DialScene",
+        "DistributedCallDeviceListener",
+        "DistributedDeviceSwitchController",
+        "DistributedMsgType",
+        "DistributedRole",
+        "EVENT_ANSWER_VOIP_CALL",
+        "EVENT_BLUETOOTH_SCO_STATE_ON",
+        "EarpieceDeviceState",
+        "Encrypt",
+        "FOLDED",
+        "FeatureType",
+        "FlipMotionEventCallback",
+        "GET_CALL_CLIP_ID",
+        "GET_CALL_CLIR_ID",
+        "GET_CALL_RESTRICTION_REPORT_ID",
+        "GET_CALL_TRANSFER_REPORT_ID",
+        "GET_CALL_WAITING_REPORT_ID",
+        "GET_IMS_CONFIG_REPORT_ID",
+        "GET_IMS_FEATURE_VALUE_REPORT_ID",
+        "GetDCallDeviceInfo",
+        "GetDefaultCellularDataSlotId",
+        "GetDefaultVoiceSlotId",
+        "GetDeviceProductType",
+        "GetVideoUpdateStatus",
+        "HandsFreeAudioGatewayObserver",
+        "HfpScoConnectState",
+        "HiWriteBehaviorEvent",
+        "ICallAbilityCallback",
+        "IMS_CALL_TYPE",
+        "INTERFACE_BT_ANSWER_CALL",
+        "IS_CLOUD",
+        "ISocketListener",
+        "ImsConfigItem",
+        "Integer",
+        "IsAclConnected",
+        "IsBtOrWireHeadPlugin",
+        "IsDistributedCallConnected",
+        "IsEarpieceAvailable",
+        "IsExternalAudioDevice",
+        "KeyEvent",
+        "MARK_CONTENT",
+        "MARK_COUNT",
+        "MARK_DETAILS",
+        "MARK_SOURCE",
+        "MEDIA_TYPE_VID",
+        "MUTE",
+        "MUTE_RINGER",
+        "MessageOption",
+        "MotionSubscribeCallback",
+        "MotionUnsubscribeCallback",
+        "MuteKeyBroadcastSubscriber",
+        "NEW_ACTIVE_CS_CALL",
+        "NEW_ACTIVE_IMS_CALL",
+        "NEW_ACTIVE_OTT_CALL",
+        "NEW_ALERTING_CALL",
+        "NEW_DIALING_CALL",
+        "NEW_INCOMING_CALL",
+        "NO_MORE_ACTIVE_CALL",
+        "NO_MORE_ALERTING_CALL",
+        "OHOS_PERMISSION_SET_TELEPHONY_STATE",
+        "OTT_REQUEST_ANSWER",
+        "OnDialCall",
+        "OnHfpStackChanged",
+        "OnUpdateCallsReportInfo",
+        "PackDataParcel",
+        "PfnAntiFraudVoiceCheck",
+        "PfnAntiFraudVoiceDetect",
+        "PfnStopAntiFraudVoiceDetect",
+        "PolicyFlag",
+        "PutIntValue",
+        "ReadUInt8Vector",
+        "RegisterModule",
+        "RemoveDCallDevice",
+        "ReportCallEvent",
+        "ReportCallStateChange",
+        "ReportIncomingCallError",
+        "ReportOutgoingCall",
+        "SATELLITE_CALL_TYPE",
+        "SCO_CONNECTED",
+        "SETTINGS_DATA_URI",
+        "SINK",
+        "SOURCE",
+        "START_RTT_REPORT_ID",
+        "STOP_RTT_REPORT_ID",
+        "SYNERGY_INCOMING_MUTE_URI",
+        "SatcommBroadcastSubscriber",
+        "SendBytes",
+        "SetIsEccContact",
+        "SetStoppedIndex",
+        "SetStoppedSlotId",
+        "SlotId",
+        "SpeakerDeviceState",
+        "StateChangesToActive",
+        "StateChangesToAlerting",
+        "StateChangesToDisconnected",
+        "StateChangesToDisconnecting",
+        "StateChangesToHolding",
+        "StateChangesToIncoming",
+        "StateChangesToWaiting",
+        "SubscribeKeyEvent",
+        "SuperPrivacyModeBroadcastSubscriber",
+        "TF_ASYNC",
+        "TrySwitchToBtHeadset",
+        "UnRegisterDeviceCallback",
+        "VoipCallReportInfo",
+        "WantParams",
+        "WiredHeadsetDeviceState",
+        "abilityName_",
+        "beginTime_",
+        "call_data_base_helper",
+        "call_earthquake_alarm_test",
+        "call_manager_earthquake_alarm",
+        "call_manager_gtest",
+        "call_manager_special_test",
+        "call_manager_zero_gtest",
+        "call_voice_assistant_test",
+        "cj_telephony_call_ffi",
+        "extensionId_",
+        "generate_static_abc",
+        "hfp_extra",
+        "incoming_call_notification",
+        "incoming_call_wake_up",
+        "incoming_flash_reminder",
+        "isBlocked",
+        "isCeliaCall",
+        "isHarassmentGuidance",
+        "isHideViolenceOrEmcNumbersInCallLog_",
+        "mainCallId_",
+        "maxSubCallLimits_",
+        "motion_recognition",
+        "nlohmann",
+        "no_sanitize",
+        "ohos_taihe",
+        "oldState_",
+        "priorState",
+        "reject_call_sms",
+        "screen_sensor_plugin",
+        "services",
+        "status_bar",
+        "taihe_shared_library",
+        "tel_call_manager_special3_test",
+        "toneStateLock_",
+        "ui_client",
+        "uid_",
+        "userName_",
+        "voipBundleName_",
+        "voipCallId_"
+      ]
+    },
+    "grounding_rate": 0.92,
+    "task_rules": {
+      "value": 0.8758,
+      "groups": 10,
+      "parts": {
+        "gate": 1.0,
+        "gtest": 0.9,
+        "gni_sync": 0.727
+      },
+      "groups_without_gate": [],
+      "groups_without_gtest": [
+        "0. 门禁与前置"
+      ],
+      "deletion_tasks": 11,
+      "deletion_tasks_with_gni": 8
+    },
+    "build_coverage": {
+      "value": 1.0,
+      "design_names_gni_and_bundle": 1.0,
+      "token_coverage": 1.0,
+      "reference_tokens": 39,
+      "missing_tokens": []
+    },
+    "rule_checklist": {
+      "value": 0.9835,
+      "checks": {
+        "trim_table": {
+          "value": 1.0,
+          "detail": "26 rows parsed"
+        },
+        "trim_covers_capabilities": {
+          "value": 1.0,
+          "detail": "missing: "
+        },
+        "trim_matches_deltas": {
+          "value": 1.0,
+          "detail": "inconsistent: "
+        },
+        "proposal_non_goals": {
+          "value": 1.0,
+          "detail": ""
+        },
+        "proposal_review_markers": {
+          "value": 1.0,
+          "detail": ""
+        },
+        "design_decision_index": {
+          "value": 1.0,
+          "detail": ""
+        },
+        "design_decision_structure": {
+          "value": 0.818,
+          "detail": "9/11 decisions have 决策/理由/落点"
+        },
+        "design_open_questions": {
+          "value": 1.0,
+          "detail": ""
+        },
+        "zh_cn_prose": {
+          "value": 1.0,
+          "detail": "CJK share 0.47"
+        },
+        "no_long_code_blocks": {
+          "value": 1.0,
+          "detail": "0 block(s) over 10 lines"
+        },
+        "openspec_validate": {
+          "value": 1.0,
+          "detail": ""
+        }
+      }
+    }
+  }
+}

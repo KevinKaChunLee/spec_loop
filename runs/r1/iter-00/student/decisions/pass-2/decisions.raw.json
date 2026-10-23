@@ -1,0 +1,1349 @@
+{
+  "features": {
+    "video_call": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "| `video-call` | 移除 | 视频通话不支持 |"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/video-call/spec.md",
+          "quote": "liteOS 不支持视频通话（含视频彩振 crsType==CRS_TYPE），`services/video/` 目录不迁移（AGENTS.md 功能范围）。"
+        }
+      ],
+      "files": [
+        "services/video/",
+        "services/call/src/video_call_state.cpp"
+      ]
+    },
+    "conference_call": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-object-model/spec.md",
+          "quote": "会议通话不支持，conference_base.cpp、cs_conference.cpp、ims_conference.cpp、ott_conference.cpp 不迁移。"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "会议类（`ConferenceBase`/`CsConference`/`ImsConference`）、视频（`VideoCallState`）、VoIP/OTT/卫星/蓝牙对象全部删除"
+        }
+      ],
+      "files": [
+        "services/call/src/conference_base.cpp",
+        "services/call/src/cs_conference.cpp",
+        "services/call/src/ims_conference.cpp",
+        "services/call/src/ott_conference.cpp"
+      ]
+    },
+    "satellite_call": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/satellite-call/spec.md",
+          "quote": "liteOS 不支持卫星通话，`services/satellite_call/` 目录不迁移（AGENTS.md 功能范围）。"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "| `satellite-call` | 移除 | 卫星通话不支持 |"
+        }
+      ],
+      "files": [
+        "services/satellite_call/"
+      ]
+    },
+    "distributed_call": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/distributed-call/spec.md",
+          "quote": "liteOS 不支持分布式通话（dsoftbus 依赖不迁移），`services/distributed_call/` 目录不迁移（AGENTS.md 功能范围）。"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/interoperable-call/spec.md",
+          "quote": "liteOS 不支持互通通话，`services/interoperable_call/` 目录不迁移（AGENTS.md 功能范围）。"
+        }
+      ],
+      "files": [
+        "services/distributed_call/",
+        "services/interoperable_call/"
+      ]
+    },
+    "bluetooth_call": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/bluetooth-call/spec.md",
+          "quote": "liteOS 不支持 BLUETOOTH 类型通话，`services/bluetooth/` 目录不迁移（AGENTS.md 功能范围）。"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "| `bluetooth-call` | 移除 | BLUETOOTH 类型通话不支持 |"
+        }
+      ],
+      "files": [
+        "services/bluetooth/",
+        "services/call/src/bluetooth_call.cpp"
+      ]
+    },
+    "ott_call": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/audio-management/spec.md",
+          "quote": "liteOS 上 OTT 类型通话不支持，`ott_call_state`（OttCallState）状态类及 OTT 相关事件映射 MUST NOT 迁移"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-object-model/spec.md",
+          "quote": "TYPE_OTT / TYPE_VOIP / TYPE_SATELLITE / TYPE_BLUETOOTH 及未知类型 MUST NOT 构造对象"
+        }
+      ],
+      "files": [
+        "services/call/src/ott_call.cpp",
+        "services/call/src/ott_call_connection.cpp",
+        "services/call/src/ott_conference.cpp",
+        "services/audio/src/audio_state/ott_call_state.cpp"
+      ],
+      "note": "telephony-interaction delta 的单队列分发仍列出 UpdateOttEventInfo 转入 HandleOttEventReportInfo，call-status-management delta 则将 HandleOttEventReportInfo 及 mOttEventIdTransferMap_ 判为不迁移；按 design.md D10（被移除 callType 的上报在 report_call_info_handler 判为不支持类型后丢弃）记为整通路删除。"
+    },
+    "earthquake_alarm": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-earthquake-alarm/spec.md",
+          "quote": "liteOS 不支持地震预警，`services/call_earthquake_alarm/` 目录不迁移（AGENTS.md 功能范围）。"
+        }
+      ],
+      "files": [
+        "services/call_earthquake_alarm/"
+      ]
+    },
+    "crs_video_ring": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/video-call/spec.md",
+          "quote": "liteOS 不支持视频通话（含视频彩振 crsType==CRS_TYPE），`services/video/` 目录不迁移（AGENTS.md 功能范围）。"
+        }
+      ],
+      "files": [
+        "services/video/"
+      ]
+    },
+    "wired_headset": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-control/spec.md",
+          "quote": "有线耳机不支持，call_wired_headset.cpp、MMI::InputManager 按键订阅与 ABILITY_MEDIA_SUPPORT 媒体按键（onButtonDealing）不迁移。"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md",
+          "quote": "状态栏静音图标（`StatusBar`，status_bar.cpp，`ABILITY_STATUS_BAR_CONTROL_SUPPORT` 为不支持宏）与有线耳机联动（`WiredHeadset`/`WiredHeadsetHandler`，wired_headset.cpp）不支持、不迁移。"
+        }
+      ],
+      "files": [
+        "services/call/src/call_wired_headset.cpp",
+        "services/call/call_state_observer/src/wired_headset.cpp",
+        "services/audio/src/audio_state/wired_headset_device_state.cpp"
+      ]
+    },
+    "voice_broadcast": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-voice-assistant/spec.md",
+          "quote": "liteOS 不支持语音播报（语音助手联动），`services/call_voice_assistant/` 目录不迁移（AGENTS.md 功能范围）。"
+        }
+      ],
+      "files": [
+        "services/call_voice_assistant/"
+      ]
+    },
+    "antifraud": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/antifraud-call/spec.md",
+          "quote": "liteOS 不支持防诈 antifraud，`services/antifraud/` 目录不迁移（AGENTS.md 功能范围）。"
+        }
+      ],
+      "files": [
+        "services/antifraud/"
+      ]
+    },
+    "super_privacy": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-control/spec.md",
+          "quote": "`CallSuperPrivacyControlManager`（超级隐私整体，含 `WatchParameter` 监听 \"persist.super_privacy.mode\" 与 `CloseAllCall`）MUST 不迁移，`CallPolicy::SuperPrivacyMode` 拨号拦截与 `CurrentIsSuperPrivacyMode` 应答拦截随之移除。"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "防诈、超级隐私、折叠屏、EDM 企业禁拨、来电闪光、状态栏静音图标、贴耳灭屏、运动识别"
+        }
+      ],
+      "files": [
+        "services/call/src/call_superprivacy_control_manager.cpp",
+        "frameworks/native/src/super_privacy_manager_client.cpp"
+      ]
+    },
+    "fold_screen": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/display-control/spec.md",
+          "quote": "liteOS 不支持折叠屏，`services/display/`（fold_status_manager）目录不迁移（AGENTS.md 功能范围）。"
+        }
+      ],
+      "files": [
+        "services/display/"
+      ]
+    },
+    "edm_dial_block": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-utils/spec.md",
+          "quote": "EDM 企业禁拨特性不支持，`edm_call_policy.cpp` 不迁移。"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-control/spec.md",
+          "quote": "EDM 禁拨（`IsDialingEnable` / `TELEPHONY_ERR_POLICY_DISABLED`）与超级隐私拦截（`SuperPrivacyMode`）MUST 移除。"
+        }
+      ],
+      "files": [
+        "utils/src/edm_call_policy.cpp"
+      ]
+    },
+    "incoming_flash": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-utils/spec.md",
+          "quote": "来电闪光、贴耳灭屏、运动识别（翻转静音/拿起减弱铃声）均不支持，`motion_recognition.cpp`、`incoming_flash_reminder.cpp`、`screen_sensor_plugin.cpp` 不迁移。"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "防诈、超级隐私、折叠屏、EDM 企业禁拨、来电闪光、状态栏静音图标、贴耳灭屏、运动识别"
+        }
+      ],
+      "files": [
+        "utils/src/incoming_flash_reminder.cpp"
+      ]
+    },
+    "status_bar_icon": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md",
+          "quote": "状态栏静音图标（`StatusBar`，status_bar.cpp，`ABILITY_STATUS_BAR_CONTROL_SUPPORT` 为不支持宏）与有线耳机联动（`WiredHeadset`/`WiredHeadsetHandler`，wired_headset.cpp）不支持、不迁移。"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "| services/call/call_state_observer/src | `proximity_sensor.cpp`、`status_bar.cpp`、`wired_headset.cpp` |"
+        }
+      ],
+      "files": [
+        "services/call/call_state_observer/src/status_bar.cpp"
+      ]
+    },
+    "proximity_sensor": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md",
+          "quote": "贴耳灭屏（`ProximitySensor`，proximity_sensor.cpp 的 sensor 依赖）不支持、不迁移。"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-utils/spec.md",
+          "quote": "来电闪光、贴耳灭屏、运动识别（翻转静音/拿起减弱铃声）均不支持，`motion_recognition.cpp`、`incoming_flash_reminder.cpp`、`screen_sensor_plugin.cpp` 不迁移。"
+        }
+      ],
+      "files": [
+        "services/call/call_state_observer/src/proximity_sensor.cpp"
+      ]
+    },
+    "nearlink": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`voip_call_manager_proxy.cpp`、`nearlink_call_client.cpp`、`super_privacy_manager_client.cpp`"
+        }
+      ],
+      "files": [
+        "frameworks/native/src/nearlink_call_client.cpp"
+      ],
+      "note": "仅 design D2 删除清单点名 nearlink_call_client.cpp 随 frameworks/native/src 代理类删除；proposal 裁剪清单未单列星闪。"
+    },
+    "make_call_with_token": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "运动识别、MAKE_CALL_WITH_TOKEN、STR 模式、ESIM、新通话相关代码不迁移"
+        }
+      ]
+    },
+    "str_mode": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "运动识别、MAKE_CALL_WITH_TOKEN、STR 模式、ESIM、新通话相关代码不迁移"
+        }
+      ]
+    },
+    "esim": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "运动识别、MAKE_CALL_WITH_TOKEN、STR 模式、ESIM、新通话相关代码不迁移"
+        }
+      ],
+      "note": "call-status-management delta 在 NOT_SUPPORT_MULTICALL 已定义场景仍描述 IsTwoCallESIMCall 断开后 AutoAnswerSecondCall 自动接听（属该宏基线行为保留），ESIM 特性本身列入不迁移清单。"
+    },
+    "new_call": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "运动识别、MAKE_CALL_WITH_TOKEN、STR 模式、ESIM、新通话相关代码不迁移"
+        }
+      ]
+    },
+    "voip": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/telephony-interaction/spec.md",
+          "quote": "VoIP 类型通话暂不支持（依赖后续 meetime 畅连适配），`voip_call_connection.cpp` 不迁移。"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "本 change 按\"整通路删除（对象、连接、统计事件），仅保留类型枚举与错误码\"处理，待 meetime 畅连适配的后续 change 再恢复"
+        }
+      ],
+      "files": [
+        "services/call/src/voip_call.cpp",
+        "services/telephony_interaction/src/voip_call_connection.cpp",
+        "frameworks/native/src/voip_call_manager_proxy.cpp"
+      ],
+      "note": "spec 将 AGENTS 的「VoIP 暂不支持」明确落为整通路删除（对象、连接、统计事件），仅保留类型枚举与错误码；telephony-interaction delta 队列分发仍列 UpdateVoipEventInfo，call-status-management delta 确认 VoIP 分流不迁移，按 design.md D10 记为删除。"
+    },
+    "dsda": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "DSDA 流程不迁移（`GetDsdsMode` 恒 0）"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "恒返回 0（`IsDsdsMode3`/`IsDsdsMode5` 恒 false，DSDA 分支按死代码删除）"
+        }
+      ],
+      "files": [
+        "services/call/src/call_request_process.cpp",
+        "services/call/src/call_status_manager.cpp"
+      ]
+    },
+    "single_sim": {
+      "value": "simplify",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "只支持单卡（保留 slotId 供双卡扩展）与单主帐号"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "slotId 参数与字段全量保留"
+        }
+      ],
+      "files": [
+        "services/call/src/call_status_manager.cpp"
+      ]
+    },
+    "single_account": {
+      "value": "simplify",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`OsAccountManager` 相关多用户逻辑精简为固定主帐号（保留基线默认用户常量，如 `call_records_manager.cpp` 的 `ACTIVE_USER_ID`）"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md",
+          "quote": "liteOS 只支持单主帐号：os_account 多用户逻辑精简为默认主帐号"
+        }
+      ],
+      "files": [
+        "services/call/call_state_observer/src/call_records_manager.cpp",
+        "services/audio/src/audio_control_manager.cpp"
+      ]
+    },
+    "bindings": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/js-ets-cj-binding/spec.md",
+          "quote": "liteOS 上 JS/ETS/仓颉绑定的外部接口不需要实现，`frameworks/js/napi/`（`native_module.cpp`、`napi_call_manager.cpp` 等）与 `interfaces/kits` 不迁移。"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "| `js-ets-cj-binding` | 移除 | JS/ETS/仓颉绑定不实现 |"
+        }
+      ],
+      "files": [
+        "frameworks/js/",
+        "frameworks/ets/",
+        "frameworks/cj/",
+        "interfaces/kits/"
+      ]
+    }
+  },
+  "macros": {
+    "CALL_MANAGER_CALL_TRANSFER": {
+      "value": "no_code",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`CALL_MANAGER_CALL_TRANSFER`、`SUPPORT_HEARING_AID`、`SUPPORT_DSOFTBUS`、`CALL_MANAGER_AUTO_START_OPTIMIZE`、`OHOS_SUBSCRIBE_USER_STATUS_ENABLE` | 基线未出现 | 同上"
+        }
+      ],
+      "note": "spec 判定基线未出现（v6.0 源码零引用）、无迁移点；UT 呼叫转移（`SetCallTransferInfo` 等）不属此列、照常保留。"
+    },
+    "SUPPORT_HEARING_AID": {
+      "value": "no_code",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`CALL_MANAGER_CALL_TRANSFER`、`SUPPORT_HEARING_AID`、`SUPPORT_DSOFTBUS`、`CALL_MANAGER_AUTO_START_OPTIMIZE`、`OHOS_SUBSCRIBE_USER_STATUS_ENABLE` | 基线未出现 | 同上"
+        }
+      ]
+    },
+    "SUPPORT_DSOFTBUS": {
+      "value": "no_code",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`CALL_MANAGER_CALL_TRANSFER`、`SUPPORT_HEARING_AID`、`SUPPORT_DSOFTBUS`、`CALL_MANAGER_AUTO_START_OPTIMIZE`、`OHOS_SUBSCRIBE_USER_STATUS_ENABLE` | 基线未出现 | 同上"
+        }
+      ]
+    },
+    "CALL_MANAGER_AUTO_START_OPTIMIZE": {
+      "value": "no_code",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`CALL_MANAGER_AUTO_START_OPTIMIZE`、`OHOS_SUBSCRIBE_USER_STATUS_ENABLE` | 基线未出现 | 同上；`sa_profile/4005_auto_start_optimize.json` 已随 D2 删除"
+        }
+      ],
+      "note": "宏判为基线未出现、无迁移点；其名的 sa_profile/4005_auto_start_optimize.json 随 sa_profile/ 整体删除（D2）。"
+    },
+    "HFP_ASYNC_ENABLE": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`HFP_ASYNC_ENABLE` | 不支持 | `BUILD.gn` 的 `declare_args` 项与 `call_control_manager.cpp` 的 HFP 订阅宏分支删除（蓝牙不支持）"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/tasks.md",
+          "quote": "`tone.cpp` 的 `ABILITY_AUDIO_SUPPORT` 分支、`call_control_manager.cpp` 的 `HFP_ASYNC_ENABLE` 分支按未定义清理"
+        }
+      ],
+      "files": [
+        "BUILD.gn",
+        "services/call/src/call_control_manager.cpp"
+      ]
+    },
+    "ABILITY_BLUETOOTH_SUPPORT": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`ABILITY_BLUETOOTH_SUPPORT` | 不支持 | gni `global_parts_info.communication_bluetooth` 块删除；引用文件已随 D2 删除"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/tasks.md",
+          "quote": "去掉 `ABILITY_BLUETOOTH_SUPPORT`"
+        }
+      ],
+      "files": [
+        "callmanager.gni"
+      ]
+    },
+    "ABILITY_CAMERA_FRAMEWORK_SUPPORT": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`ABILITY_CAMERA_FRAMEWORK_SUPPORT` | 不支持 | 文件已删（`incoming_flash_reminder.cpp`）"
+        }
+      ],
+      "files": [
+        "utils/src/incoming_flash_reminder.cpp"
+      ]
+    },
+    "SUPPORT_MUTE_BY_DATABASE": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`SUPPORT_MUTE_BY_DATABASE` | 不支持 | gni `target_platform == \"watch\"` 块删除；`call_manager_service.cpp`、`call_records_manager.cpp` 中该宏分支退役"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "`TelephonyCustWrapper` 改客户端单例打桩；`SUPPORT_MUTE_BY_DATABASE` 差异退役"
+        }
+      ],
+      "files": [
+        "callmanager.gni",
+        "services/call_manager_service/src/call_manager_service.cpp",
+        "services/call/call_state_observer/src/call_records_manager.cpp"
+      ]
+    },
+    "SUPPORT_VIBRATOR": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`SUPPORT_VIBRATOR`、`HICOLLIE_ENABLE`、`ABILITY_SCREENLOCKMGR_SUPPORT` | 不支持 | gni 块删除，无源码引用"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/audio-management/spec.md",
+          "quote": "`MuteRinger` 的 StopVibrator 环节随 `SUPPORT_VIBRATOR` 不支持不迁移"
+        }
+      ],
+      "files": [
+        "callmanager.gni"
+      ],
+      "note": "spec 说明源码无引用，但处置为删除 gni 定义块，故记 remove。"
+    },
+    "HICOLLIE_ENABLE": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`SUPPORT_VIBRATOR`、`HICOLLIE_ENABLE`、`ABILITY_SCREENLOCKMGR_SUPPORT` | 不支持 | gni 块删除，无源码引用"
+        }
+      ],
+      "files": [
+        "callmanager.gni"
+      ],
+      "note": "spec 说明源码无引用，但处置为删除 gni 定义块，故记 remove。"
+    },
+    "OHOS_SUBSCRIBE_USER_STATUS_ENABLE": {
+      "value": "no_code",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`CALL_MANAGER_AUTO_START_OPTIMIZE`、`OHOS_SUBSCRIBE_USER_STATUS_ENABLE` | 基线未出现 | 同上"
+        }
+      ]
+    },
+    "ABILITY_SCREENLOCKMGR_SUPPORT": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`SUPPORT_VIBRATOR`、`HICOLLIE_ENABLE`、`ABILITY_SCREENLOCKMGR_SUPPORT` | 不支持 | gni 块删除，无源码引用"
+        }
+      ],
+      "files": [
+        "callmanager.gni"
+      ],
+      "note": "spec 说明源码无引用，但处置为删除 gni 定义块，故记 remove。"
+    },
+    "ABILITY_NOTIFICATION_SUPPORT": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`ABILITY_NOTIFICATION_SUPPORT`、`ABILITY_DISPLAY_SUPPORT`、`ABILITY_STATUS_BAR_CONTROL_SUPPORT`、`ABILITY_MEDIA_SUPPORT`、`ABILITY_CONFIG_SUPPORT`、`AUDIO_SUPPORT`、`ABILITY_AUDIO_SUPPORT` | 不支持 |"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md",
+          "quote": "`IsFullScreen()`（`ABILITY_DISPLAY_SUPPORT`）与 `NotificationHelper::PublishNotification`/`CancelNotification`（`ABILITY_NOTIFICATION_SUPPORT`）的差异分支随宏退役统一（均为不支持宏，`#ifdef` 分支移除）"
+        }
+      ],
+      "files": [
+        "services/call/call_state_observer/src/incoming_call_notification.cpp"
+      ]
+    },
+    "ABILITY_DISPLAY_SUPPORT": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`ABILITY_NOTIFICATION_SUPPORT`、`ABILITY_DISPLAY_SUPPORT`、`ABILITY_STATUS_BAR_CONTROL_SUPPORT`、`ABILITY_MEDIA_SUPPORT`、`ABILITY_CONFIG_SUPPORT`、`AUDIO_SUPPORT`、`ABILITY_AUDIO_SUPPORT` | 不支持 |"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md",
+          "quote": "`IsFullScreen()`（`ABILITY_DISPLAY_SUPPORT`）与 `NotificationHelper::PublishNotification`/`CancelNotification`（`ABILITY_NOTIFICATION_SUPPORT`）的差异分支随宏退役统一（均为不支持宏，`#ifdef` 分支移除）"
+        }
+      ],
+      "files": [
+        "services/call/call_state_observer/src/incoming_call_notification.cpp"
+      ]
+    },
+    "ABILITY_STATUS_BAR_CONTROL_SUPPORT": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`ABILITY_NOTIFICATION_SUPPORT`、`ABILITY_DISPLAY_SUPPORT`、`ABILITY_STATUS_BAR_CONTROL_SUPPORT`、`ABILITY_MEDIA_SUPPORT`、`ABILITY_CONFIG_SUPPORT`、`AUDIO_SUPPORT`、`ABILITY_AUDIO_SUPPORT` | 不支持 |"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md",
+          "quote": "状态栏静音图标（`StatusBar`，status_bar.cpp，`ABILITY_STATUS_BAR_CONTROL_SUPPORT` 为不支持宏）"
+        }
+      ],
+      "files": [
+        "services/call/call_state_observer/src/status_bar.cpp"
+      ]
+    },
+    "ABILITY_MEDIA_SUPPORT": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`ABILITY_NOTIFICATION_SUPPORT`、`ABILITY_DISPLAY_SUPPORT`、`ABILITY_STATUS_BAR_CONTROL_SUPPORT`、`ABILITY_MEDIA_SUPPORT`、`ABILITY_CONFIG_SUPPORT`、`AUDIO_SUPPORT`、`ABILITY_AUDIO_SUPPORT` | 不支持 |"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-control/spec.md",
+          "quote": "有线耳机不支持，call_wired_headset.cpp、MMI::InputManager 按键订阅与 ABILITY_MEDIA_SUPPORT 媒体按键（onButtonDealing）不迁移。"
+        }
+      ],
+      "files": [
+        "services/call/src/call_wired_headset.cpp"
+      ]
+    },
+    "ABILITY_CONFIG_SUPPORT": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`ABILITY_CONFIG_SUPPORT` 在保留文件 `call_policy.cpp`、`ims_call.cpp` 中有分支需退役"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/tasks.md",
+          "quote": "`call_policy.cpp`、`ims_call.cpp` 的 `ABILITY_CONFIG_SUPPORT` 分支"
+        }
+      ],
+      "files": [
+        "services/call/src/call_policy.cpp",
+        "services/call/src/ims_call.cpp"
+      ]
+    },
+    "RECONNECT_MAX_TRY_COUNT": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`RECONNECT_MAX_TRY_COUNT` | 不支持 | `cellular_call_connection.cpp` 重连逻辑删除（直连架构无重连）"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/tasks.md",
+          "quote": "`cellular_call_connection.cpp` 删除 `RECONNECT_MAX_TRY_COUNT` 重连逻辑（直连无重连）"
+        }
+      ],
+      "files": [
+        "services/telephony_interaction/src/cellular_call_connection.cpp"
+      ]
+    },
+    "ABILITY_CAMERA_SUPPORT": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`ABILITY_CAMERA_SUPPORT` | 不支持 | 文件已删（`video_control_manager.cpp`）"
+        }
+      ],
+      "files": [
+        "services/video/"
+      ]
+    },
+    "OHOS_SUBSCRIBE_MOTION_ENABLE": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`OHOS_SUBSCRIBE_MOTION_ENABLE` | 不支持 | 文件已删（`motion_recognition.cpp`）"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-utils/spec.md",
+          "quote": "`OHOS_SUBSCRIBE_MOTION_ENABLE` 为不支持宏，来电闪光、贴耳灭屏、运动识别（翻转静音/拿起减弱铃声）均不支持"
+        }
+      ],
+      "files": [
+        "utils/src/motion_recognition.cpp"
+      ]
+    },
+    "SUPPORT_RTT_CALL": {
+      "value": "no_code",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`SUPPORT_RTT_CALL`、`CALL_MANAGER_SOS_NO_RINGBACK_TONE`、`CALL_MANAGER_WATCH_CALL_BLOCKING`、`CALL_MANAGER_THERMAL_PROTECTION`、`CONFIG_FACTORY_VERSION` | 基线未出现 | v6.0 call_manager 源码零引用"
+        }
+      ],
+      "note": "宏判为源码零引用、无迁移点；RTT 能力本身保留（StartRtt/StopRtt 经 cellular_call 桩转发，文件节点 todo 占位）。"
+    },
+    "NOT_SUPPORT_MULTICALL": {
+      "value": "unguard",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`NOT_SUPPORT_MULTICALL` | 支持 | `BUILD.gn` feature `call_manager_feature_not_support_multicall` 固定为 true（去 `declare_args`），手表不支持多通话"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-status-management/spec.md",
+          "quote": "liteOS 按 `NOT_SUPPORT_MULTICALL` 已定义处理"
+        }
+      ],
+      "files": [
+        "BUILD.gn",
+        "services/call/src/call_status_manager.cpp",
+        "services/call/src/call_object_manager.cpp",
+        "services/call/src/call_control_manager.cpp"
+      ]
+    },
+    "CALL_MANAGER_SOS_NO_RINGBACK_TONE": {
+      "value": "no_code",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`SUPPORT_RTT_CALL`、`CALL_MANAGER_SOS_NO_RINGBACK_TONE`、`CALL_MANAGER_WATCH_CALL_BLOCKING`、`CALL_MANAGER_THERMAL_PROTECTION`、`CONFIG_FACTORY_VERSION` | 基线未出现 | v6.0 call_manager 源码零引用"
+        }
+      ]
+    },
+    "CALL_MANAGER_WATCH_CALL_BLOCKING": {
+      "value": "no_code",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`SUPPORT_RTT_CALL`、`CALL_MANAGER_SOS_NO_RINGBACK_TONE`、`CALL_MANAGER_WATCH_CALL_BLOCKING`、`CALL_MANAGER_THERMAL_PROTECTION`、`CONFIG_FACTORY_VERSION` | 基线未出现 | v6.0 call_manager 源码零引用"
+        }
+      ]
+    },
+    "CALL_MANAGER_THERMAL_PROTECTION": {
+      "value": "no_code",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`SUPPORT_RTT_CALL`、`CALL_MANAGER_SOS_NO_RINGBACK_TONE`、`CALL_MANAGER_WATCH_CALL_BLOCKING`、`CALL_MANAGER_THERMAL_PROTECTION`、`CONFIG_FACTORY_VERSION` | 基线未出现 | v6.0 call_manager 源码零引用"
+        }
+      ]
+    },
+    "ABILITY_CELLULAR_SUPPORT": {
+      "value": "unguard",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`ABILITY_CELLULAR_SUPPORT`、`ABILITY_SMS_SUPPORT`、`CELLULAR_DATA_SUPPORT`、`TELEPHONY_CUST_SUPPORT`、`OHOS_BUILD_ENABLE_TELEPHONY_CUST` | 支持 | gni 固定 defines 生效，去 `global_parts_info` 守卫"
+        }
+      ],
+      "files": [
+        "callmanager.gni"
+      ]
+    },
+    "ABILITY_SMS_SUPPORT": {
+      "value": "unguard",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`ABILITY_CELLULAR_SUPPORT`、`ABILITY_SMS_SUPPORT`、`CELLULAR_DATA_SUPPORT`、`TELEPHONY_CUST_SUPPORT`、`OHOS_BUILD_ENABLE_TELEPHONY_CUST` | 支持 | gni 固定 defines 生效，去 `global_parts_info` 守卫"
+        }
+      ],
+      "files": [
+        "callmanager.gni"
+      ]
+    },
+    "CELLULAR_DATA_SUPPORT": {
+      "value": "unguard",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`ABILITY_CELLULAR_SUPPORT`、`ABILITY_SMS_SUPPORT`、`CELLULAR_DATA_SUPPORT`、`TELEPHONY_CUST_SUPPORT`、`OHOS_BUILD_ENABLE_TELEPHONY_CUST` | 支持 | gni 固定 defines 生效，去 `global_parts_info` 守卫"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-utils/spec.md",
+          "quote": "（`CELLULAR_DATA_SUPPORT` 下）`CellularDataClient::GetInstance().GetDefaultCellularDataSlotId()`（stub/ 打桩）"
+        }
+      ],
+      "files": [
+        "callmanager.gni"
+      ]
+    },
+    "ABILITY_POWER_SUPPORT": {
+      "value": "unguard",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`ABILITY_POWER_SUPPORT` | 支持（接口暂不调用） | 宏生效保留代码路径；RunningLock 调用点按 D7 `[powerLock]` todo"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md",
+          "quote": "`ABILITY_POWER_SUPPORT` 为支持宏但接口暂不调用"
+        }
+      ],
+      "files": [
+        "services/call/call_state_observer/src/incoming_call_wake_up.cpp"
+      ]
+    },
+    "TELEPHONY_CUST_SUPPORT": {
+      "value": "unguard",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`ABILITY_CELLULAR_SUPPORT`、`ABILITY_SMS_SUPPORT`、`CELLULAR_DATA_SUPPORT`、`TELEPHONY_CUST_SUPPORT`、`OHOS_BUILD_ENABLE_TELEPHONY_CUST` | 支持 | gni 固定 defines 生效，去 `global_parts_info` 守卫"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-manager-service/spec.md",
+          "quote": "仅在定义 `OHOS_BUILD_ENABLE_TELEPHONY_CUST`（`TELEPHONY_CUST_SUPPORT`，均为支持宏）时启用 `TelephonyCustWrapper` 联动"
+        }
+      ],
+      "files": [
+        "callmanager.gni"
+      ]
+    },
+    "OHOS_BUILD_ENABLE_TELEPHONY_CUST": {
+      "value": "unguard",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`ABILITY_CELLULAR_SUPPORT`、`ABILITY_SMS_SUPPORT`、`CELLULAR_DATA_SUPPORT`、`TELEPHONY_CUST_SUPPORT`、`OHOS_BUILD_ENABLE_TELEPHONY_CUST` | 支持 | gni 固定 defines 生效，去 `global_parts_info` 守卫"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-manager-service/spec.md",
+          "quote": "仅在定义 `OHOS_BUILD_ENABLE_TELEPHONY_CUST`（`TELEPHONY_CUST_SUPPORT`，均为支持宏）时启用 `TelephonyCustWrapper` 联动"
+        }
+      ],
+      "files": [
+        "callmanager.gni",
+        "services/call_manager_service/src/telephony_cust_wrapper.cpp"
+      ]
+    },
+    "CONFIG_FACTORY_VERSION": {
+      "value": "no_code",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`SUPPORT_RTT_CALL`、`CALL_MANAGER_SOS_NO_RINGBACK_TONE`、`CALL_MANAGER_WATCH_CALL_BLOCKING`、`CALL_MANAGER_THERMAL_PROTECTION`、`CONFIG_FACTORY_VERSION` | 基线未出现 | v6.0 call_manager 源码零引用"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`CONFIG_FACTORY_VERSION`「两分支都要支持」的约束在本仓无落点，若后续合并 cellular_call 移植需重新核对。"
+        }
+      ],
+      "note": "spec 判定该宏在 v6.0 call_manager 源码零引用、无迁移点；「两分支都要支持」约束在本仓无落点，Open Questions 记录需后续核对。"
+    },
+    "ABILITY_AUDIO_SUPPORT": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`ABILITY_NOTIFICATION_SUPPORT`、`ABILITY_DISPLAY_SUPPORT`、`ABILITY_STATUS_BAR_CONTROL_SUPPORT`、`ABILITY_MEDIA_SUPPORT`、`ABILITY_CONFIG_SUPPORT`、`AUDIO_SUPPORT`、`ABILITY_AUDIO_SUPPORT` | 不支持 |"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/tasks.md",
+          "quote": "`call_status_manager.cpp` 的 `AUDIO_SUPPORT` 分支、`tone.cpp` 的 `ABILITY_AUDIO_SUPPORT` 分支、`call_control_manager.cpp` 的 `HFP_ASYNC_ENABLE` 分支按未定义清理"
+        }
+      ],
+      "files": [
+        "services/audio/src/tone.cpp"
+      ]
+    },
+    "AUDIO_SUPPORT": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`ABILITY_NOTIFICATION_SUPPORT`、`ABILITY_DISPLAY_SUPPORT`、`ABILITY_STATUS_BAR_CONTROL_SUPPORT`、`ABILITY_MEDIA_SUPPORT`、`ABILITY_CONFIG_SUPPORT`、`AUDIO_SUPPORT`、`ABILITY_AUDIO_SUPPORT` | 不支持 |"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/tasks.md",
+          "quote": "`call_status_manager.cpp` 的 `AUDIO_SUPPORT` 分支、`tone.cpp` 的 `ABILITY_AUDIO_SUPPORT` 分支、`call_control_manager.cpp` 的 `HFP_ASYNC_ENABLE` 分支按未定义清理"
+        }
+      ],
+      "files": [
+        "services/call/src/call_status_manager.cpp"
+      ]
+    },
+    "ABILIT_CONFIG_SUPPORT": {
+      "value": "unstated"
+    }
+  },
+  "dependencies": {
+    "audio": {
+      "value": "todo",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "| `[audio]` | AudioSystem/AudioRoutingManager、`player_framework` 系统铃声（经 `audio_proxy.cpp`） | 不调用，返回失败/默认值，状态机字段照常变化 |"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/audio-management/spec.md",
+          "quote": "所有经 `AudioProxy` 的系统音频调用 MUST 在调用点写 `// todo!!! [audio] ref to audio_proxy.cpp <函数>`（以实际函数名为准）占位，待语音框架接口就绪后再适配"
+        }
+      ],
+      "files": [
+        "services/audio/src/audio_proxy.cpp",
+        "services/audio/src/ring.cpp",
+        "services/audio/src/sound.cpp",
+        "services/audio/src/tone.cpp",
+        "services/audio/src/audio_device_manager.cpp"
+      ]
+    },
+    "database": {
+      "value": "todo",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "| `[database]` | DataShare（通话记录、拦截名单、增强联系人、设置库、号码识别库） | 不调用，查询返回未命中/失败 |"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md",
+          "quote": "`call_data_base_helper.cpp` 的 DataShare 写入调用点以 `// todo!!! [database] ref to call_data_base_helper.cpp Insert` 占位、不实际落库"
+        }
+      ],
+      "files": [
+        "services/call/call_state_observer/src/call_data_base_helper.cpp",
+        "utils/src/settings_datashare_helper.cpp",
+        "utils/src/number_identity_data_base_helper.cpp"
+      ]
+    },
+    "broadcast": {
+      "value": "todo",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "| `[broadcast]` | `EventFwk::CommonEventManager` 订阅/发布 | 不订阅不发布 |"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-control/spec.md",
+          "quote": "liteOS 上暂不调用 `EventFwk::CommonEventManager` 相关接口（依赖广播接口适配）"
+        }
+      ],
+      "files": [
+        "services/call/src/call_broadcast_subscriber.cpp",
+        "services/call/call_state_observer/src/missed_call_notification.cpp"
+      ]
+    },
+    "power_lock": {
+      "value": "todo",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "| `[powerLock]` | RunningLock / 亮屏（ABILITY_POWER_SUPPORT 接口） | 不调用 |"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md",
+          "quote": "持锁/亮屏的 RunningLock 调用点以 `// todo!!! [powerLock] ref to incoming_call_wake_up.cpp WakeupDevice` 占位、不实际持锁亮屏"
+        }
+      ],
+      "files": [
+        "services/call/call_state_observer/src/incoming_call_wake_up.cpp"
+      ]
+    },
+    "call_ui": {
+      "value": "stub",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "拉起通话界面（CallConnectAbility）与对话框（CallDialog）通过打桩实现。"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`CallConnectAbility`（`com.ohos.callui` 连接）、`CallDialog`（对话框）及其 ability 连接类保留代码结构，`AbilityManagerClient::ConnectAbility`、`AlertDialog` 等 AAFwk 调用经 `stub/` 桩实现"
+        }
+      ],
+      "files": [
+        "services/call/src/call_connect_ability.cpp",
+        "services/call/src/call_ability_connect_callback.cpp",
+        "utils/src/call_dialog.cpp"
+      ]
+    },
+    "notification": {
+      "value": "todo",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "| `[notification]` | NotificationHelper（来电/未接通知） | 不调用 |"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md",
+          "quote": "通知发布调用点以 `// todo!!! [notification] ref to incoming_call_notification.cpp PublishIncomingCallNotification` 占位、不实际发布通知"
+        }
+      ],
+      "files": [
+        "services/call/call_state_observer/src/incoming_call_notification.cpp",
+        "services/call/call_state_observer/src/missed_call_notification.cpp"
+      ]
+    },
+    "spam_call": {
+      "value": "todo",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "| `[spamCall]` | `com.spamshield` 扩展连接（SpamShieldServiceExtAbility，不用 dlopen） | 不连接不查询，等待超时放行 |"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/spam-call/spec.md",
+          "quote": "`spam_call_connection.cpp` 的 com.spamshield 扩展连接调用点 MUST 写 `// todo!!! [spamCall] ref to spam_call_connection.cpp OnAbilityConnectDone` 占位（不用 dlopen、不发起查询、不构造 SpamCallProxy）"
+        }
+      ],
+      "files": [
+        "services/spam_call/src/spam_call_connection.cpp",
+        "services/spam_call/src/spam_call_adapter.cpp"
+      ]
+    },
+    "number_identity": {
+      "value": "todo",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "| `[numberIdentity]` | 号码识别/黄页 DataShare 查询 | 不调用，回填空 |"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/number-identity-proxy/spec.md",
+          "quote": "黄页标记查询（URI `datashare:///numbermarkability/number_mark_info`）调用点 MUST 写 `// todo!!! [numberIdentity] ref to number_identity_data_base_helper.cpp QueryYellowPageAndMark` 占位"
+        }
+      ],
+      "files": [
+        "services/number_identity_proxy/src/number_identity_service.cpp",
+        "utils/src/number_identity_data_base_helper.cpp"
+      ]
+    },
+    "rtt_file_node": {
+      "value": "todo",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "| `[rtt]` | RTT 文件节点通路 | 不调用（接口保留，经 cellular_call 桩转发） |"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-object-model/spec.md",
+          "quote": "RTT 文件节点通路调用点以 todo 占位（依赖通路接口适配）"
+        }
+      ],
+      "files": [
+        "services/call/src/call_request_handler.cpp"
+      ]
+    },
+    "sptr": {
+      "value": "replace",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "`sptr` → `std::shared_ptr`/`std::unique_ptr`"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "服务内部 `sptr<T>` 一律换 `std::shared_ptr<T>`（独占场景 `std::unique_ptr`）"
+        }
+      ],
+      "files": [
+        "services/call/include/call_base.h",
+        "services/call/include/call_object_manager.h",
+        "services/call/include/call_control_manager.h",
+        "services/call/include/ims_call.h",
+        "services/call/include/cs_call.h"
+      ],
+      "note": "tasks 2.3 另在 c_utils 桩中提供 sptr→std::shared_ptr 兼容别名；主处置为智能指针替换（design D4）。"
+    },
+    "hisysevent_hitrace": {
+      "value": "replace",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "HiSysEvent/HITRACE → 日志打印"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`CallManagerHisysevent` 的全部 HiSysEvent 上报、`HITRACE` 打点、`CallManagerDumpHelper` 的 hidumper 输出统一改为日志打印"
+        }
+      ],
+      "files": [
+        "services/hisysevent/src/call_manager_hisysevent.cpp",
+        "call_manager_dump_helper.cpp",
+        "frameworks/native/src/native_call_manager_hisysevent.cpp"
+      ]
+    },
+    "cellular_call": {
+      "value": "stub",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "与 cellular_call / core_service / cellular_data / sms_mms / TelephonyCust 的 IPC 一律改为 `XxxClient::GetInstance().Xxx()`"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-setting/spec.md",
+          "quote": "`CellularCallClient::GetInstance().GetCallWaiting`/`SetCallWaiting`（stub/ 打桩，方法名与基线 ICellularCall 接口一致，由 cellular_call 执行）"
+        }
+      ],
+      "files": [
+        "services/telephony_interaction/src/cellular_call_connection.cpp",
+        "services/call_setting/src/call_setting_manager.cpp"
+      ]
+    },
+    "core_service": {
+      "value": "stub",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "与 cellular_call / core_service / cellular_data / sms_mms / TelephonyCust 的 IPC 一律改为 `XxxClient::GetInstance().Xxx()`"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/telephony-interaction/spec.md",
+          "quote": "`CoreServiceConnection::GetFdnNumberList(slotId)` 经 `CoreServiceClient::GetInstance().QueryIccDiallingNumbers(slotId, DiallingNumbersInfo::SIM_FDN, ...)`（stub/ 打桩）"
+        }
+      ],
+      "files": [
+        "services/telephony_interaction/src/core_service_connection.cpp",
+        "services/call/src/call_request_process.cpp",
+        "services/call/src/call_status_manager.cpp"
+      ]
+    },
+    "cellular_data": {
+      "value": "stub",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`cellular_data` 相关调用点保留经 `CellularDataClient` 桩"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-utils/spec.md",
+          "quote": "（`CELLULAR_DATA_SUPPORT` 下）`CellularDataClient::GetInstance().GetDefaultCellularDataSlotId()`（stub/ 打桩）"
+        }
+      ],
+      "files": [
+        "utils/src/call_number_utils.cpp"
+      ]
+    },
+    "sms_mms": {
+      "value": "stub",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md",
+          "quote": "经本 change 引入的 `SmsClient::GetInstance().SendMessage`（stub/ 打桩，替代 `SmsServiceManagerClient::SendMessage`）回复拒接短信"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/tasks.md",
+          "quote": "实现外部模块客户端单例桩（`CellularCallClient`/`CoreServiceClient`/`CellularDataClient`/`SmsClient`/`TelephonyCustClient`，方法名镜像基线 `ICellularCall`/`ICoreService` 等接口）"
+        }
+      ],
+      "files": [
+        "services/call/call_state_observer/src/reject_call_sms.cpp"
+      ]
+    },
+    "telephony_cust": {
+      "value": "stub",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-manager-service/spec.md",
+          "quote": "改为调用本 change 引入的 `TelephonyCustClient::GetInstance().Xxx()`（stub/ 打桩，承接上述两个符号对应的查询能力）"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`services/call_manager_service/src/telephony_cust_wrapper.cpp`（dlopen → `TelephonyCustClient` 桩）"
+        }
+      ],
+      "files": [
+        "services/call_manager_service/src/telephony_cust_wrapper.cpp"
+      ]
+    },
+    "ffrt": {
+      "value": "replace",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "ffrt 异步 → 打桩的 EventHandler"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "ffrt 全部经 `stub/` 打桩的 EventHandler 承接——`ffrt::submit`/`ffrt::submit_h`（含 `task_attr().delay` 延时）→ EventHandler 任务提交（单线程顺序派发）"
+        }
+      ],
+      "files": [
+        "services/call/src/call_request_handler.cpp",
+        "services/telephony_interaction/src/report_call_info_handler.cpp",
+        "services/audio/src/audio_scene_processor.cpp"
+      ]
+    },
+    "libphonenumber": {
+      "value": "stub",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-utils/spec.md",
+          "quote": "libphonenumber（`i18n::phonenumbers::PhoneNumberUtil`）经本 change 打桩（stub/ 同名桩）承接"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "libphonenumber / 系统参数 / cJSON / securec / c_utils / log / eventhandler 基础库打桩"
+        }
+      ],
+      "files": [
+        "utils/src/call_number_utils.cpp"
+      ]
+    },
+    "parameter": {
+      "value": "stub",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "按 AGENTS「系统参数（parameter）相关接口通过打桩实现」，桩返回默认值"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md",
+          "quote": "号码格式化使用系统参数 `telephony.operator.iso-country`（经打桩的参数接口，缺省 CN）"
+        }
+      ],
+      "files": [
+        "utils/src/call_number_utils.cpp",
+        "services/call/src/call_control_manager.cpp",
+        "services/audio/src/audio_scene_processor.cpp"
+      ]
+    },
+    "cjson": {
+      "value": "stub",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/spam-call/spec.md",
+          "quote": "cJSON MUST 经本 change 引入的 stub/ 同名打桩桩实现提供（不依赖真实 cJSON 库）"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "libphonenumber / 系统参数 / cJSON / securec / c_utils / log / eventhandler 基础库打桩"
+        }
+      ],
+      "files": [
+        "services/spam_call/src/spam_call_adapter.cpp"
+      ]
+    },
+    "base_libs": {
+      "value": "stub",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/tasks.md",
+          "quote": "实现基础库同名桩（securec、c_utils（含 `sptr`→`std::shared_ptr` 兼容别名）、log、eventhandler、parameter、cJSON、libphonenumber）"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "libphonenumber / 系统参数 / cJSON / securec / c_utils / log / eventhandler 基础库打桩"
+        }
+      ]
+    },
+    "pacmap": {
+      "value": "replace",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "`AppExecFwk::PacMap` 等改结构体"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`AppExecFwk::PacMap` 换为本 change 新增的等价结构体（dial/应答 extras 等），字段名与 PacMap 键名保持一致"
+        }
+      ],
+      "files": [
+        "services/call/include/call_control_manager.h",
+        "utils/include/call_number_utils.h"
+      ]
+    }
+  },
+  "architecture": {
+    "systemability_ipc": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "callmanager 不继承 SystemAbility、不做 IPC、不做权限校验；`CallManagerClient` 直接调用 `CallManagerService` 接口"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-manager-service/spec.md",
+          "quote": "liteOS 上 callmanager 不继承 `SystemAbility`、不做 SA 注册，`SystemAbility::MakeAndRegisterAbility` 静态注册与 `sa_profile/`（`4005.json`、`4005_auto_start_optimize.json`）不迁移。"
+        }
+      ],
+      "files": [
+        "services/call_manager_service/src/call_manager_service.cpp",
+        "frameworks/native/src/call_manager_client.cpp",
+        "services/call_manager_service/src/call_manager_service_stub.cpp"
+      ]
+    },
+    "permission_checks": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "不做权限校验体系（含 `AccessTokenKit`）：外部接口免校验直通。"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/specs/call-manager-service/spec.md",
+          "quote": "对全部外部接口免权限校验直通：`TelephonyPermission::CheckCallerIsSystemApp` 与 `TelephonyPermission::CheckPermission`"
+        }
+      ],
+      "files": [
+        "services/call_manager_service/src/call_manager_service.cpp"
+      ]
+    },
+    "locks": {
+      "value": "keep",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`ffrt::mutex` → 空实现桩（保持 `std::lock_guard` 代码形态不动）；`std::mutex`/`std::shared_mutex` 原样保留（单线程下无争用，行为一致）"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "本设计按单线程不加锁处理（`std::mutex` 保留、`ffrt::mutex` 桩空实现）"
+        }
+      ],
+      "files": [
+        "services/audio/src/ring.cpp"
+      ],
+      "note": "call-manager-service delta 另称 Init 入口在单线程直连下不再依赖 `lock_` 加锁；整体锁代码按 design D5 保留（std::mutex 原样、ffrt::mutex 空实现桩）。"
+    },
+    "dsds_mode_zero": {
+      "value": "yes",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "不做 DSDA/双卡业务：`GetDsdsMode` 恒 0，仅保留 slotId 字段供双卡扩展。"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "`GetDsdsMode` 的唯一数据源是 CoreServiceClient 桩，恒返回 0（`IsDsdsMode3`/`IsDsdsMode5` 恒 false，DSDA 分支按死代码删除）"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "本设计在 CoreServiceClient 桩上恒返回 0，语义与 AGENTS 约束一致。"
+        }
+      ],
+      "files": [
+        "services/call/src/call_request_process.cpp",
+        "services/call/src/call_status_manager.cpp"
+      ]
+    },
+    "slot_id_kept": {
+      "value": "yes",
+      "evidence": [
+        {
+          "file": "changes/migrate-call-manager-to-liteos/design.md",
+          "quote": "slotId 参数与字段全量保留"
+        },
+        {
+          "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+          "quote": "不做 DSDA/双卡业务：`GetDsdsMode` 恒 0，仅保留 slotId 字段供双卡扩展。"
+        }
+      ],
+      "files": [
+        "utils/src/call_number_utils.cpp"
+      ]
+    }
+  }
+}

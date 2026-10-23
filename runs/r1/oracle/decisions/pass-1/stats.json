@@ -1,0 +1,48 @@
+{
+  "model_reported": "GLM 5.3 Max",
+  "session_id": "c319f601-69c5-4ba4-a415-cbd290283f77",
+  "has_result": true,
+  "duration_ms": 937408,
+  "usage": {
+    "inputTokens": 135465,
+    "outputTokens": 87084,
+    "cacheReadTokens": 974548,
+    "cacheWriteTokens": 0
+  },
+  "events": 141186,
+  "event_types": {
+    "assistant/None": 14,
+    "result/success": 1,
+    "system/init": 1,
+    "thinking/completed": 31,
+    "thinking/delta": 141012,
+    "tool_call/completed": 63,
+    "tool_call/started": 63,
+    "user/None": 1
+  },
+  "unknown_event_types": [],
+  "tool_calls_total": 63,
+  "tool_calls": {
+    "read": 48,
+    "grep": 9,
+    "shell": 4,
+    "edit": 2
+  },
+  "tool_failures": 0,
+  "files_read": 29,
+  "files_written": [
+    "_outputs/decisions.json"
+  ],
+  "hmos_files_total": 454,
+  "hmos_files_read_main": 0,
+  "hmos_files_read_incl_subagents": 0,
+  "hmos_coverage": 0.0,
+  "outside_workspace_reads": [],
+  "openspec_validate_runs": 0,
+  "openspec_validate_failures": 0,
+  "subagents": 0,
+  "subagent_tool_uses": 0,
+  "web_calls": 0,
+  "thinking_chars": 443846,
+  "assistant_chars": 2354
+}

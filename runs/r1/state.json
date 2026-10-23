@@ -71,5 +71,15 @@
       "score": 89.0
     }
   },
-  "frozen_at": "2026-10-21T15:11:12+0800"
+  "frozen_at": "2026-10-21T15:11:12+0800",
+  "reference_decisions": {
+    "frozen": true,
+    "frozen_at": "2026-10-22T10:01:42+0800",
+    "sha256": "4a763b33f87a07fb847b451e121c4746822b53718669cc957fc2509a8ee7651a",
+    "stated": 85,
+    "human_overrides": {
+      "macros.NOT_SUPPORT_MULTICALL": "keep -> unguard (AGENTS.md: supported macro)",
+      "macros.ABILITY_POWER_SUPPORT": "remove -> unguard (AGENTS.md: supported macro)"
+    }
+  }
 }

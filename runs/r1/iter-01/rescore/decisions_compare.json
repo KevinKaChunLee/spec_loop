@@ -1,0 +1,4033 @@
+{
+  "items": [
+    {
+      "id": "module/build",
+      "kind": "modules",
+      "key": "build",
+      "group": "settled",
+      "ref": "modify",
+      "stu": "modify",
+      "status": "agree"
+    },
+    {
+      "id": "module/frameworks",
+      "kind": "modules",
+      "key": "frameworks",
+      "group": "settled",
+      "ref": "modify",
+      "stu": "modify",
+      "status": "agree"
+    },
+    {
+      "id": "module/services/antifraud",
+      "kind": "modules",
+      "key": "services/antifraud",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "module/services/audio",
+      "kind": "modules",
+      "key": "services/audio",
+      "group": "settled",
+      "ref": "modify",
+      "stu": "modify",
+      "status": "agree"
+    },
+    {
+      "id": "module/services/bluetooth",
+      "kind": "modules",
+      "key": "services/bluetooth",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "module/services/call",
+      "kind": "modules",
+      "key": "services/call",
+      "group": "settled",
+      "ref": "modify",
+      "stu": "modify",
+      "status": "agree"
+    },
+    {
+      "id": "module/services/call/call_state_observer",
+      "kind": "modules",
+      "key": "services/call/call_state_observer",
+      "group": "settled",
+      "ref": "modify",
+      "stu": "modify",
+      "status": "agree"
+    },
+    {
+      "id": "module/services/call_earthquake_alarm",
+      "kind": "modules",
+      "key": "services/call_earthquake_alarm",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "module/services/call_manager_service",
+      "kind": "modules",
+      "key": "services/call_manager_service",
+      "group": "settled",
+      "ref": "modify",
+      "stu": "modify",
+      "status": "agree"
+    },
+    {
+      "id": "module/services/call_report",
+      "kind": "modules",
+      "key": "services/call_report",
+      "group": "settled",
+      "ref": "modify",
+      "stu": "modify",
+      "status": "agree"
+    },
+    {
+      "id": "module/services/call_setting",
+      "kind": "modules",
+      "key": "services/call_setting",
+      "group": "settled",
+      "ref": "modify",
+      "stu": "keep",
+      "status": "differ"
+    },
+    {
+      "id": "module/services/call_voice_assistant",
+      "kind": "modules",
+      "key": "services/call_voice_assistant",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "module/services/display",
+      "kind": "modules",
+      "key": "services/display",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "module/services/distributed_call",
+      "kind": "modules",
+      "key": "services/distributed_call",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "module/services/hisysevent",
+      "kind": "modules",
+      "key": "services/hisysevent",
+      "group": "settled",
+      "ref": "modify",
+      "stu": "modify",
+      "status": "agree"
+    },
+    {
+      "id": "module/services/interoperable_call",
+      "kind": "modules",
+      "key": "services/interoperable_call",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "module/services/number_identity_proxy",
+      "kind": "modules",
+      "key": "services/number_identity_proxy",
+      "group": "settled",
+      "ref": "modify",
+      "stu": "modify",
+      "status": "agree"
+    },
+    {
+      "id": "module/services/satellite_call",
+      "kind": "modules",
+      "key": "services/satellite_call",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "module/services/spam_call",
+      "kind": "modules",
+      "key": "services/spam_call",
+      "group": "settled",
+      "ref": "modify",
+      "stu": "modify",
+      "status": "agree"
+    },
+    {
+      "id": "module/services/telephony_interaction",
+      "kind": "modules",
+      "key": "services/telephony_interaction",
+      "group": "settled",
+      "ref": "modify",
+      "stu": "modify",
+      "status": "agree"
+    },
+    {
+      "id": "module/services/video",
+      "kind": "modules",
+      "key": "services/video",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "module/utils",
+      "kind": "modules",
+      "key": "utils",
+      "group": "settled",
+      "ref": "modify",
+      "stu": "modify",
+      "status": "agree"
+    },
+    {
+      "id": "feature/video_call",
+      "kind": "features",
+      "key": "video_call",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/conference_call",
+      "kind": "features",
+      "key": "conference_call",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/satellite_call",
+      "kind": "features",
+      "key": "satellite_call",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/distributed_call",
+      "kind": "features",
+      "key": "distributed_call",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/bluetooth_call",
+      "kind": "features",
+      "key": "bluetooth_call",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/ott_call",
+      "kind": "features",
+      "key": "ott_call",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/earthquake_alarm",
+      "kind": "features",
+      "key": "earthquake_alarm",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/crs_video_ring",
+      "kind": "features",
+      "key": "crs_video_ring",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/wired_headset",
+      "kind": "features",
+      "key": "wired_headset",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/voice_broadcast",
+      "kind": "features",
+      "key": "voice_broadcast",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/antifraud",
+      "kind": "features",
+      "key": "antifraud",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/super_privacy",
+      "kind": "features",
+      "key": "super_privacy",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/fold_screen",
+      "kind": "features",
+      "key": "fold_screen",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/edm_dial_block",
+      "kind": "features",
+      "key": "edm_dial_block",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/incoming_flash",
+      "kind": "features",
+      "key": "incoming_flash",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/status_bar_icon",
+      "kind": "features",
+      "key": "status_bar_icon",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/proximity_sensor",
+      "kind": "features",
+      "key": "proximity_sensor",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/nearlink",
+      "kind": "features",
+      "key": "nearlink",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/esim",
+      "kind": "features",
+      "key": "esim",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/voip",
+      "kind": "features",
+      "key": "voip",
+      "group": "open",
+      "ref": "stub",
+      "stu": "stub",
+      "status": "agree"
+    },
+    {
+      "id": "feature/dsda",
+      "kind": "features",
+      "key": "dsda",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "feature/single_sim",
+      "kind": "features",
+      "key": "single_sim",
+      "group": "settled",
+      "ref": "simplify",
+      "stu": "simplify",
+      "status": "agree"
+    },
+    {
+      "id": "feature/single_account",
+      "kind": "features",
+      "key": "single_account",
+      "group": "settled",
+      "ref": "simplify",
+      "stu": "simplify",
+      "status": "agree"
+    },
+    {
+      "id": "feature/bindings",
+      "kind": "features",
+      "key": "bindings",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "macro/CALL_MANAGER_CALL_TRANSFER",
+      "kind": "macros",
+      "key": "CALL_MANAGER_CALL_TRANSFER",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "no_code",
+      "status": "agree",
+      "no_code": true
+    },
+    {
+      "id": "macro/SUPPORT_HEARING_AID",
+      "kind": "macros",
+      "key": "SUPPORT_HEARING_AID",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "no_code",
+      "status": "agree",
+      "no_code": true
+    },
+    {
+      "id": "macro/SUPPORT_DSOFTBUS",
+      "kind": "macros",
+      "key": "SUPPORT_DSOFTBUS",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "no_code",
+      "status": "agree",
+      "no_code": true
+    },
+    {
+      "id": "macro/CALL_MANAGER_AUTO_START_OPTIMIZE",
+      "kind": "macros",
+      "key": "CALL_MANAGER_AUTO_START_OPTIMIZE",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "macro/HFP_ASYNC_ENABLE",
+      "kind": "macros",
+      "key": "HFP_ASYNC_ENABLE",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "macro/ABILITY_BLUETOOTH_SUPPORT",
+      "kind": "macros",
+      "key": "ABILITY_BLUETOOTH_SUPPORT",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "macro/ABILITY_CAMERA_FRAMEWORK_SUPPORT",
+      "kind": "macros",
+      "key": "ABILITY_CAMERA_FRAMEWORK_SUPPORT",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "macro/SUPPORT_MUTE_BY_DATABASE",
+      "kind": "macros",
+      "key": "SUPPORT_MUTE_BY_DATABASE",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "macro/SUPPORT_VIBRATOR",
+      "kind": "macros",
+      "key": "SUPPORT_VIBRATOR",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "macro/HICOLLIE_ENABLE",
+      "kind": "macros",
+      "key": "HICOLLIE_ENABLE",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "macro/OHOS_SUBSCRIBE_USER_STATUS_ENABLE",
+      "kind": "macros",
+      "key": "OHOS_SUBSCRIBE_USER_STATUS_ENABLE",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "no_code",
+      "status": "agree",
+      "no_code": true
+    },
+    {
+      "id": "macro/ABILITY_SCREENLOCKMGR_SUPPORT",
+      "kind": "macros",
+      "key": "ABILITY_SCREENLOCKMGR_SUPPORT",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "macro/ABILITY_NOTIFICATION_SUPPORT",
+      "kind": "macros",
+      "key": "ABILITY_NOTIFICATION_SUPPORT",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "unguard",
+      "status": "differ"
+    },
+    {
+      "id": "macro/ABILITY_DISPLAY_SUPPORT",
+      "kind": "macros",
+      "key": "ABILITY_DISPLAY_SUPPORT",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "unguard",
+      "status": "differ"
+    },
+    {
+      "id": "macro/ABILITY_STATUS_BAR_CONTROL_SUPPORT",
+      "kind": "macros",
+      "key": "ABILITY_STATUS_BAR_CONTROL_SUPPORT",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "macro/ABILITY_MEDIA_SUPPORT",
+      "kind": "macros",
+      "key": "ABILITY_MEDIA_SUPPORT",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "macro/ABILITY_CONFIG_SUPPORT",
+      "kind": "macros",
+      "key": "ABILITY_CONFIG_SUPPORT",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "macro/RECONNECT_MAX_TRY_COUNT",
+      "kind": "macros",
+      "key": "RECONNECT_MAX_TRY_COUNT",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "macro/ABILITY_CAMERA_SUPPORT",
+      "kind": "macros",
+      "key": "ABILITY_CAMERA_SUPPORT",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "macro/OHOS_SUBSCRIBE_MOTION_ENABLE",
+      "kind": "macros",
+      "key": "OHOS_SUBSCRIBE_MOTION_ENABLE",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "macro/SUPPORT_RTT_CALL",
+      "kind": "macros",
+      "key": "SUPPORT_RTT_CALL",
+      "group": "settled",
+      "ref": "no_code",
+      "stu": "no_code",
+      "status": "agree",
+      "no_code": true
+    },
+    {
+      "id": "macro/NOT_SUPPORT_MULTICALL",
+      "kind": "macros",
+      "key": "NOT_SUPPORT_MULTICALL",
+      "group": "open",
+      "ref": "keep",
+      "stu": "keep",
+      "status": "agree"
+    },
+    {
+      "id": "macro/CALL_MANAGER_SOS_NO_RINGBACK_TONE",
+      "kind": "macros",
+      "key": "CALL_MANAGER_SOS_NO_RINGBACK_TONE",
+      "group": "settled",
+      "ref": "no_code",
+      "stu": "no_code",
+      "status": "agree",
+      "no_code": true
+    },
+    {
+      "id": "macro/CALL_MANAGER_WATCH_CALL_BLOCKING",
+      "kind": "macros",
+      "key": "CALL_MANAGER_WATCH_CALL_BLOCKING",
+      "group": "settled",
+      "ref": "no_code",
+      "stu": "no_code",
+      "status": "agree",
+      "no_code": true
+    },
+    {
+      "id": "macro/CALL_MANAGER_THERMAL_PROTECTION",
+      "kind": "macros",
+      "key": "CALL_MANAGER_THERMAL_PROTECTION",
+      "group": "settled",
+      "ref": "no_code",
+      "stu": "no_code",
+      "status": "agree",
+      "no_code": true
+    },
+    {
+      "id": "macro/ABILITY_CELLULAR_SUPPORT",
+      "kind": "macros",
+      "key": "ABILITY_CELLULAR_SUPPORT",
+      "group": "settled",
+      "ref": "unguard",
+      "stu": "keep",
+      "status": "differ"
+    },
+    {
+      "id": "macro/ABILITY_SMS_SUPPORT",
+      "kind": "macros",
+      "key": "ABILITY_SMS_SUPPORT",
+      "group": "settled",
+      "ref": "unguard",
+      "stu": "keep",
+      "status": "differ"
+    },
+    {
+      "id": "macro/CELLULAR_DATA_SUPPORT",
+      "kind": "macros",
+      "key": "CELLULAR_DATA_SUPPORT",
+      "group": "settled",
+      "ref": "unguard",
+      "stu": "keep",
+      "status": "differ"
+    },
+    {
+      "id": "macro/ABILITY_POWER_SUPPORT",
+      "kind": "macros",
+      "key": "ABILITY_POWER_SUPPORT",
+      "group": "open",
+      "ref": "remove",
+      "stu": "keep",
+      "status": "differ"
+    },
+    {
+      "id": "macro/TELEPHONY_CUST_SUPPORT",
+      "kind": "macros",
+      "key": "TELEPHONY_CUST_SUPPORT",
+      "group": "settled",
+      "ref": "unguard",
+      "stu": "keep",
+      "status": "differ"
+    },
+    {
+      "id": "macro/OHOS_BUILD_ENABLE_TELEPHONY_CUST",
+      "kind": "macros",
+      "key": "OHOS_BUILD_ENABLE_TELEPHONY_CUST",
+      "group": "settled",
+      "ref": "unguard",
+      "stu": "keep",
+      "status": "differ"
+    },
+    {
+      "id": "macro/CONFIG_FACTORY_VERSION",
+      "kind": "macros",
+      "key": "CONFIG_FACTORY_VERSION",
+      "group": "settled",
+      "ref": "keep",
+      "stu": "no_code",
+      "status": "agree",
+      "no_code": true
+    },
+    {
+      "id": "macro/ABILITY_AUDIO_SUPPORT",
+      "kind": "macros",
+      "key": "ABILITY_AUDIO_SUPPORT",
+      "group": "open",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "macro/ABILIT_CONFIG_SUPPORT",
+      "kind": "macros",
+      "key": "ABILIT_CONFIG_SUPPORT",
+      "group": "open",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/audio",
+      "kind": "dependencies",
+      "key": "audio",
+      "group": "settled",
+      "ref": "todo",
+      "stu": "todo",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/database",
+      "kind": "dependencies",
+      "key": "database",
+      "group": "settled",
+      "ref": "todo",
+      "stu": "todo",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/broadcast",
+      "kind": "dependencies",
+      "key": "broadcast",
+      "group": "settled",
+      "ref": "todo",
+      "stu": "todo",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/power_lock",
+      "kind": "dependencies",
+      "key": "power_lock",
+      "group": "settled",
+      "ref": "todo",
+      "stu": "todo",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/call_ui",
+      "kind": "dependencies",
+      "key": "call_ui",
+      "group": "settled",
+      "ref": "stub",
+      "stu": "stub",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/notification",
+      "kind": "dependencies",
+      "key": "notification",
+      "group": "settled",
+      "ref": "todo",
+      "stu": "todo",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/spam_call",
+      "kind": "dependencies",
+      "key": "spam_call",
+      "group": "settled",
+      "ref": "todo",
+      "stu": "todo",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/number_identity",
+      "kind": "dependencies",
+      "key": "number_identity",
+      "group": "settled",
+      "ref": "todo",
+      "stu": "todo",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/rtt_file_node",
+      "kind": "dependencies",
+      "key": "rtt_file_node",
+      "group": "settled",
+      "ref": "todo",
+      "stu": "todo",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/sptr",
+      "kind": "dependencies",
+      "key": "sptr",
+      "group": "settled",
+      "ref": "replace",
+      "stu": "replace",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/hisysevent_hitrace",
+      "kind": "dependencies",
+      "key": "hisysevent_hitrace",
+      "group": "settled",
+      "ref": "replace",
+      "stu": "replace",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/cellular_call",
+      "kind": "dependencies",
+      "key": "cellular_call",
+      "group": "settled",
+      "ref": "stub",
+      "stu": "stub",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/core_service",
+      "kind": "dependencies",
+      "key": "core_service",
+      "group": "settled",
+      "ref": "stub",
+      "stu": "stub",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/cellular_data",
+      "kind": "dependencies",
+      "key": "cellular_data",
+      "group": "settled",
+      "ref": "stub",
+      "stu": "stub",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/sms_mms",
+      "kind": "dependencies",
+      "key": "sms_mms",
+      "group": "settled",
+      "ref": "stub",
+      "stu": "stub",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/telephony_cust",
+      "kind": "dependencies",
+      "key": "telephony_cust",
+      "group": "settled",
+      "ref": "stub",
+      "stu": "stub",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/ffrt",
+      "kind": "dependencies",
+      "key": "ffrt",
+      "group": "settled",
+      "ref": "replace",
+      "stu": "replace",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/libphonenumber",
+      "kind": "dependencies",
+      "key": "libphonenumber",
+      "group": "settled",
+      "ref": "stub",
+      "stu": "stub",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/parameter",
+      "kind": "dependencies",
+      "key": "parameter",
+      "group": "settled",
+      "ref": "stub",
+      "stu": "stub",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/cjson",
+      "kind": "dependencies",
+      "key": "cjson",
+      "group": "settled",
+      "ref": "stub",
+      "stu": "stub",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/base_libs",
+      "kind": "dependencies",
+      "key": "base_libs",
+      "group": "settled",
+      "ref": "stub",
+      "stu": "stub",
+      "status": "agree"
+    },
+    {
+      "id": "dependency/pacmap",
+      "kind": "dependencies",
+      "key": "pacmap",
+      "group": "settled",
+      "ref": "replace",
+      "stu": "replace",
+      "status": "agree"
+    },
+    {
+      "id": "architecture/systemability_ipc",
+      "kind": "architecture",
+      "key": "systemability_ipc",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "architecture/permission_checks",
+      "kind": "architecture",
+      "key": "permission_checks",
+      "group": "settled",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "architecture/locks",
+      "kind": "architecture",
+      "key": "locks",
+      "group": "open",
+      "ref": "remove",
+      "stu": "remove",
+      "status": "agree"
+    },
+    {
+      "id": "architecture/dsds_mode_zero",
+      "kind": "architecture",
+      "key": "dsds_mode_zero",
+      "group": "settled",
+      "ref": "yes",
+      "stu": "yes",
+      "status": "agree"
+    },
+    {
+      "id": "architecture/slot_id_kept",
+      "kind": "architecture",
+      "key": "slot_id_kept",
+      "group": "settled",
+      "ref": "yes",
+      "stu": "yes",
+      "status": "agree"
+    }
+  ],
+  "rulings": {
+    "module/services/call_setting": {
+      "ruling": "student_defensible",
+      "severity": "low",
+      "reason": "两侧迁移结果一致：均按 AGENTS「特性宏支持范围」说明 1 保留 UT/USSD/USSD/MMI 补充业务，cellular_call 出口经 CellularCallClient 桩、设置项 DataShare 查询 todo，差异仅在裁剪范围表的标签。reference 因其设计（CallSettingManager 直接改调 CellularCallClient，替代 cellularCallConnectionPtr_ 转发）标「修改」，student 因该目录自身代码零改动（适配器改造落在 telephony-interaction）标「保留」；源码中 call_setting_manager.cpp 确实只经 DelayedSingleton<CellularCallConnection>::GetInstance() 转发，两种归因均有依据，属同一结果的不同表达。",
+      "evidence": "telephony_call_manager/services/call_setting/src/call_setting_manager.cpp:26；AGENTS.md「特性宏支持范围」说明 1"
+    },
+    "macro/ABILITY_NOTIFICATION_SUPPORT": {
+      "ruling": "student_defensible",
+      "severity": "medium",
+      "reason": "AGENTS.md 两条规则对此文件真实冲突：「特性宏支持范围」把该宏列入不支持宏（代码无需迁移），「外部依赖处理」却规定 NotificationHelper 调用点迁移时以 todo 注释占位、待通知接口适配。student 保留观察者并把发布/撤销点 todo 桩化，reference 整文件删除，两读法各有条文支撑；且行为等价（IsFullScreen 恒 false，liteOS 上均不真正发通知）。注意 PublishNotification 调用点本就无宏守卫（仅 Cancel 分支受宏控制），「调用点用 todo 占位」规则只能落在 student 的保留方案上。",
+      "evidence": "telephony_call_manager/services/call/call_state_observer/src/incoming_call_notification.cpp:95,101；AGENTS.md「外部依赖处理」通知行 vs「特性宏支持范围」不支持宏清单"
+    },
+    "macro/ABILITY_DISPLAY_SUPPORT": {
+      "ruling": "student_defensible",
+      "severity": "low",
+      "reason": "两 spec 对该宏守卫代码的实质处置相同：DisplayManager::IsFullScreen 调用均不迁移、IsFullScreen() 恒返回 false（等价基线默认构建，该宏在仓内 gni 从未定义），仅提取值标签不同（unguard vs remove）。文件整体去留的差异已由 ABILITY_NOTIFICATION_SUPPORT 争议覆盖，本条本身无实质分歧。",
+      "evidence": "telephony_call_manager/services/call/call_state_observer/src/incoming_call_notification.cpp:109-112；telephony_call_manager/callmanager.gni（无 ABILITY_DISPLAY_SUPPORT 定义块）"
+    },
+    "macro/ABILITY_CELLULAR_SUPPORT": {
+      "ruling": "student_defensible",
+      "severity": "low",
+      "reason": "该宏唯一场点 cellular_call_connection.cpp:147 仅守卫 ReConnectService 的单次重连判定，student 的 pc-test-harness delta 与 tasks 7.5 明确保留兼容层注入 ABILITY_CELLULAR_SUPPORT=0x1，与 reference 的 gni 恒定义在规格定义的构建（PC 门禁）中同为生效。AGENTS 规定的 CellularCallClient::GetInstance().Xxx() 桩形态位于守卫之外、两者均存活，实际差异仅剩 gni 机制（部件条件块照抄 vs 恒定义），影响很小。",
+      "evidence": "telephony_call_manager/services/telephony_interaction/src/cellular_call_connection.cpp:147；_inputs/student/openspec/changes/migrate-call-manager-to-liteos/tasks.md:63"
+    },
+    "macro/ABILITY_SMS_SUPPORT": {
+      "ruling": "student_wrong",
+      "severity": "high",
+      "reason": "AGENTS 把该宏列入支持宏并规定 sms_mms 交互「使用SmsClient::GetInstance().Xxx()的形式替代、对应接口通过打桩实现」，但 student 保留 global_parts_info 部件条件块且兼容层仅注入 ABILITY_CELLULAR_SUPPORT（liteOS 无 sms_mms 部件、PC 构建无 global_parts_info），reject_call_sms.cpp:37 守卫内的 SmsClient 桩发送在规格定义的一切构建中均为死代码，拒接短信功能被静默丢弃，其自身「发送条件」场景也不可达，违背「不能因为无外部接口而丢弃功能」与支持宏语义。reference 恒定义使该链路存活。",
+      "evidence": "telephony_call_manager/services/call/call_state_observer/src/reject_call_sms.cpp:37；AGENTS.md「外部依赖处理」sms_mms 行＋「特性宏支持范围」支持宏清单"
+    },
+    "macro/CELLULAR_DATA_SUPPORT": {
+      "ruling": "student_wrong",
+      "severity": "medium",
+      "reason": "call_number_utils.cpp:256 守卫内正是 AGENTS 规定的 CellularDataClient::GetInstance().GetDefaultCellularDataSlotId() 桩回退，student 的构建设计（部件条件块照抄、兼容层不注入该宏）使其恒被编译裁掉，SelectAccountId 静默失去默认数据卡这最后一级回退，违背支持宏语义与 cellular_data 替代规则。reference 恒定义使该回退存活，属单函数内局部分支的差异。",
+      "evidence": "telephony_call_manager/utils/src/call_number_utils.cpp:256；AGENTS.md「外部依赖处理」cellular_data 行"
+    },
+    "macro/ABILITY_POWER_SUPPORT": {
+      "ruling": "reference_questionable",
+      "severity": "high",
+      "reason": "AGENTS「特性宏支持范围」明确把 ABILITY_POWER_SUPPORT 列入支持宏，「外部依赖处理」对功耗锁的规定是调用点以 todo 注释占位而非删文件，但 reference 把该 gni 块归入「gni 不支持块」删除（design D12、tasks 3.1）并整体删除 incoming_call_wake_up.*（tasks 2.4），「来电亮屏与运行锁」完整功能被无条文依据地移除——功能范围不支持清单只有贴耳灭屏（proximity_sensor），并无来电亮屏。student 保留观察者并把 RunningLock/WakeupDevice 调用点 todo 桩化，更贴合 AGENTS 的支持宏与 todo 占位规定。",
+      "evidence": "AGENTS.md「特性宏支持范围」支持宏清单＋「外部依赖处理」功耗锁行；_inputs/reference/openspec/changes/migrate-call-manager-to-liteos/tasks.md:16,24"
+    },
+    "macro/TELEPHONY_CUST_SUPPORT": {
+      "ruling": "student_wrong",
+      "severity": "medium",
+      "reason": "call_data_base_helper.cpp:451（QueryContactInfoEnhanced）与 call_status_manager.cpp:702（后缀匹配增强分支）守卫内正是 AGENTS 规定的 TelephonyCustClient::GetInstance() 桩替换落点，student 的构建设计使该宏在一切已定义构建中不被定义，增强查询分支与 cust 桩全部成为死代码，违背支持宏语义与「与TelephonyCust模块进行通信时使用TelephonyCustClient::GetInstance().Xxx()的形式替代」的规定。reference 恒定义使该分支存活；差异限于联系人查询的一条增强分支，属局部差异。",
+      "evidence": "telephony_call_manager/services/call/call_state_observer/src/call_data_base_helper.cpp:451；telephony_call_manager/services/call/src/call_status_manager.cpp:702；AGENTS.md「外部依赖处理」TelephonyCust 行"
+    },
+    "macro/OHOS_BUILD_ENABLE_TELEPHONY_CUST": {
+      "ruling": "student_wrong",
+      "severity": "high",
+      "reason": "该宏守卫 TelephonyCustWrapper 的初始化与 IsChangeDialNumberToTwEmc_ 改号判定（call_manager_service.cpp:52/90/319），是整条 TelephonyCust 定制链的开关（通话记录隐藏判定也依赖 wrapper 初始化）。student 保留部件条件块且不注入该宏，整链在规格定义的构建中失效，AGENTS 规定的 TelephonyCustClient::GetInstance().Xxx() 桩形态成为死代码，整条定制功能被静默丢弃；reference 恒定义使整链存活。",
+      "evidence": "telephony_call_manager/services/call_manager_service/src/call_manager_service.cpp:52,90,319；AGENTS.md「外部依赖处理」TelephonyCust 行＋「特性宏支持范围」支持宏清单"
+    }
+  },
+  "student_decisions": {
+    "features": {
+      "video_call": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "| video-call-control | 移除 | AGENTS：不支持视频通话（ABILITY_CAMERA_SUPPORT 恒关，代码无需迁移） |"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/video-call-control/spec.md",
+            "quote": "AGENTS 功能范围：不支持视频通话，相关代码无需迁移"
+          }
+        ],
+        "files": [
+          "services/video/src/video_control_manager.cpp",
+          "services/call/src/video_call_state.cpp"
+        ]
+      },
+      "conference_call": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-object-management/spec.md",
+            "quote": "删除源文件 `services/call/src/conference_base.cpp`、`cs_conference.cpp`、`ims_conference.cpp`（含对应头文件）并同步 `callmanager.gni` 的 `call_manager_sources`（design D7 表）"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "| call-object-management | 修改 | CS/IMS/VoIP 对象主线保留；移除会议对象、OTT/蓝牙/卫星/有线耳机/视频对象；sptr→智能指针 |"
+          }
+        ],
+        "files": [
+          "services/call/src/conference_base.cpp",
+          "services/call/src/cs_conference.cpp",
+          "services/call/src/ims_conference.cpp"
+        ]
+      },
+      "satellite_call": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/satellite-call/spec.md",
+            "quote": "AGENTS 功能范围：不支持卫星通话，相关代码无需迁移"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "| satellite-call | 移除 | AGENTS：不支持卫星通话 |"
+          }
+        ],
+        "files": [
+          "services/satellite_call/src/satellite_call_control.cpp",
+          "services/call/src/satellite_call.cpp"
+        ]
+      },
+      "distributed_call": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/distributed-call/spec.md",
+            "quote": "AGENTS 功能范围：不支持分布式（distributed 及 interoperable）通话，相关代码无需迁移"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "| distributed-call | 移除 | AGENTS：不支持分布式通话（无 dsoftbus，target_platform 非 watch 场景同删） |"
+          }
+        ],
+        "files": [
+          "services/distributed_call/src/distributed_call_manager.cpp",
+          "services/interoperable_call/src/interoperable_communication_manager.cpp"
+        ]
+      },
+      "bluetooth_call": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/bluetooth-call/spec.md",
+            "quote": "AGENTS 功能范围：不支持 BLUETOOTH 类型通话，相关代码无需迁移"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "| bluetooth-call | 移除 | AGENTS：不支持 BLUETOOTH 类型通话（ABILITY_BLUETOOTH_SUPPORT 不支持） |"
+          }
+        ],
+        "files": [
+          "services/bluetooth/src/bluetooth_call_manager.cpp",
+          "services/call/src/bluetooth_call.cpp"
+        ]
+      },
+      "ott_call": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-object-management/spec.md",
+            "quote": "AGENTS「功能范围」明确 liteOS 不支持 OTT 类型通话（暂无 OTT 依赖框架，且 OTT 属被裁剪清单）"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "| call-object-management | 修改 | CS/IMS/VoIP 对象主线保留；移除会议对象、OTT/蓝牙/卫星/有线耳机/视频对象；sptr→智能指针 |"
+          }
+        ],
+        "files": [
+          "services/call/src/ott_call.cpp",
+          "services/call/src/ott_call_connection.cpp",
+          "services/call/src/ott_conference.cpp"
+        ]
+      },
+      "earthquake_alarm": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/earthquake-alarm-call/spec.md",
+            "quote": "AGENTS 功能范围：不支持地震预警，相关代码无需迁移"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "| earthquake-alarm-call | 移除 | AGENTS：不支持地震预警 |"
+          }
+        ],
+        "files": [
+          "services/call_earthquake_alarm/src/call_earthquake_alarm_locator.cpp",
+          "services/call_earthquake_alarm/src/call_earthquake_alarm_subscriber.cpp"
+        ]
+      },
+      "crs_video_ring": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/audio-device-management/spec.md",
+            "quote": "AGENTS「功能范围」明确 liteOS 不支持视频彩振（crsType==CRS_TYPE），相关代码无需迁移。"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "| audio-device-management | 修改 | 音频状态机/静音/回铃逻辑保留、audio 框架调用 todo 桩化；移除彩振（crsType==CRS_TYPE）、蓝牙/有线耳机/星闪路由、振动 |"
+          }
+        ],
+        "files": [
+          "services/audio/src/audio_control_manager.cpp"
+        ]
+      },
+      "wired_headset": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/audio-device-management/spec.md",
+            "quote": "AGENTS「功能范围」明确 liteOS 不支持有线耳机；design D7 被删文件表列出 `services/call/call_state_observer/src/wired_headset.cpp` 与 `services/call/src/call_wired_headset.cpp`。"
+          }
+        ],
+        "files": [
+          "services/call/src/call_wired_headset.cpp",
+          "services/call/call_state_observer/src/wired_headset.cpp"
+        ]
+      },
+      "voice_broadcast": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/voice-assistant-call/spec.md",
+            "quote": "AGENTS 功能范围：不支持语音播报，相关代码无需迁移"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "| voice-assistant-call | 移除 | AGENTS：不支持语音播报（HiCar 语音助手） |"
+          }
+        ],
+        "files": [
+          "services/call_voice_assistant/src/call_voice_assistant_manager.cpp"
+        ]
+      },
+      "antifraud": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/antifraud-call/spec.md",
+            "quote": "AGENTS 功能范围：不支持防诈 antifraud，相关代码无需迁移"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "| antifraud-call | 移除 | AGENTS：不支持防诈 antifraud，相关代码无需迁移 |"
+          }
+        ],
+        "files": [
+          "services/antifraud/src/antifraud_service.cpp",
+          "services/antifraud/src/antifraud_adapter.cpp"
+        ]
+      },
+      "super_privacy": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-control-management/spec.md",
+            "quote": "AGENTS「功能范围」明确 liteOS 不支持超级隐私"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-control-management/spec.md",
+            "quote": "删除源文件 `services/call/src/call_superprivacy_control_manager.cpp`、`frameworks/native/src/super_privacy_manager_client.cpp`（含对应头文件）并同步 `callmanager.gni`（design D7 表）"
+          }
+        ],
+        "files": [
+          "services/call/src/call_superprivacy_control_manager.cpp",
+          "frameworks/native/src/super_privacy_manager_client.cpp"
+        ]
+      },
+      "fold_screen": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/display-management/spec.md",
+            "quote": "AGENTS 功能范围：不支持折叠屏，相关代码无需迁移"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "| display-management | 移除 | AGENTS：不支持折叠屏 |"
+          }
+        ],
+        "files": [
+          "services/display/src/fold_status_manager.cpp"
+        ]
+      },
+      "edm_dial_block": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-utils/spec.md",
+            "quote": "AGENTS 功能范围明确 EDM 企业禁拨不支持、相关代码无需迁移；design D7 删除 `utils/src/edm_call_policy.cpp`。"
+          }
+        ],
+        "files": [
+          "utils/src/edm_call_policy.cpp"
+        ]
+      },
+      "incoming_flash": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-utils/spec.md",
+            "quote": "AGENTS 功能范围明确来电闪光（incoming flash）不支持、相关代码无需迁移；design D7 删除 `utils/src/incoming_flash_reminder.cpp`"
+          }
+        ],
+        "files": [
+          "utils/src/incoming_flash_reminder.cpp"
+        ]
+      },
+      "status_bar_icon": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md",
+            "quote": "删除 `status_bar.cpp`/`status_bar.h`（`StatusBar` 观察者）及其注册点"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "| call-state-observer | 修改 | 通话记录/拒接短信/亮屏/通知逻辑保留、外部调用 todo 桩化；移除贴耳灭屏、状态栏静音图标、有线耳机观察者 |"
+          }
+        ],
+        "files": [
+          "services/call/call_state_observer/src/status_bar.cpp"
+        ]
+      },
+      "proximity_sensor": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md",
+            "quote": "删除 `proximity_sensor.cpp`/`proximity_sensor.h`（`ProximitySensor` 观察者）及其在 `CallControlManager` 固定观察者阵容中的注册点"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "| call-state-observer | 修改 | 通话记录/拒接短信/亮屏/通知逻辑保留、外部调用 todo 桩化；移除贴耳灭屏、状态栏静音图标、有线耳机观察者 |"
+          }
+        ],
+        "files": [
+          "services/call/call_state_observer/src/proximity_sensor.cpp"
+        ]
+      },
+      "nearlink": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/native-client-api/spec.md",
+            "quote": "AGENTS「功能范围」明确 liteOS 不支持星闪（NearLink）耳机设备连接；design D7 被删文件表 frameworks/native 行列出 `nearlink_call_client.cpp`。"
+          }
+        ],
+        "files": [
+          "frameworks/native/src/nearlink_call_client.cpp"
+        ]
+      },
+      "make_call_with_token": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "星闪（NearLink）、MAKE_CALL_WITH_TOKEN、STR 模式（TELEPHONY_EXIT_STR）、eSIM、新通话（CeliaCall）。"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "AGENTS 裁剪清单中 `MAKE_CALL_WITH_TOKEN`、`TELEPHONY_EXIT_STR`（STR 模式）在 v6.0 基线中 rg 零命中"
+          }
+        ],
+        "files": [],
+        "note": "proposal 将其列入裁剪清单；design D9 实测 v6.0 基线零命中，裁决为无迁移动作（无代码可删），功能在 liteOS 不存在"
+      },
+      "str_mode": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "星闪（NearLink）、MAKE_CALL_WITH_TOKEN、STR 模式（TELEPHONY_EXIT_STR）、eSIM、新通话（CeliaCall）。"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "AGENTS 裁剪清单中 `MAKE_CALL_WITH_TOKEN`、`TELEPHONY_EXIT_STR`（STR 模式）在 v6.0 基线中 rg 零命中"
+          }
+        ],
+        "files": [],
+        "note": "proposal 将其列入裁剪清单；design D9 实测 v6.0 基线零命中（唯一近似名 IPC 枚举 INTERFACE_MAKE_CALL 属另一事物），裁决为无迁移动作（无代码可删）"
+      },
+      "esim": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-status-management/spec.md",
+            "quote": "因 eSIM 不支持（AGENTS 功能范围），原判定命中后的 `ModifyEsimType` eSIM 类型修正分支移除"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-object-management/spec.md",
+            "quote": "AGENTS「功能范围」明确 liteOS 不支持 BLUETOOTH 类型通话与 eSIM，判定链的两种触发形态（蓝牙对象、eSIM 双呼）在 liteOS 均不存在，一号双终端判定链删除"
+          }
+        ],
+        "files": [
+          "services/call/src/call_status_manager.cpp",
+          "services/call/src/call_object_manager.cpp"
+        ]
+      },
+      "new_call": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-manager-service/spec.md",
+            "quote": "新通话/Celia 族删除（AGENTS「功能范围」新通话不支持；裁决仅移除 `dealCeliaCallEvent`/`HandleCeliaAutoAnswerCall`/`HandleCeliaCall`/`IS_CELIA_CALL` 链）"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "新通话族仅移除 `dealCeliaCallEvent`/`HandleCeliaAutoAnswerCall`/`HandleCeliaCall`/`IS_CELIA_CALL` 链"
+          }
+        ],
+        "files": [
+          "services/call_manager_service/src/call_manager_service.cpp"
+        ],
+        "note": "design D9 证明 `IsNewCallAllowed` 判定与新通话/CeliaCall 无关，该判定保留"
+      },
+      "voip": {
+        "value": "stub",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "VoIP 与蜂窝冲突场景的处理逻辑保留，但对 voip_call_manager 的真实对接依赖后续畅连通话接入后再做。"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "`VoipCallConnection`（对 voip_call_manager 的注册/控制出口）→ `VoipCallClient::GetInstance().Xxx()`（新代码桩）"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-object-management/spec.md",
+            "quote": "VoIP 暂不支持真实对端，但信息表与冲突判定逻辑保留"
+          }
+        ],
+        "files": [
+          "services/telephony_interaction/src/voip_call_connection.cpp",
+          "frameworks/native/src/voip_call_manager_proxy.cpp"
+        ]
+      },
+      "dsda": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "| call-status-management | 修改 | 上行状态机与来话判定链保留；移除 DSDA 族（GetDsdsMode 恒 0）、防诈/Celia 钩子、蓝牙/分布式/运动识别分支；广播与焦点模式判定保留并桩化出口 |"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "`GetDsdsMode()` 恒 0、eSIM 不支持，相关判定分支删除"
+          }
+        ],
+        "files": [
+          "services/call/src/call_status_manager.cpp"
+        ]
+      },
+      "single_sim": {
+        "value": "simplify",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-object-management/spec.md",
+            "quote": "`slotId` 参数保留供双卡扩展（AGENTS：只支持单卡，预留双卡扩展能力）"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/tasks.md",
+            "quote": "删除 DSDA 非零、防诈、Celia/蓝牙/分布式/运动识别分支及其调用点"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-utils/spec.md",
+            "quote": "`IsValidSlotId` 按 `SIM_SLOT_COUNT`（==1 判 `SIM_SLOT_0`，==2 判 `SIM_SLOT_0`/`SIM_SLOT_1`）本仓内判定照抄（liteOS 单卡、预留双卡扩展能力，AGENTS）"
+          }
+        ],
+        "files": [
+          "services/call/src/call_object_manager.cpp",
+          "utils/src/call_number_utils.cpp"
+        ]
+      },
+      "single_account": {
+        "value": "simplify",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| OsAccountManager（os_account） | 精简：默认主帐号常量 | `call_status_manager.cpp` IsRejectCall 链、`call_request_handler.cpp` 等帐号查询点 |"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-status-management/spec.md",
+            "quote": "`OsAccountManager` 帐号查询按 liteOS 单主帐号精简为默认主帐号常量（分支结构保留）"
+          }
+        ],
+        "files": [
+          "services/call/src/call_status_manager.cpp"
+        ]
+      },
+      "bindings": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "不实现 JS/ETS/Cangjie 侧外部接口（frameworks/js、frameworks/ets、frameworks/cj、interfaces/kits 不迁移）。"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "| native-client-api | 修改 | CallManagerClient 直调 CallManagerService；无 IPC 层；移除蓝牙/NearLink/超级隐私客户端与死亡通知；VoIP 代理桩化；JS/ETS/Cangjie 绑定不实现 |"
+          }
+        ],
+        "files": [
+          "frameworks/js",
+          "frameworks/ets",
+          "frameworks/cj",
+          "interfaces/kits"
+        ]
+      }
+    },
+    "macros": {
+      "CALL_MANAGER_CALL_TRANSFER": {
+        "value": "no_code",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| CALL_MANAGER_CALL_TRANSFER | 零引用（含构建文件） | 无迁移动作 |"
+          }
+        ],
+        "files": []
+      },
+      "SUPPORT_HEARING_AID": {
+        "value": "no_code",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| SUPPORT_HEARING_AID | 零引用 | 无迁移动作 |"
+          }
+        ],
+        "files": []
+      },
+      "SUPPORT_DSOFTBUS": {
+        "value": "no_code",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| SUPPORT_DSOFTBUS | 零引用（test/ 文档侧提及不计） | 无迁移动作（分布式链路整体删除） |"
+          }
+        ],
+        "files": []
+      },
+      "CALL_MANAGER_AUTO_START_OPTIMIZE": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "客户端 autostart 守卫块与 proxy 一并删除（随 D2/D3）；profile 不迁移"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/native-client-api/spec.md",
+            "quote": "删除 `call_manager_proxy.h` 的 `#ifdef CALL_MANAGER_AUTO_START_OPTIMIZE` 块"
+          }
+        ],
+        "files": [
+          "frameworks/native/src/call_manager_proxy.cpp",
+          "sa_profile/4005_auto_start_optimize.json"
+        ]
+      },
+      "HFP_ASYNC_ENABLE": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| HFP_ASYNC_ENABLE | 根 `BUILD.gn` declare_args + `call_control_manager.cpp`（HfpBroadcastSubscriber） | feature 与守卫块删除（蓝牙不支持） |"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/tasks.md",
+            "quote": "删 `call_manager_feature_hfp_async_enable` declare_args 与 `HFP_ASYNC_ENABLE` define 注入，删 `HfpBroadcastSubscriber` 守卫块"
+          }
+        ],
+        "files": [
+          "BUILD.gn",
+          "services/call/src/call_control_manager.cpp"
+        ]
+      },
+      "ABILITY_BLUETOOTH_SUPPORT": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| ABILITY_BLUETOOTH_SUPPORT | `callmanager.gni` 部件块 + 14 文件场点 | gni 部件块删除；bluetooth/ 与 distributed_call/ 相关文件删除；"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/build-config/spec.md",
+            "quote": "`communication_bluetooth` 部件块整体删除：bluetooth:btframework 不进 external_deps 且无 `ABILITY_BLUETOOTH_SUPPORT` define（BLUETOOTH 通话与 HFP 链路不迁移）"
+          }
+        ],
+        "files": [
+          "callmanager.gni",
+          "services/bluetooth/src/bluetooth_call_manager.cpp"
+        ]
+      },
+      "ABILITY_CAMERA_FRAMEWORK_SUPPORT": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| ABILITY_CAMERA_FRAMEWORK_SUPPORT | `incoming_flash_reminder.cpp` | 随文件删除 |"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-utils/spec.md",
+            "quote": "`ABILITY_CAMERA_FRAMEWORK_SUPPORT` / `ABILITY_SCREENLOCKMGR_SUPPORT` 宏场点随文件删除"
+          }
+        ],
+        "files": [
+          "utils/src/incoming_flash_reminder.cpp"
+        ]
+      },
+      "SUPPORT_MUTE_BY_DATABASE": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "watch 专设块整体删除（手表 mini 也不启用该行为）；两处 #ifdef 守卫块删除"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/build-config/spec.md",
+            "quote": "仓内两处 `#ifdef SUPPORT_MUTE_BY_DATABASE` 守卫块（`services/call/call_state_observer/src/call_records_manager.cpp`、`services/call_manager_service/src/call_manager_service.cpp`）删除"
+          }
+        ],
+        "files": [
+          "callmanager.gni",
+          "services/call/call_state_observer/src/call_records_manager.cpp"
+        ]
+      },
+      "SUPPORT_VIBRATOR": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| SUPPORT_VIBRATOR | gni 部件块 + `audio_proxy.cpp` | 部件块与守卫块删除 |"
+          }
+        ],
+        "files": [
+          "callmanager.gni",
+          "services/audio/src/audio_proxy.cpp"
+        ]
+      },
+      "HICOLLIE_ENABLE": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| HICOLLIE_ENABLE | gni 部件块 + `call_manager_service_stub.cpp` | 部件块删除；stub 文件随 D2 删除 |"
+          }
+        ],
+        "files": [
+          "callmanager.gni",
+          "services/call_manager_service/src/call_manager_service_stub.cpp"
+        ]
+      },
+      "OHOS_SUBSCRIBE_USER_STATUS_ENABLE": {
+        "value": "no_code",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| OHOS_SUBSCRIBE_USER_STATUS_ENABLE | 零引用 | 无迁移动作 |"
+          }
+        ],
+        "files": []
+      },
+      "ABILITY_SCREENLOCKMGR_SUPPORT": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| ABILITY_SCREENLOCKMGR_SUPPORT | gni 部件块 + `incoming_flash_reminder.cpp` | 随文件删除 + gni 部件块删除 |"
+          }
+        ],
+        "files": [
+          "utils/src/incoming_flash_reminder.cpp",
+          "callmanager.gni"
+        ]
+      },
+      "ABILITY_NOTIFICATION_SUPPORT": {
+        "value": "unguard",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| ABILITY_NOTIFICATION_SUPPORT | `incoming_call_notification.cpp`（仓内 gni 无定义） | 去守卫：保留通知判定逻辑，通知发送点按 notification todo 桩化（见 D6） |"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md",
+            "quote": "`ABILITY_NOTIFICATION_SUPPORT` 去守卫，逻辑保留"
+          }
+        ],
+        "files": [
+          "services/call/call_state_observer/src/incoming_call_notification.cpp"
+        ]
+      },
+      "ABILITY_DISPLAY_SUPPORT": {
+        "value": "unguard",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md",
+            "quote": "宏守卫去守卫处理：`DisplayManager::IsFullScreen` 调用不迁移、`IsFullScreen()` 恒返回 false（等价基线默认构建）。"
+          }
+        ],
+        "files": [
+          "services/call/call_state_observer/src/incoming_call_notification.cpp"
+        ],
+        "note": "去守卫后保留通知判定逻辑；DisplayManager 调用不迁移，`IsFullScreen()` 恒返回 false（等价基线默认构建）"
+      },
+      "ABILITY_STATUS_BAR_CONTROL_SUPPORT": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| ABILITY_STATUS_BAR_CONTROL_SUPPORT | `status_bar.cpp`（仓内无定义，开启分支还引用本仓未定义符号） | 随文件删除 |"
+          }
+        ],
+        "files": [
+          "services/call/call_state_observer/src/status_bar.cpp"
+        ]
+      },
+      "ABILITY_MEDIA_SUPPORT": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| ABILITY_MEDIA_SUPPORT | `call_control_manager.cpp`（onButtonDealing）、`wired_headset.cpp` | 两处守卫块随文件/块删除 |"
+          }
+        ],
+        "files": [
+          "services/call/src/call_control_manager.cpp",
+          "services/call/call_state_observer/src/wired_headset.cpp"
+        ]
+      },
+      "ABILITY_CONFIG_SUPPORT": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "会议/OTT 文件删除；`call_policy.cpp`/`ims_call.cpp`/`cs_call.cpp` 守卫块删除（config 部件不迁移）"
+          }
+        ],
+        "files": [
+          "services/call/src/call_policy.cpp",
+          "services/call/src/ims_call.cpp",
+          "services/call/src/cs_call.cpp"
+        ]
+      },
+      "RECONNECT_MAX_TRY_COUNT": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| RECONNECT_MAX_TRY_COUNT | `cellular_call_connection.cpp`（恒关，`CONNECT_MAX_TRY_COUNT` 零使用） | 守卫块删除 |"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/tasks.md",
+            "quote": "删除 `RECONNECT_MAX_TRY_COUNT` 宏块"
+          }
+        ],
+        "files": [
+          "services/telephony_interaction/src/cellular_call_connection.cpp"
+        ]
+      },
+      "ABILITY_CAMERA_SUPPORT": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| ABILITY_CAMERA_SUPPORT | `video_control_manager.cpp` | 随文件删除 |"
+          }
+        ],
+        "files": [
+          "services/video/src/video_control_manager.cpp"
+        ]
+      },
+      "OHOS_SUBSCRIBE_MOTION_ENABLE": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| OHOS_SUBSCRIBE_MOTION_ENABLE | gni 部件块 + `motion_recognition.cpp/.h` | 部件块删除；文件删除 |"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/tasks.md",
+            "quote": "删除 `OHOS_SUBSCRIBE_MOTION_ENABLE` gni 块"
+          }
+        ],
+        "files": [
+          "callmanager.gni",
+          "utils/src/motion_recognition.cpp"
+        ]
+      },
+      "SUPPORT_RTT_CALL": {
+        "value": "no_code",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| SUPPORT_RTT_CALL | 零引用 | 无迁移动作（RTT API 本体无宏门控，保留；文件节点调用 todo） |"
+          }
+        ],
+        "files": []
+      },
+      "NOT_SUPPORT_MULTICALL": {
+        "value": "keep",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "保留 declare_args 与 #ifdef 骨架（默认 false）"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/tasks.md",
+            "quote": "feature 开关两个状态编译均通过（保留宏）为零差异输出"
+          }
+        ],
+        "files": [
+          "BUILD.gn",
+          "services/call/src/call_object_manager.cpp"
+        ]
+      },
+      "CALL_MANAGER_SOS_NO_RINGBACK_TONE": {
+        "value": "no_code",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| CALL_MANAGER_SOS_NO_RINGBACK_TONE | 零引用 | 无迁移动作 |"
+          }
+        ],
+        "files": []
+      },
+      "CALL_MANAGER_WATCH_CALL_BLOCKING": {
+        "value": "no_code",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| CALL_MANAGER_WATCH_CALL_BLOCKING | 零引用 | 无迁移动作 |"
+          }
+        ],
+        "files": []
+      },
+      "CALL_MANAGER_THERMAL_PROTECTION": {
+        "value": "no_code",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| CALL_MANAGER_THERMAL_PROTECTION | 零引用 | 无迁移动作 |"
+          }
+        ],
+        "files": []
+      },
+      "ABILITY_CELLULAR_SUPPORT": {
+        "value": "keep",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| ABILITY_CELLULAR_SUPPORT | gni 部件块 + `cellular_call_connection.cpp` | 保留（cellular_call 交互经 D4 桩） |"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/build-config/spec.md",
+            "quote": "`ABILITY_CELLULAR_SUPPORT` 不注入 `call_manager_defines`，源码中该宏的 `#ifdef` 场点走裁剪分支（保留块条件语义照抄）"
+          }
+        ],
+        "files": [
+          "callmanager.gni",
+          "services/telephony_interaction/src/cellular_call_connection.cpp"
+        ]
+      },
+      "ABILITY_SMS_SUPPORT": {
+        "value": "keep",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| ABILITY_SMS_SUPPORT | gni 部件块 + `reject_call_sms.cpp/.h` | 保留（SmsClient 桩） |"
+          }
+        ],
+        "files": [
+          "callmanager.gni",
+          "services/call/call_state_observer/src/reject_call_sms.cpp"
+        ]
+      },
+      "CELLULAR_DATA_SUPPORT": {
+        "value": "keep",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| CELLULAR_DATA_SUPPORT | gni 部件块 + `call_number_utils.cpp` | 保留（CellularDataClient 桩） |"
+          }
+        ],
+        "files": [
+          "callmanager.gni",
+          "utils/src/call_number_utils.cpp"
+        ]
+      },
+      "ABILITY_POWER_SUPPORT": {
+        "value": "keep",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| ABILITY_POWER_SUPPORT | gni 部件块 + 7 文件 | gni 保留；功耗锁调用点 todo（proximity_sensor 文件删除） |"
+          }
+        ],
+        "files": [
+          "callmanager.gni",
+          "services/call/src/call_control_manager.cpp"
+        ]
+      },
+      "TELEPHONY_CUST_SUPPORT": {
+        "value": "keep",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| TELEPHONY_CUST_SUPPORT | gni 部件块 + `call_status_manager.cpp`、`call_data_base_helper.cpp` | 保留（DataShare/cust 出口 todo 或 Client 桩） |"
+          }
+        ],
+        "files": [
+          "callmanager.gni",
+          "services/call/src/call_status_manager.cpp"
+        ]
+      },
+      "OHOS_BUILD_ENABLE_TELEPHONY_CUST": {
+        "value": "keep",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| OHOS_BUILD_ENABLE_TELEPHONY_CUST | gni 部件块 + `call_manager_service.cpp` | 保留（`telephony_cust_wrapper.cpp` 改 TelephonyCustClient 桩，不再 dlopen） |"
+          }
+        ],
+        "files": [
+          "callmanager.gni",
+          "services/call_manager_service/src/call_manager_service.cpp"
+        ]
+      },
+      "CONFIG_FACTORY_VERSION": {
+        "value": "no_code",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| CONFIG_FACTORY_VERSION | 零引用（v6.0 快照中该宏无 #ifdef 场点） | 保留宏约定不迁移任何分支：AGENTS 要求两分支都支持，基线实测无分支，按实际代码判定，登入 Open Questions 复核 |"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "但 v6.0 快照全仓无该宏的 #ifdef 场点。按实际代码判定为无迁移动作；若产线后续引入分支需另行 change。"
+          }
+        ],
+        "files": [],
+        "note": "spec 裁决 v6.0 零引用、无迁移动作；保留宏约定（后续引入分支需另行 change），登入 Open Questions 复核"
+      },
+      "ABILITY_AUDIO_SUPPORT": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/audio-device-management/spec.md",
+            "quote": "`Tone::GetToneDescriptorPath` 的 `#ifdef ABILITY_AUDIO_SUPPORT` 宏块仓内未定义恒走 `GetDefaultTonePath`，按实际代码仅活性分支照抄（design「宏定义按实际代码实现来判断」）"
+          }
+        ],
+        "files": [
+          "services/audio/src/tone.cpp"
+        ]
+      },
+      "AUDIO_SUPPORT": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-status-management/spec.md",
+            "quote": "`AUDIO_SUPPORT` 分支因基线仓未定义（默认构建恒不编译）不迁移"
+          }
+        ],
+        "files": [
+          "services/call/src/call_status_manager.cpp"
+        ]
+      },
+      "ABILIT_CONFIG_SUPPORT": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "ABILITY_CONFIG_SUPPORT（及拼写变体 `ABILIT_CONFIG_SUPPORT`）"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "会议/OTT 文件删除；`call_policy.cpp`/`ims_call.cpp`/`cs_call.cpp` 守卫块删除（config 部件不迁移）"
+          }
+        ],
+        "files": [
+          "services/call/src/call_policy.cpp",
+          "services/call/src/ims_call.cpp",
+          "services/call/src/cs_call.cpp"
+        ],
+        "note": "design D7 与 ABILITY_CONFIG_SUPPORT 同一行处置（拼写变体）"
+      }
+    },
+    "dependencies": {
+      "audio": {
+        "value": "todo",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| 音频 audio（audio_framework 全族） | 暂不调用（todo 占位） |"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "保留但桩化暂不可用的外部依赖调用点：音频、DataShare 数据库、公共事件广播、功耗锁、通知、骚扰来电查询、号码识别/黄页、RTT 文件节点、拉起通话界面"
+          }
+        ],
+        "files": [
+          "services/audio/src/audio_proxy.cpp"
+        ]
+      },
+      "database": {
+        "value": "todo",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| 数据库 DataShare（含 settings_datashare_helper、call_data_base_helper、number_identity_data_base_helper、call_records_handler 入库） | 暂不调用（todo 占位） |"
+          }
+        ],
+        "files": [
+          "utils/src/settings_datashare_helper.cpp"
+        ]
+      },
+      "broadcast": {
+        "value": "todo",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| 广播 EventFwk::CommonEventManager（订阅与发布） | 暂不调用（todo 占位） |"
+          }
+        ],
+        "files": [
+          "services/call/src/call_broadcast_subscriber.cpp"
+        ]
+      },
+      "power_lock": {
+        "value": "todo",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| 功耗锁（ABILITY_POWER_SUPPORT 内 RunningLockKeeper 系） | 暂不调用（todo 占位） |"
+          }
+        ],
+        "files": [
+          "services/call/call_state_observer/src/incoming_call_wake_up.cpp"
+        ]
+      },
+      "call_ui": {
+        "value": "stub",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| 拉起通话界面 CallConnectAbility / CallUIAbility、对话框与设置页 ability、ability/bundle 信息查询（`MakeCall` 的 `StartAbility`、`GetBundleInfo`、`GetBundleNameByUid`、`IsBundleInstalled` 等出口） | 打桩 + todo 占位"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-object-management/spec.md",
+            "quote": "ConnectAbility 语义经 `stub/` 打桩实现，调用点标 `// todo!!! [callUi] ref to call_connect_ability.cpp ConnectAbility`"
+          }
+        ],
+        "files": [
+          "services/call/src/call_connect_ability.cpp"
+        ],
+        "note": "design D6 表述为「打桩 + todo 占位」：ConnectAbility/对话框/ability 查询语义经 stub/ 打桩，调用点同时标注 [callUi] todo 标签"
+      },
+      "notification": {
+        "value": "todo",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| 通知 NotificationHelper | 暂不调用（todo 占位） |"
+          }
+        ],
+        "files": [
+          "services/call/call_state_observer/src/incoming_call_notification.cpp"
+        ]
+      },
+      "spam_call": {
+        "value": "todo",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| 骚扰来电（不 dlopen） | 暂不调用（todo 占位），逻辑保留 |"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/spam-call-identification/spec.md",
+            "quote": "经 `stub/` 打桩并标注 `// todo!!! [spamCall] ref to spam_call_adapter.cpp ConnectSpamCallAbility`"
+          }
+        ],
+        "files": [
+          "services/spam_call/src/spam_call_adapter.cpp"
+        ],
+        "note": "Open Question 6：spam_call_proxy/stub/connection 三文件保留可编译最小形，IPC/Ability 连接在桩面不可达，仅保留码表与判定"
+      },
+      "number_identity": {
+        "value": "todo",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| 号码识别/黄页标记 | 暂不调用（todo 占位） |"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/number-identity/spec.md",
+            "quote": "经 `stub/` 打桩并标注 `// todo!!! [numberIdentity] ref to number_identity_service.cpp Connect`"
+          }
+        ],
+        "files": [
+          "services/number_identity_proxy/src/number_identity_service.cpp"
+        ]
+      },
+      "rtt_file_node": {
+        "value": "todo",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| RTT 文件节点 | 暂不调用（todo 占位） |"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "在适配器出口标 `// todo!!! [rtt] ref to cellular_call_connection.cpp StartRtt/StopRtt`，API 链路保留"
+          }
+        ],
+        "files": [
+          "services/telephony_interaction/src/cellular_call_connection.cpp"
+        ],
+        "note": "spec 判定 v6.0 RTT 链路不含文件节点操作，在适配器出口标 [rtt] todo，API 链路保留"
+      },
+      "sptr": {
+        "value": "replace",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "`sptr<T>`/`RefPtr` → `std::shared_ptr<T>`（强引用语义）或 `std::unique_ptr`"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/tasks.md",
+            "quote": "全仓类型替换：`sptr<T>`→`std::shared_ptr<T>`（`wptr`→`std::weak_ptr`）、`DelayedSingleton` 保留模板形态改静态单例实现"
+          }
+        ],
+        "files": [
+          "services/call/src/call_object_manager.cpp"
+        ]
+      },
+      "hisysevent_hitrace": {
+        "value": "replace",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "维测：HiSysEvent/hitrace 改日志"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "`HiSysEvent::HiSysEventWrite`/hitrace → `stub/hisysevent_stub`（做日志打印，保持函数签名不变的同名桩）"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "| hisysevent-diagnostics | 修改 | HiSysEvent/hitrace 维测改日志打印；dump 能力按无 hidumper 服务简化为日志输出 |"
+          }
+        ],
+        "files": [
+          "services/hisysevent/src/call_manager_hisysevent.cpp"
+        ],
+        "note": "维测动作改日志打印，经 stub/hisysevent_stub 同名桩承载（签名不变）"
+      },
+      "cellular_call": {
+        "value": "stub",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "`CellularCallConnection` → `CellularCallClient::GetInstance().Xxx()`"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "与 cellular_call / core_service / cellular_data / sms_mms / TelephonyCust 的 IPC 通信改为 `XxxClient::GetInstance().Xxx()` 单例桩"
+          }
+        ],
+        "files": [
+          "services/telephony_interaction/src/cellular_call_connection.cpp"
+        ]
+      },
+      "core_service": {
+        "value": "stub",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "`CoreServiceConnection` → `CoreServiceClient::GetInstance().Xxx()`"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "与 cellular_call / core_service / cellular_data / sms_mms / TelephonyCust 的 IPC 通信改为 `XxxClient::GetInstance().Xxx()` 单例桩"
+          }
+        ],
+        "files": [
+          "services/telephony_interaction/src/core_service_connection.cpp"
+        ]
+      },
+      "cellular_data": {
+        "value": "stub",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "号码工具数据面 `CellularDataClient::GetInstance().Xxx()`"
+          }
+        ],
+        "files": [
+          "utils/src/call_number_utils.cpp"
+        ]
+      },
+      "sms_mms": {
+        "value": "stub",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "拒接短信 `SmsServiceManagerClient::SendMessage` → `SmsClient::GetInstance().Xxx()`"
+          }
+        ],
+        "files": [
+          "services/call/call_state_observer/src/reject_call_sms.cpp"
+        ]
+      },
+      "telephony_cust": {
+        "value": "stub",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "`TelephonyCustWrapper` → `TelephonyCustClient::GetInstance().Xxx()`（不再 dlopen）"
+          }
+        ],
+        "files": [
+          "services/call_manager_service/src/telephony_cust_wrapper.cpp"
+        ]
+      },
+      "ffrt": {
+        "value": "replace",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| ffrt（队列与任务） | 替代：打桩 EventHandler |"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "`report_call_info_handler.cpp` 的 `report_call_info_queue_`（ffrt 串行队列）→ 打桩 EventHandler 的串行任务队列"
+          }
+        ],
+        "files": [
+          "services/telephony_interaction/src/report_call_info_handler.cpp"
+        ]
+      },
+      "libphonenumber": {
+        "value": "stub",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| libphonenumber | 打桩（签名相同的空实现） | `utils/src/call_number_utils.cpp` |"
+          }
+        ],
+        "files": [
+          "utils/src/call_number_utils.cpp"
+        ]
+      },
+      "parameter": {
+        "value": "stub",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| 系统参数 parameter（SystemGetParameter 等） | 打桩 |"
+          }
+        ],
+        "files": [
+          "utils/src/call_number_utils.cpp"
+        ]
+      },
+      "cjson": {
+        "value": "stub",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| cJSON | 打桩 | 解析侧（spam_call/json 数据面、voip 解析等） |"
+          }
+        ],
+        "files": []
+      },
+      "base_libs": {
+        "value": "stub",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| securec / c_utils / hilog（log） / eventhandler | 同名桩（`stub/`） | 全仓 |"
+          }
+        ],
+        "files": []
+      },
+      "pacmap": {
+        "value": "replace",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "`AppExecFwk::PacMap` → 对应普通结构体"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "跨部件结构体：`AppExecFwk::PacMap` 等替换为结构体"
+          }
+        ],
+        "files": []
+      }
+    },
+    "architecture": {
+      "systemability_ipc": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "不继承 SystemAbility、不注册 samgr、无 InitServiceExtAbility 系生命周期；`CallManagerService` 以进程内单例提供"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "不继承 SystemAbility、不做 IPC，`CallManagerClient` 直调 `CallManagerService`"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/proposal.md",
+            "quote": "不迁移 SystemAbility/samgr/safwk 形态与任何 IPC 传输层（含 IPC 包封装、death recipient、stub 分发表）；liteOS 为单进程环境。"
+          }
+        ],
+        "files": [
+          "frameworks/native/src/call_manager_client.cpp",
+          "services/call_manager_service/src/call_manager_service.cpp",
+          "services/call_manager_service/src/call_manager_service_stub.cpp"
+        ]
+      },
+      "permission_checks": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "权限校验：整体移除（不调用 access_token 系接口）"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| 权限校验（access_token、PrivacyKit） | 不调用（直接删除校验块） |"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-manager-service/spec.md",
+            "quote": "liteOS 上 callmanager 提供的外部接口暂不需要进行权限校验，权限校验接口暂不调用；design 决策 11 权限校验整体移除"
+          }
+        ],
+        "files": [
+          "services/call_manager_service/src/call_manager_service.cpp"
+        ]
+      },
+      "locks": {
+        "value": "remove",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "| 锁（std::mutex/ffrt::mutex/shared_mutex） | 不调用（删除；不设替代） |"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "全部锁（`std::mutex`/`ffrt::mutex`/`shared_mutex`）删除，不加替代锁"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/tasks.md",
+            "quote": "删除全部锁（std::mutex/ffrt::mutex/shared_mutex 用具与成员）"
+          }
+        ],
+        "files": [
+          "services/call/src/call_object_manager.cpp"
+        ]
+      },
+      "dsds_mode_zero": {
+        "value": "yes",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "`GetDsdsMode()` 恒 0、eSIM 不支持，相关判定分支删除"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-status-management/spec.md",
+            "quote": "因 liteOS 不支持 DSDA（`GetDsdsMode` 恒 0），对账结束后不再执行 `HandleDsdaInfo` 的保持能力收紧"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-control-management/spec.md",
+            "quote": "因 DSDA 不支持（`CallManagerUtils::GetDsdsMode()` 在 liteOS 恒返回 0，design D9），基线 DSDA 非零分支移除"
+          }
+        ],
+        "files": []
+      },
+      "slot_id_kept": {
+        "value": "yes",
+        "evidence": [
+          {
+            "file": "changes/migrate-call-manager-to-liteos/design.md",
+            "quote": "`slotId` 参数保留供双卡扩展"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/specs/call-object-management/spec.md",
+            "quote": "`slotId` 参数保留供双卡扩展（AGENTS：只支持单卡，预留双卡扩展能力）"
+          },
+          {
+            "file": "changes/migrate-call-manager-to-liteos/tasks.md",
+            "quote": "slotId 参数面保留"
+          }
+        ],
+        "files": [
+          "services/call/src/call_object_manager.cpp"
+        ]
+      }
+    }
+  },
+  "modules": {
+    "reference": {
+      "modules": {
+        "build": {
+          "value": "modify",
+          "owners": [
+            "build-and-feature-flags"
+          ],
+          "counts": {
+            "build-and-feature-flags": 12,
+            "call-manager-service": 4
+          }
+        },
+        "frameworks": {
+          "value": "modify",
+          "owners": [
+            "client-frameworks"
+          ],
+          "counts": {
+            "bluetooth-call": 2,
+            "call-manager-service": 4,
+            "call-report": 3,
+            "client-frameworks": 42
+          }
+        },
+        "services/antifraud": {
+          "value": "remove",
+          "owners": [
+            "antifraud-call"
+          ],
+          "counts": {
+            "antifraud-call": 9
+          }
+        },
+        "services/audio": {
+          "value": "modify",
+          "owners": [
+            "audio-control-manager"
+          ],
+          "counts": {
+            "audio-control-manager": 11
+          }
+        },
+        "services/bluetooth": {
+          "value": "remove",
+          "owners": [
+            "bluetooth-call"
+          ],
+          "counts": {
+            "bluetooth-call": 7
+          }
+        },
+        "services/call": {
+          "value": "modify",
+          "owners": [
+            "call-object-model"
+          ],
+          "counts": {
+            "audio-control-manager": 1,
+            "call-control-manager": 14,
+            "call-object-model": 40,
+            "call-status-manager": 5
+          }
+        },
+        "services/call/call_state_observer": {
+          "value": "modify",
+          "owners": [
+            "call-state-observer"
+          ],
+          "counts": {
+            "call-state-observer": 12,
+            "interoperable-call": 2
+          }
+        },
+        "services/call_earthquake_alarm": {
+          "value": "remove",
+          "owners": [
+            "call-earthquake-alarm"
+          ],
+          "counts": {
+            "call-earthquake-alarm": 10
+          }
+        },
+        "services/call_manager_service": {
+          "value": "modify",
+          "owners": [
+            "call-manager-service"
+          ],
+          "counts": {
+            "call-manager-service": 5,
+            "interoperable-call": 2
+          }
+        },
+        "services/call_report": {
+          "value": "modify",
+          "owners": [
+            "call-report"
+          ],
+          "counts": {
+            "call-report": 7
+          }
+        },
+        "services/call_setting": {
+          "value": "modify",
+          "owners": [
+            "call-setting"
+          ],
+          "counts": {
+            "call-setting": 6
+          }
+        },
+        "services/call_voice_assistant": {
+          "value": "remove",
+          "owners": [
+            "call-voice-assistant"
+          ],
+          "counts": {
+            "call-voice-assistant": 6
+          }
+        },
+        "services/display": {
+          "value": "remove",
+          "owners": [
+            "fold-display"
+          ],
+          "counts": {
+            "fold-display": 6
+          }
+        },
+        "services/distributed_call": {
+          "value": "remove",
+          "owners": [
+            "distributed-call"
+          ],
+          "counts": {
+            "call-voice-assistant": 1,
+            "distributed-call": 12,
+            "interoperable-call": 2
+          }
+        },
+        "services/hisysevent": {
+          "value": "modify",
+          "owners": [
+            "hisysevent-observability"
+          ],
+          "counts": {
+            "hisysevent-observability": 6
+          }
+        },
+        "services/interoperable_call": {
+          "value": "remove",
+          "owners": [
+            "interoperable-call"
+          ],
+          "counts": {
+            "build-and-feature-flags": 2,
+            "call-manager-service": 1,
+            "interoperable-call": 9
+          }
+        },
+        "services/number_identity_proxy": {
+          "value": "modify",
+          "owners": [
+            "number-identity"
+          ],
+          "counts": {
+            "number-identity": 6
+          }
+        },
+        "services/satellite_call": {
+          "value": "remove",
+          "owners": [
+            "satellite-call"
+          ],
+          "counts": {
+            "satellite-call": 6
+          }
+        },
+        "services/spam_call": {
+          "value": "modify",
+          "owners": [
+            "spam-call"
+          ],
+          "counts": {
+            "spam-call": 9
+          }
+        },
+        "services/telephony_interaction": {
+          "value": "modify",
+          "owners": [
+            "telephony-interaction"
+          ],
+          "counts": {
+            "call-setting": 1,
+            "telephony-interaction": 9
+          }
+        },
+        "services/video": {
+          "value": "remove",
+          "owners": [
+            "video-call"
+          ],
+          "counts": {
+            "video-call": 6
+          }
+        },
+        "utils": {
+          "value": "modify",
+          "owners": [
+            "call-manager-utils"
+          ],
+          "counts": {
+            "call-manager-utils": 14,
+            "number-identity": 1,
+            "satellite-call": 1
+          }
+        }
+      },
+      "capabilities": {
+        "antifraud-call": {
+          "value": "remove",
+          "source": "table",
+          "modules": {
+            "services/antifraud": 9
+          },
+          "claims": [
+            "services/antifraud"
+          ]
+        },
+        "audio-control-manager": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/audio": 11,
+            "services/call": 1
+          },
+          "claims": [
+            "services/audio"
+          ]
+        },
+        "bluetooth-call": {
+          "value": "remove",
+          "source": "table",
+          "modules": {
+            "services/bluetooth": 7,
+            "frameworks": 2
+          },
+          "claims": [
+            "services/bluetooth"
+          ]
+        },
+        "build-and-feature-flags": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "build": 12,
+            "services/interoperable_call": 2
+          },
+          "claims": [
+            "build",
+            "services/interoperable_call"
+          ]
+        },
+        "call-control-manager": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/call": 14
+          },
+          "claims": [
+            "services/call"
+          ]
+        },
+        "call-earthquake-alarm": {
+          "value": "remove",
+          "source": "table",
+          "modules": {
+            "services/call_earthquake_alarm": 10
+          },
+          "claims": [
+            "services/call_earthquake_alarm"
+          ]
+        },
+        "call-manager-service": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "frameworks": 4,
+            "build": 4,
+            "services/interoperable_call": 1,
+            "services/call_manager_service": 5
+          },
+          "claims": [
+            "build",
+            "frameworks",
+            "services/call_manager_service"
+          ]
+        },
+        "call-manager-utils": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "utils": 14
+          },
+          "claims": [
+            "utils"
+          ]
+        },
+        "call-object-model": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/call": 40
+          },
+          "claims": [
+            "services/call"
+          ]
+        },
+        "call-report": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/call_report": 7,
+            "frameworks": 3
+          },
+          "claims": [
+            "frameworks",
+            "services/call_report"
+          ]
+        },
+        "call-setting": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/call_setting": 6,
+            "services/telephony_interaction": 1
+          },
+          "claims": [
+            "services/call_setting"
+          ]
+        },
+        "call-state-observer": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/call/call_state_observer": 12
+          },
+          "claims": [
+            "services/call/call_state_observer"
+          ]
+        },
+        "call-status-manager": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/call": 5
+          },
+          "claims": [
+            "services/call"
+          ]
+        },
+        "call-voice-assistant": {
+          "value": "remove",
+          "source": "table",
+          "modules": {
+            "services/call_voice_assistant": 6,
+            "services/distributed_call": 1
+          },
+          "claims": [
+            "services/call_voice_assistant"
+          ]
+        },
+        "client-frameworks": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "frameworks": 42
+          },
+          "claims": [
+            "frameworks"
+          ]
+        },
+        "distributed-call": {
+          "value": "remove",
+          "source": "table",
+          "modules": {
+            "services/distributed_call": 12
+          },
+          "claims": [
+            "services/distributed_call"
+          ]
+        },
+        "fold-display": {
+          "value": "remove",
+          "source": "table",
+          "modules": {
+            "services/display": 6
+          },
+          "claims": [
+            "services/display"
+          ]
+        },
+        "hisysevent-observability": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/hisysevent": 6
+          },
+          "claims": [
+            "services/hisysevent"
+          ]
+        },
+        "interoperable-call": {
+          "value": "remove",
+          "source": "table",
+          "modules": {
+            "services/interoperable_call": 9,
+            "services/call_manager_service": 2,
+            "services/call/call_state_observer": 2,
+            "services/distributed_call": 2
+          },
+          "claims": [
+            "services/interoperable_call"
+          ]
+        },
+        "number-identity": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/number_identity_proxy": 6,
+            "utils": 1
+          },
+          "claims": [
+            "services/number_identity_proxy"
+          ]
+        },
+        "satellite-call": {
+          "value": "remove",
+          "source": "table",
+          "modules": {
+            "services/satellite_call": 6,
+            "utils": 1
+          },
+          "claims": [
+            "services/satellite_call"
+          ]
+        },
+        "spam-call": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/spam_call": 9
+          },
+          "claims": [
+            "services/spam_call"
+          ]
+        },
+        "telephony-interaction": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/telephony_interaction": 9
+          },
+          "claims": [
+            "services/telephony_interaction"
+          ]
+        },
+        "video-call": {
+          "value": "remove",
+          "source": "table",
+          "modules": {
+            "services/video": 6
+          },
+          "claims": [
+            "services/video"
+          ]
+        }
+      },
+      "covered": [
+        "build",
+        "frameworks",
+        "services/antifraud",
+        "services/audio",
+        "services/bluetooth",
+        "services/call",
+        "services/call/call_state_observer",
+        "services/call_earthquake_alarm",
+        "services/call_manager_service",
+        "services/call_report",
+        "services/call_setting",
+        "services/call_voice_assistant",
+        "services/display",
+        "services/distributed_call",
+        "services/hisysevent",
+        "services/interoperable_call",
+        "services/number_identity_proxy",
+        "services/satellite_call",
+        "services/spam_call",
+        "services/telephony_interaction",
+        "services/video",
+        "utils"
+      ],
+      "trim_rows": {
+        "call-object-model": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "裁会议/卫星/蓝牙/OTT 对象与视频彩振，保留 CS/IMS/VoIP；sptr→std::shared_ptr"
+        },
+        "call-control-manager": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "PacMap→结构体、ffrt→打桩 EventHandler、CallConnectAbility/广播/功耗锁 todo 占位，裁超级隐私/有线耳机/DSDA/权限校验"
+        },
+        "call-status-manager": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "裁防诈/ESIM/DSDA/免打扰 DataShare/动作识别分支，GetDsdsMode() 恒 0，OOBE 判定改打桩系统参数"
+        },
+        "call-state-observer": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "裁通知/亮屏/贴耳灭屏/状态栏/有线耳机观察者，通话记录与设置 DataShare todo 占位，拒接短信改 SmsClient 打桩"
+        },
+        "call-manager-service": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "不继承 SystemAbility、无 IPC stub 与权限校验，CallManagerClient 直调；TelephonyCust 改客户端单例打桩"
+        },
+        "call-report": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "回调经 proxy 的 IPC 上报改进程内直调，死亡通知简化"
+        },
+        "telephony-interaction": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "四个 Connection 改 CellularCallClient/CoreServiceClient 单例打桩，上行 ffrt 队列改打桩 EventHandler"
+        },
+        "call-setting": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "转发 cellular_call 的接口改打桩客户端，设置项 DataShare 查询 todo 占位"
+        },
+        "audio-control-manager": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "音频系统 API 调用点 todo 占位，逻辑保留；裁有线耳机/蓝牙/星闪/助听器设备态与视频彩振"
+        },
+        "spam-call": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "查询逻辑保留，dlopen/骚扰库调用点 todo 占位（AGENTS.md：暂不调用、不用 dlopen）"
+        },
+        "number-identity": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "黄页/标记逻辑保留，DataShare 与 libphonenumber 调用点 todo/打桩占位"
+        },
+        "hisysevent-observability": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "HiSysEvent/HITRACE 改日志打印，HiDumper 接口保留骨架"
+        },
+        "call-manager-utils": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "裁 edm/incoming_flash/motion/screen_sensor 工具，设置查询 todo 占位，libphonenumber/cJSON 打桩"
+        },
+        "client-frameworks": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "JS/ETS/仓颉绑定不迁移；native 客户端直调，proxy/死亡通知/蓝牙星闪客户端移除"
+        },
+        "build-and-feature-flags": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "gni 裁源与依赖，defines 收敛为支持宏集合，测试 target 重组"
+        },
+        "pc-test-harness": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "软链指向 telephony_call_manager_mini/，must-pass 套件集随移除能力调整，门禁改验裁剪后代码"
+        },
+        "bluetooth-call": {
+          "value": "remove",
+          "raw": "移除",
+          "reason": "AGENTS.md：BLUETOOTH 类型通话不支持"
+        },
+        "video-call": {
+          "value": "remove",
+          "raw": "移除",
+          "reason": "AGENTS.md：视频通话不支持"
+        },
+        "satellite-call": {
+          "value": "remove",
+          "raw": "移除",
+          "reason": "AGENTS.md：卫星通话不支持"
+        },
+        "distributed-call": {
+          "value": "remove",
+          "raw": "移除",
+          "reason": "AGENTS.md：分布式（distributed 及 interoperable）通话不支持"
+        },
+        "interoperable-call": {
+          "value": "remove",
+          "raw": "移除",
+          "reason": "同上，手表 settings 联动一并移除"
+        },
+        "antifraud-call": {
+          "value": "remove",
+          "raw": "移除",
+          "reason": "AGENTS.md：防诈 antifraud 不支持"
+        },
+        "call-voice-assistant": {
+          "value": "remove",
+          "raw": "移除",
+          "reason": "AGENTS.md：语音播报/号码助手不支持"
+        },
+        "call-earthquake-alarm": {
+          "value": "remove",
+          "raw": "移除",
+          "reason": "AGENTS.md：地震预警不支持"
+        },
+        "fold-display": {
+          "value": "remove",
+          "raw": "移除",
+          "reason": "AGENTS.md：折叠屏不支持"
+        }
+      },
+      "unknown_rows": [],
+      "deltas": {
+        "antifraud-call": {
+          "ADDED": 0,
+          "MODIFIED": 0,
+          "REMOVED": 4,
+          "RENAMED": 0
+        },
+        "audio-control-manager": {
+          "ADDED": 0,
+          "MODIFIED": 5,
+          "REMOVED": 2,
+          "RENAMED": 0
+        },
+        "bluetooth-call": {
+          "ADDED": 0,
+          "MODIFIED": 0,
+          "REMOVED": 5,
+          "RENAMED": 0
+        },
+        "build-and-feature-flags": {
+          "ADDED": 0,
+          "MODIFIED": 5,
+          "REMOVED": 1,
+          "RENAMED": 0
+        },
+        "call-control-manager": {
+          "ADDED": 0,
+          "MODIFIED": 5,
+          "REMOVED": 2,
+          "RENAMED": 0
+        },
+        "call-earthquake-alarm": {
+          "ADDED": 0,
+          "MODIFIED": 0,
+          "REMOVED": 4,
+          "RENAMED": 0
+        },
+        "call-manager-service": {
+          "ADDED": 0,
+          "MODIFIED": 6,
+          "REMOVED": 2,
+          "RENAMED": 0
+        },
+        "call-manager-utils": {
+          "ADDED": 0,
+          "MODIFIED": 5,
+          "REMOVED": 3,
+          "RENAMED": 0
+        },
+        "call-object-model": {
+          "ADDED": 0,
+          "MODIFIED": 3,
+          "REMOVED": 4,
+          "RENAMED": 0
+        },
+        "call-report": {
+          "ADDED": 0,
+          "MODIFIED": 3,
+          "REMOVED": 2,
+          "RENAMED": 0
+        },
+        "call-setting": {
+          "ADDED": 0,
+          "MODIFIED": 3,
+          "REMOVED": 0,
+          "RENAMED": 0
+        },
+        "call-state-observer": {
+          "ADDED": 0,
+          "MODIFIED": 3,
+          "REMOVED": 5,
+          "RENAMED": 0
+        },
+        "call-status-manager": {
+          "ADDED": 0,
+          "MODIFIED": 7,
+          "REMOVED": 1,
+          "RENAMED": 0
+        },
+        "call-voice-assistant": {
+          "ADDED": 0,
+          "MODIFIED": 0,
+          "REMOVED": 3,
+          "RENAMED": 0
+        },
+        "client-frameworks": {
+          "ADDED": 0,
+          "MODIFIED": 3,
+          "REMOVED": 3,
+          "RENAMED": 0
+        },
+        "distributed-call": {
+          "ADDED": 0,
+          "MODIFIED": 0,
+          "REMOVED": 4,
+          "RENAMED": 0
+        },
+        "fold-display": {
+          "ADDED": 0,
+          "MODIFIED": 0,
+          "REMOVED": 2,
+          "RENAMED": 0
+        },
+        "hisysevent-observability": {
+          "ADDED": 0,
+          "MODIFIED": 4,
+          "REMOVED": 0,
+          "RENAMED": 0
+        },
+        "interoperable-call": {
+          "ADDED": 0,
+          "MODIFIED": 0,
+          "REMOVED": 3,
+          "RENAMED": 0
+        },
+        "liteos-runtime": {
+          "ADDED": 7,
+          "MODIFIED": 0,
+          "REMOVED": 0,
+          "RENAMED": 0
+        },
+        "number-identity": {
+          "ADDED": 0,
+          "MODIFIED": 1,
+          "REMOVED": 0,
+          "RENAMED": 0
+        },
+        "pc-test-harness": {
+          "ADDED": 0,
+          "MODIFIED": 2,
+          "REMOVED": 0,
+          "RENAMED": 0
+        },
+        "satellite-call": {
+          "ADDED": 0,
+          "MODIFIED": 0,
+          "REMOVED": 3,
+          "RENAMED": 0
+        },
+        "spam-call": {
+          "ADDED": 0,
+          "MODIFIED": 3,
+          "REMOVED": 1,
+          "RENAMED": 0
+        },
+        "telephony-interaction": {
+          "ADDED": 0,
+          "MODIFIED": 5,
+          "REMOVED": 1,
+          "RENAMED": 0
+        },
+        "video-call": {
+          "ADDED": 0,
+          "MODIFIED": 0,
+          "REMOVED": 4,
+          "RENAMED": 0
+        }
+      },
+      "problems": []
+    },
+    "student": {
+      "modules": {
+        "build": {
+          "value": "modify",
+          "owners": [
+            "build-config"
+          ],
+          "counts": {
+            "antifraud-call": 2,
+            "audio-device-management": 4,
+            "bluetooth-call": 2,
+            "build-config": 12,
+            "call-control-management": 4,
+            "call-manager-service": 2,
+            "call-object-management": 4,
+            "call-state-observer": 2,
+            "call-status-management": 4,
+            "call-utils": 2,
+            "distributed-call": 2,
+            "earthquake-alarm-call": 2,
+            "interoperable-call": 2,
+            "native-client-api": 2,
+            "number-identity": 2,
+            "spam-call-identification": 2,
+            "telephony-interaction": 2,
+            "video-call-control": 2
+          }
+        },
+        "frameworks": {
+          "value": "modify",
+          "owners": [
+            "native-client-api"
+          ],
+          "counts": {
+            "bluetooth-call": 3,
+            "build-config": 4,
+            "call-manager-service": 6,
+            "call-report": 1,
+            "hisysevent-diagnostics": 2,
+            "native-client-api": 50
+          }
+        },
+        "services/antifraud": {
+          "value": "remove",
+          "owners": [
+            "antifraud-call"
+          ],
+          "counts": {
+            "antifraud-call": 14
+          }
+        },
+        "services/audio": {
+          "value": "modify",
+          "owners": [
+            "audio-device-management"
+          ],
+          "counts": {
+            "audio-device-management": 20,
+            "call-manager-service": 1
+          }
+        },
+        "services/bluetooth": {
+          "value": "remove",
+          "owners": [
+            "bluetooth-call"
+          ],
+          "counts": {
+            "bluetooth-call": 14
+          }
+        },
+        "services/call": {
+          "value": "modify",
+          "owners": [
+            "call-control-management",
+            "call-object-management",
+            "call-status-management"
+          ],
+          "counts": {
+            "antifraud-call": 1,
+            "call-control-management": 20,
+            "call-manager-service": 1,
+            "call-object-management": 38,
+            "call-report": 4,
+            "call-setting-management": 1,
+            "call-state-observer": 2,
+            "call-status-management": 22,
+            "display-management": 2,
+            "earthquake-alarm-call": 1,
+            "interoperable-call": 2,
+            "satellite-call": 6,
+            "spam-call-identification": 1,
+            "video-call-control": 2,
+            "voice-assistant-call": 4
+          }
+        },
+        "services/call/call_state_observer": {
+          "value": "modify",
+          "owners": [
+            "call-state-observer"
+          ],
+          "counts": {
+            "call-state-observer": 26,
+            "earthquake-alarm-call": 1,
+            "interoperable-call": 2
+          }
+        },
+        "services/call_earthquake_alarm": {
+          "value": "remove",
+          "owners": [
+            "earthquake-alarm-call"
+          ],
+          "counts": {
+            "earthquake-alarm-call": 4
+          }
+        },
+        "services/call_manager_service": {
+          "value": "modify",
+          "owners": [
+            "call-manager-service"
+          ],
+          "counts": {
+            "call-manager-service": 6,
+            "earthquake-alarm-call": 1,
+            "hisysevent-diagnostics": 2,
+            "interoperable-call": 2
+          }
+        },
+        "services/call_report": {
+          "value": "modify",
+          "owners": [
+            "call-report"
+          ],
+          "counts": {
+            "call-control-management": 1,
+            "call-manager-service": 1,
+            "call-report": 10
+          }
+        },
+        "services/call_setting": {
+          "value": "keep",
+          "owners": [
+            "call-setting-management"
+          ],
+          "counts": {
+            "call-setting-management": 4
+          }
+        },
+        "services/call_voice_assistant": {
+          "value": "remove",
+          "owners": [
+            "voice-assistant-call"
+          ],
+          "counts": {
+            "voice-assistant-call": 4
+          }
+        },
+        "services/display": {
+          "value": "remove",
+          "owners": [
+            "display-management"
+          ],
+          "counts": {
+            "display-management": 4
+          }
+        },
+        "services/distributed_call": {
+          "value": "remove",
+          "owners": [
+            "distributed-call"
+          ],
+          "counts": {
+            "distributed-call": 19
+          }
+        },
+        "services/hisysevent": {
+          "value": "modify",
+          "owners": [
+            "hisysevent-diagnostics"
+          ],
+          "counts": {
+            "hisysevent-diagnostics": 4
+          }
+        },
+        "services/interoperable_call": {
+          "value": "remove",
+          "owners": [
+            "interoperable-call"
+          ],
+          "counts": {
+            "call-manager-service": 1,
+            "call-state-observer": 2,
+            "interoperable-call": 14
+          }
+        },
+        "services/number_identity_proxy": {
+          "value": "modify",
+          "owners": [
+            "number-identity"
+          ],
+          "counts": {
+            "number-identity": 2
+          }
+        },
+        "services/satellite_call": {
+          "value": "remove",
+          "owners": [
+            "satellite-call"
+          ],
+          "counts": {
+            "satellite-call": 4
+          }
+        },
+        "services/spam_call": {
+          "value": "modify",
+          "owners": [
+            "spam-call-identification"
+          ],
+          "counts": {
+            "spam-call-identification": 16
+          }
+        },
+        "services/telephony_interaction": {
+          "value": "modify",
+          "owners": [
+            "telephony-interaction"
+          ],
+          "counts": {
+            "bluetooth-call": 3,
+            "call-control-management": 3,
+            "call-manager-service": 1,
+            "call-setting-management": 1,
+            "call-status-management": 1,
+            "telephony-interaction": 14
+          }
+        },
+        "services/video": {
+          "value": "remove",
+          "owners": [
+            "video-call-control"
+          ],
+          "counts": {
+            "call-manager-service": 1,
+            "video-call-control": 2
+          }
+        },
+        "utils": {
+          "value": "modify",
+          "owners": [
+            "call-utils"
+          ],
+          "counts": {
+            "call-utils": 28,
+            "display-management": 1,
+            "number-identity": 4
+          }
+        }
+      },
+      "capabilities": {
+        "antifraud-call": {
+          "value": "remove",
+          "source": "table",
+          "modules": {
+            "services/antifraud": 14,
+            "services/call": 1,
+            "build": 2
+          },
+          "claims": [
+            "services/antifraud"
+          ]
+        },
+        "audio-device-management": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/audio": 20,
+            "build": 4
+          },
+          "claims": [
+            "services/audio"
+          ]
+        },
+        "bluetooth-call": {
+          "value": "remove",
+          "source": "table",
+          "modules": {
+            "services/bluetooth": 14,
+            "services/telephony_interaction": 3,
+            "frameworks": 3,
+            "build": 2
+          },
+          "claims": [
+            "services/bluetooth"
+          ]
+        },
+        "build-config": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "build": 12,
+            "frameworks": 4
+          },
+          "claims": [
+            "build",
+            "frameworks"
+          ]
+        },
+        "call-control-management": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/call_report": 1,
+            "services/telephony_interaction": 3,
+            "services/call": 20,
+            "build": 4
+          },
+          "claims": [
+            "services/call"
+          ]
+        },
+        "call-manager-service": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/call_report": 1,
+            "services/call": 1,
+            "services/call_manager_service": 6,
+            "frameworks": 6,
+            "services/interoperable_call": 1,
+            "services/audio": 1,
+            "build": 2,
+            "services/telephony_interaction": 1,
+            "services/video": 1
+          },
+          "claims": [
+            "frameworks",
+            "services/call_manager_service"
+          ]
+        },
+        "call-object-management": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/call": 38,
+            "build": 4
+          },
+          "claims": [
+            "services/call"
+          ]
+        },
+        "call-report": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/call_report": 10,
+            "frameworks": 1,
+            "services/call": 4
+          },
+          "claims": [
+            "services/call",
+            "services/call_report"
+          ]
+        },
+        "call-setting-management": {
+          "value": "keep",
+          "source": "table",
+          "modules": {
+            "services/call_setting": 4,
+            "services/telephony_interaction": 1,
+            "services/call": 1
+          },
+          "claims": [
+            "services/call_setting"
+          ]
+        },
+        "call-state-observer": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/call/call_state_observer": 26,
+            "services/call": 2,
+            "services/interoperable_call": 2,
+            "build": 2
+          },
+          "claims": [
+            "services/call/call_state_observer"
+          ]
+        },
+        "call-status-management": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/call": 22,
+            "services/telephony_interaction": 1,
+            "build": 4
+          },
+          "claims": [
+            "services/call"
+          ]
+        },
+        "call-utils": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "utils": 28,
+            "build": 2
+          },
+          "claims": [
+            "utils"
+          ]
+        },
+        "display-management": {
+          "value": "remove",
+          "source": "table",
+          "modules": {
+            "services/display": 4,
+            "utils": 1,
+            "services/call": 2
+          },
+          "claims": [
+            "services/call",
+            "services/display"
+          ]
+        },
+        "distributed-call": {
+          "value": "remove",
+          "source": "table",
+          "modules": {
+            "services/distributed_call": 19,
+            "build": 2
+          },
+          "claims": [
+            "services/distributed_call"
+          ]
+        },
+        "earthquake-alarm-call": {
+          "value": "remove",
+          "source": "table",
+          "modules": {
+            "services/call": 1,
+            "services/call_earthquake_alarm": 4,
+            "services/call/call_state_observer": 1,
+            "services/call_manager_service": 1,
+            "build": 2
+          },
+          "claims": [
+            "services/call_earthquake_alarm"
+          ]
+        },
+        "hisysevent-diagnostics": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "frameworks": 2,
+            "services/hisysevent": 4,
+            "services/call_manager_service": 2
+          },
+          "claims": [
+            "frameworks",
+            "services/call_manager_service",
+            "services/hisysevent"
+          ]
+        },
+        "interoperable-call": {
+          "value": "remove",
+          "source": "table",
+          "modules": {
+            "services/call_manager_service": 2,
+            "services/interoperable_call": 14,
+            "services/call/call_state_observer": 2,
+            "services/call": 2,
+            "build": 2
+          },
+          "claims": [
+            "services/interoperable_call"
+          ]
+        },
+        "native-client-api": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "frameworks": 50,
+            "build": 2
+          },
+          "claims": [
+            "frameworks"
+          ]
+        },
+        "number-identity": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "utils": 4,
+            "build": 2,
+            "services/number_identity_proxy": 2
+          },
+          "claims": [
+            "build",
+            "services/number_identity_proxy",
+            "utils"
+          ]
+        },
+        "satellite-call": {
+          "value": "remove",
+          "source": "table",
+          "modules": {
+            "services/call": 6,
+            "services/satellite_call": 4
+          },
+          "claims": [
+            "services/call",
+            "services/satellite_call"
+          ]
+        },
+        "spam-call-identification": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/spam_call": 16,
+            "services/call": 1,
+            "build": 2
+          },
+          "claims": [
+            "services/spam_call"
+          ]
+        },
+        "telephony-interaction": {
+          "value": "modify",
+          "source": "table",
+          "modules": {
+            "services/telephony_interaction": 14,
+            "build": 2
+          },
+          "claims": [
+            "services/telephony_interaction"
+          ]
+        },
+        "video-call-control": {
+          "value": "remove",
+          "source": "table",
+          "modules": {
+            "services/call": 2,
+            "build": 2,
+            "services/video": 2
+          },
+          "claims": [
+            "build",
+            "services/call",
+            "services/video"
+          ]
+        },
+        "voice-assistant-call": {
+          "value": "remove",
+          "source": "table",
+          "modules": {
+            "services/call": 4,
+            "services/call_voice_assistant": 4
+          },
+          "claims": [
+            "services/call",
+            "services/call_voice_assistant"
+          ]
+        }
+      },
+      "covered": [
+        "build",
+        "frameworks",
+        "services/antifraud",
+        "services/audio",
+        "services/bluetooth",
+        "services/call",
+        "services/call/call_state_observer",
+        "services/call_earthquake_alarm",
+        "services/call_manager_service",
+        "services/call_report",
+        "services/call_setting",
+        "services/call_voice_assistant",
+        "services/display",
+        "services/distributed_call",
+        "services/hisysevent",
+        "services/interoperable_call",
+        "services/number_identity_proxy",
+        "services/satellite_call",
+        "services/spam_call",
+        "services/telephony_interaction",
+        "services/video",
+        "utils"
+      ],
+      "trim_rows": {
+        "call-manager-service": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "不继承 SystemAbility/无 IPC（客户端直调）、移除权限校验与 Celia/新通话/会议/视频/蓝牙入口；功能主线与特殊码/语音信箱链路保留"
+        },
+        "call-setting-management": {
+          "value": "keep",
+          "raw": "保留",
+          "reason": "UT 补充业务（呼转/呼限/等待/USSD/MMI）须支持（AGENTS 说明第 1 条）；行为不变，cellular_call 出口桩化体现在 telephony-interaction"
+        },
+        "call-control-management": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "控制主线保留；移除会议控制、超级隐私管理器、蓝牙/OTT 拨号处理、HFP 广播、EDM/彩振相关入口；外部出口桩化"
+        },
+        "call-object-management": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "CS/IMS/VoIP 对象主线保留；移除会议对象、OTT/蓝牙/卫星/有线耳机/视频对象；sptr→智能指针"
+        },
+        "call-status-management": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "上行状态机与来话判定链保留；移除 DSDA 族（GetDsdsMode 恒 0）、防诈/Celia 钩子、蓝牙/分布式/运动识别分支；广播与焦点模式判定保留并桩化出口"
+        },
+        "call-state-observer": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "通话记录/拒接短信/亮屏/通知逻辑保留、外部调用 todo 桩化；移除贴耳灭屏、状态栏静音图标、有线耳机观察者"
+        },
+        "audio-device-management": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "音频状态机/静音/回铃逻辑保留、audio 框架调用 todo 桩化；移除彩振（crsType==CRS_TYPE）、蓝牙/有线耳机/星闪路由、振动"
+        },
+        "telephony-interaction": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "Cellular/CoreService 连接类保留为适配器、内部改调 XxxClient::GetInstance() 桩；VoIP 连接外部出口桩化、冲突链保留；移除蓝牙连接；ffrt 队列换打桩 EventHandler"
+        },
+        "call-report": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "观察者注册与两路（全局/带槽位）上报保留；无 IPC，死亡通知/代理层不可达，改直调回调"
+        },
+        "hisysevent-diagnostics": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "HiSysEvent/hitrace 维测改日志打印；dump 能力按无 hidumper 服务简化为日志输出"
+        },
+        "bluetooth-call": {
+          "value": "remove",
+          "raw": "移除",
+          "reason": "AGENTS：不支持 BLUETOOTH 类型通话（ABILITY_BLUETOOTH_SUPPORT 不支持）"
+        },
+        "video-call-control": {
+          "value": "remove",
+          "raw": "移除",
+          "reason": "AGENTS：不支持视频通话（ABILITY_CAMERA_SUPPORT 恒关，代码无需迁移）"
+        },
+        "satellite-call": {
+          "value": "remove",
+          "raw": "移除",
+          "reason": "AGENTS：不支持卫星通话"
+        },
+        "distributed-call": {
+          "value": "remove",
+          "raw": "移除",
+          "reason": "AGENTS：不支持分布式通话（无 dsoftbus，target_platform 非 watch 场景同删）"
+        },
+        "interoperable-call": {
+          "value": "remove",
+          "raw": "移除",
+          "reason": "AGENTS：不支持 interoperable 通话"
+        },
+        "display-management": {
+          "value": "remove",
+          "raw": "移除",
+          "reason": "AGENTS：不支持折叠屏"
+        },
+        "voice-assistant-call": {
+          "value": "remove",
+          "raw": "移除",
+          "reason": "AGENTS：不支持语音播报（HiCar 语音助手）"
+        },
+        "spam-call-identification": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "AGENTS：骚扰来电接口\"暂不调用，不用 dlopen，依赖外部查询接口适配\"——逻辑保留，外部查询出口 todo 桩化"
+        },
+        "number-identity": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "AGENTS：号码识别/黄页\"暂不调用，依赖数据库接口适配\"——逻辑保留，出口 todo 桩化"
+        },
+        "antifraud-call": {
+          "value": "remove",
+          "raw": "移除",
+          "reason": "AGENTS：不支持防诈 antifraud，相关代码无需迁移"
+        },
+        "earthquake-alarm-call": {
+          "value": "remove",
+          "raw": "移除",
+          "reason": "AGENTS：不支持地震预警"
+        },
+        "call-utils": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "号码/设置/对话框/Ability 连接工具保留（libphonenumber、DataShare 调用桩化）；移除 EDM 禁拨、来电闪光、运动识别+传感插件"
+        },
+        "native-client-api": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "CallManagerClient 直调 CallManagerService；无 IPC 层；移除蓝牙/NearLink/超级隐私客户端与死亡通知；VoIP 代理桩化；JS/ETS/Cangjie 绑定不实现"
+        },
+        "build-config": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "gni/BUILD.gn/bundle.json 按裁剪同步；sa_profile 不迁移；declare_args 移除 hfp_async、保留 not_support_multicall；测试 target 调整"
+        },
+        "pc-test-harness": {
+          "value": "modify",
+          "raw": "修改",
+          "reason": "被测路径软链指向 telephony_call_manager_mini/；强制宏集去掉 ABILITY_BLUETOOTH_SUPPORT；must-pass 套件更新（移除语音助手/地震预警/分布式通信套件）"
+        },
+        "liteos-stub-layer": {
+          "value": "add",
+          "raw": "新增",
+          "reason": "上文 New Capabilities"
+        }
+      },
+      "unknown_rows": [
+        "liteos-stub-layer"
+      ],
+      "deltas": {
+        "antifraud-call": {
+          "ADDED": 0,
+          "MODIFIED": 0,
+          "REMOVED": 10,
+          "RENAMED": 0
+        },
+        "audio-device-management": {
+          "ADDED": 0,
+          "MODIFIED": 12,
+          "REMOVED": 5,
+          "RENAMED": 0
+        },
+        "bluetooth-call": {
+          "ADDED": 0,
+          "MODIFIED": 0,
+          "REMOVED": 6,
+          "RENAMED": 0
+        },
+        "build-config": {
+          "ADDED": 1,
+          "MODIFIED": 10,
+          "REMOVED": 3,
+          "RENAMED": 0
+        },
+        "call-control-management": {
+          "ADDED": 0,
+          "MODIFIED": 27,
+          "REMOVED": 5,
+          "RENAMED": 0
+        },
+        "call-manager-service": {
+          "ADDED": 0,
+          "MODIFIED": 18,
+          "REMOVED": 7,
+          "RENAMED": 0
+        },
+        "call-object-management": {
+          "ADDED": 0,
+          "MODIFIED": 13,
+          "REMOVED": 7,
+          "RENAMED": 0
+        },
+        "call-report": {
+          "ADDED": 0,
+          "MODIFIED": 7,
+          "REMOVED": 2,
+          "RENAMED": 0
+        },
+        "call-state-observer": {
+          "ADDED": 0,
+          "MODIFIED": 7,
+          "REMOVED": 3,
+          "RENAMED": 0
+        },
+        "call-status-management": {
+          "ADDED": 0,
+          "MODIFIED": 20,
+          "REMOVED": 4,
+          "RENAMED": 0
+        },
+        "call-utils": {
+          "ADDED": 0,
+          "MODIFIED": 10,
+          "REMOVED": 4,
+          "RENAMED": 0
+        },
+        "display-management": {
+          "ADDED": 0,
+          "MODIFIED": 0,
+          "REMOVED": 3,
+          "RENAMED": 0
+        },
+        "distributed-call": {
+          "ADDED": 0,
+          "MODIFIED": 0,
+          "REMOVED": 5,
+          "RENAMED": 0
+        },
+        "earthquake-alarm-call": {
+          "ADDED": 0,
+          "MODIFIED": 0,
+          "REMOVED": 7,
+          "RENAMED": 0
+        },
+        "hisysevent-diagnostics": {
+          "ADDED": 0,
+          "MODIFIED": 7,
+          "REMOVED": 0,
+          "RENAMED": 0
+        },
+        "interoperable-call": {
+          "ADDED": 0,
+          "MODIFIED": 0,
+          "REMOVED": 6,
+          "RENAMED": 0
+        },
+        "liteos-stub-layer": {
+          "ADDED": 4,
+          "MODIFIED": 0,
+          "REMOVED": 0,
+          "RENAMED": 0
+        },
+        "native-client-api": {
+          "ADDED": 0,
+          "MODIFIED": 5,
+          "REMOVED": 10,
+          "RENAMED": 0
+        },
+        "number-identity": {
+          "ADDED": 0,
+          "MODIFIED": 5,
+          "REMOVED": 0,
+          "RENAMED": 0
+        },
+        "pc-test-harness": {
+          "ADDED": 0,
+          "MODIFIED": 3,
+          "REMOVED": 0,
+          "RENAMED": 0
+        },
+        "satellite-call": {
+          "ADDED": 0,
+          "MODIFIED": 0,
+          "REMOVED": 5,
+          "RENAMED": 0
+        },
+        "spam-call-identification": {
+          "ADDED": 0,
+          "MODIFIED": 8,
+          "REMOVED": 0,
+          "RENAMED": 0
+        },
+        "telephony-interaction": {
+          "ADDED": 0,
+          "MODIFIED": 9,
+          "REMOVED": 2,
+          "RENAMED": 0
+        },
+        "video-call-control": {
+          "ADDED": 0,
+          "MODIFIED": 0,
+          "REMOVED": 5,
+          "RENAMED": 0
+        },
+        "voice-assistant-call": {
+          "ADDED": 0,
+          "MODIFIED": 0,
+          "REMOVED": 5,
+          "RENAMED": 0
+        }
+      },
+      "problems": []
+    }
+  }
+}

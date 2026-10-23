@@ -1,0 +1,59 @@
+{
+  "rulings": {
+    "module/services/call_setting": {
+      "ruling": "student_defensible",
+      "severity": "low",
+      "reason": "两侧迁移结果一致：均按 AGENTS「特性宏支持范围」说明 1 保留 UT/USSD/USSD/MMI 补充业务，cellular_call 出口经 CellularCallClient 桩、设置项 DataShare 查询 todo，差异仅在裁剪范围表的标签。reference 因其设计（CallSettingManager 直接改调 CellularCallClient，替代 cellularCallConnectionPtr_ 转发）标「修改」，student 因该目录自身代码零改动（适配器改造落在 telephony-interaction）标「保留」；源码中 call_setting_manager.cpp 确实只经 DelayedSingleton<CellularCallConnection>::GetInstance() 转发，两种归因均有依据，属同一结果的不同表达。",
+      "evidence": "telephony_call_manager/services/call_setting/src/call_setting_manager.cpp:26；AGENTS.md「特性宏支持范围」说明 1"
+    },
+    "macro/ABILITY_NOTIFICATION_SUPPORT": {
+      "ruling": "student_defensible",
+      "severity": "medium",
+      "reason": "AGENTS.md 两条规则对此文件真实冲突：「特性宏支持范围」把该宏列入不支持宏（代码无需迁移），「外部依赖处理」却规定 NotificationHelper 调用点迁移时以 todo 注释占位、待通知接口适配。student 保留观察者并把发布/撤销点 todo 桩化，reference 整文件删除，两读法各有条文支撑；且行为等价（IsFullScreen 恒 false，liteOS 上均不真正发通知）。注意 PublishNotification 调用点本就无宏守卫（仅 Cancel 分支受宏控制），「调用点用 todo 占位」规则只能落在 student 的保留方案上。",
+      "evidence": "telephony_call_manager/services/call/call_state_observer/src/incoming_call_notification.cpp:95,101；AGENTS.md「外部依赖处理」通知行 vs「特性宏支持范围」不支持宏清单"
+    },
+    "macro/ABILITY_DISPLAY_SUPPORT": {
+      "ruling": "student_defensible",
+      "severity": "low",
+      "reason": "两 spec 对该宏守卫代码的实质处置相同：DisplayManager::IsFullScreen 调用均不迁移、IsFullScreen() 恒返回 false（等价基线默认构建，该宏在仓内 gni 从未定义），仅提取值标签不同（unguard vs remove）。文件整体去留的差异已由 ABILITY_NOTIFICATION_SUPPORT 争议覆盖，本条本身无实质分歧。",
+      "evidence": "telephony_call_manager/services/call/call_state_observer/src/incoming_call_notification.cpp:109-112；telephony_call_manager/callmanager.gni（无 ABILITY_DISPLAY_SUPPORT 定义块）"
+    },
+    "macro/ABILITY_CELLULAR_SUPPORT": {
+      "ruling": "student_defensible",
+      "severity": "low",
+      "reason": "该宏唯一场点 cellular_call_connection.cpp:147 仅守卫 ReConnectService 的单次重连判定，student 的 pc-test-harness delta 与 tasks 7.5 明确保留兼容层注入 ABILITY_CELLULAR_SUPPORT=0x1，与 reference 的 gni 恒定义在规格定义的构建（PC 门禁）中同为生效。AGENTS 规定的 CellularCallClient::GetInstance().Xxx() 桩形态位于守卫之外、两者均存活，实际差异仅剩 gni 机制（部件条件块照抄 vs 恒定义），影响很小。",
+      "evidence": "telephony_call_manager/services/telephony_interaction/src/cellular_call_connection.cpp:147；_inputs/student/openspec/changes/migrate-call-manager-to-liteos/tasks.md:63"
+    },
+    "macro/ABILITY_SMS_SUPPORT": {
+      "ruling": "student_wrong",
+      "severity": "high",
+      "reason": "AGENTS 把该宏列入支持宏并规定 sms_mms 交互「使用SmsClient::GetInstance().Xxx()的形式替代、对应接口通过打桩实现」，但 student 保留 global_parts_info 部件条件块且兼容层仅注入 ABILITY_CELLULAR_SUPPORT（liteOS 无 sms_mms 部件、PC 构建无 global_parts_info），reject_call_sms.cpp:37 守卫内的 SmsClient 桩发送在规格定义的一切构建中均为死代码，拒接短信功能被静默丢弃，其自身「发送条件」场景也不可达，违背「不能因为无外部接口而丢弃功能」与支持宏语义。reference 恒定义使该链路存活。",
+      "evidence": "telephony_call_manager/services/call/call_state_observer/src/reject_call_sms.cpp:37；AGENTS.md「外部依赖处理」sms_mms 行＋「特性宏支持范围」支持宏清单"
+    },
+    "macro/CELLULAR_DATA_SUPPORT": {
+      "ruling": "student_wrong",
+      "severity": "medium",
+      "reason": "call_number_utils.cpp:256 守卫内正是 AGENTS 规定的 CellularDataClient::GetInstance().GetDefaultCellularDataSlotId() 桩回退，student 的构建设计（部件条件块照抄、兼容层不注入该宏）使其恒被编译裁掉，SelectAccountId 静默失去默认数据卡这最后一级回退，违背支持宏语义与 cellular_data 替代规则。reference 恒定义使该回退存活，属单函数内局部分支的差异。",
+      "evidence": "telephony_call_manager/utils/src/call_number_utils.cpp:256；AGENTS.md「外部依赖处理」cellular_data 行"
+    },
+    "macro/ABILITY_POWER_SUPPORT": {
+      "ruling": "reference_questionable",
+      "severity": "high",
+      "reason": "AGENTS「特性宏支持范围」明确把 ABILITY_POWER_SUPPORT 列入支持宏，「外部依赖处理」对功耗锁的规定是调用点以 todo 注释占位而非删文件，但 reference 把该 gni 块归入「gni 不支持块」删除（design D12、tasks 3.1）并整体删除 incoming_call_wake_up.*（tasks 2.4），「来电亮屏与运行锁」完整功能被无条文依据地移除——功能范围不支持清单只有贴耳灭屏（proximity_sensor），并无来电亮屏。student 保留观察者并把 RunningLock/WakeupDevice 调用点 todo 桩化，更贴合 AGENTS 的支持宏与 todo 占位规定。",
+      "evidence": "AGENTS.md「特性宏支持范围」支持宏清单＋「外部依赖处理」功耗锁行；_inputs/reference/openspec/changes/migrate-call-manager-to-liteos/tasks.md:16,24"
+    },
+    "macro/TELEPHONY_CUST_SUPPORT": {
+      "ruling": "student_wrong",
+      "severity": "medium",
+      "reason": "call_data_base_helper.cpp:451（QueryContactInfoEnhanced）与 call_status_manager.cpp:702（后缀匹配增强分支）守卫内正是 AGENTS 规定的 TelephonyCustClient::GetInstance() 桩替换落点，student 的构建设计使该宏在一切已定义构建中不被定义，增强查询分支与 cust 桩全部成为死代码，违背支持宏语义与「与TelephonyCust模块进行通信时使用TelephonyCustClient::GetInstance().Xxx()的形式替代」的规定。reference 恒定义使该分支存活；差异限于联系人查询的一条增强分支，属局部差异。",
+      "evidence": "telephony_call_manager/services/call/call_state_observer/src/call_data_base_helper.cpp:451；telephony_call_manager/services/call/src/call_status_manager.cpp:702；AGENTS.md「外部依赖处理」TelephonyCust 行"
+    },
+    "macro/OHOS_BUILD_ENABLE_TELEPHONY_CUST": {
+      "ruling": "student_wrong",
+      "severity": "high",
+      "reason": "该宏守卫 TelephonyCustWrapper 的初始化与 IsChangeDialNumberToTwEmc_ 改号判定（call_manager_service.cpp:52/90/319），是整条 TelephonyCust 定制链的开关（通话记录隐藏判定也依赖 wrapper 初始化）。student 保留部件条件块且不注入该宏，整链在规格定义的构建中失效，AGENTS 规定的 TelephonyCustClient::GetInstance().Xxx() 桩形态成为死代码，整条定制功能被静默丢弃；reference 恒定义使整链存活。",
+      "evidence": "telephony_call_manager/services/call_manager_service/src/call_manager_service.cpp:52,90,319；AGENTS.md「外部依赖处理」TelephonyCust 行＋「特性宏支持范围」支持宏清单"
+    }
+  },
+  "errors": []
+}

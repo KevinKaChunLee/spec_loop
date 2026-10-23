@@ -1,0 +1,126 @@
+{
+  "parts": {
+    "requirements_correctness": {
+      "score": 4,
+      "rationale": "学生基线规格的事实准确度极高：抽查的全部高风险论断（ProximitySensor 在 HasCallExist() 为真时灭屏、IsTwoCallESIMCall 恒 false、SetDialingCallProcessing 的 PostTask 反判、GetBindTime 每次刷新、call_status_manager.cpp:1214/1243/2262 行号、ENABLE_DEVICE_* 与 audio_state 文件名、focus_mode_enable 链、SetCallPreferenceMode 缺判空）均与源码一致，多处比参考实现更精确（参考在贴耳灭屏上描述错误）；Purpose 均落到真实源码位置并如实标注'本仓未定义恒关闭'的宏状态，判定链逐分支展开。扣分点：native-client-api 与 call-utils 两个基线规格末尾各含一条'手表移植预计移除面'需求，描述的是 liteOS 迁移计划而非 HMOS 现状（场景写'具体由裁剪 delta 决定'，不可测）；call-report 规格引用了不存在的 CallControlManager::InitEvents（实际为 CallStateObserve()，学生自己的 call-control-management 规格用的是正确名）。均为小缺口，故 4 分。"
+    },
+    "scenario_quality": {
+      "score": 5,
+      "rationale": "732 个基线场景均有具体触发（输入/状态/桩注入）与可观察结果（错误码、函数、状态位），可直接落 gtest；delta 规格为每条需求标注'测试落点'（具名套件 + 用例族），可测试性落点比参考实现更完整。安全相关行为覆盖充分：紧急呼叫有拨号豁免、EccDialPolicy 清理矩阵、HasNormalCall 豁免、ECC 强制不静音等场景，且 tasks 5.2 将'ECC 豁免链必须整组具名 gtest 全过'设为子任务完成条件、tasks 9.1 单列 ECC 判定链复核；拒接链（RejectCall 默认目标、IsRejectCall 三级判定、HandleRejectCall 拦截/未接落账、spam 拦截）场景与 gtest 齐备。未发现近重复凑数场景，数量大源于判定链的逐分支展开。"
+    },
+    "design_quality": {
+      "score": 4,
+      "rationale": "整体设计到代码层的落点非常完整：每条 REMOVED 需求都有 Reason（AGENTS 条文）+ Migration（删文件、gni 同步、下游悬空引用清扫、恢复条件），D7 宏表逐宏给出 rg 核实的场点与处置，锁/ffrt/直调架构/桩目录在各工件间高度一致（powerLock/callUi/spam/database 等标签在 design、delta、tasks 三处可对上）。扣分点：一处同一决策两种说法——call-control-management delta 称 AppStateObserver 注册'照抄保留'，而 call-report delta 已将 app_state_observer.cpp 删除且注册点不迁移（中等严重）；design D6 表写 spam 三文件'删除'与 OQ6/delta/tasks 的'保留可编译最小形'相左（低）；design 的 ffrt 枚举漏掉音频场景队列 reportAudioStateChangeQueue（仅 delta 覆盖，参考 design 有列，低）；spam delta 保留 cv_.wait_until 阻塞语义与单线程同步桩存在 3s/5s 卡顿隐患而未像参考那样显式裁决（低）；tasks 7.4 的 fuzz 删除清单与 build-config delta 的实际清单不符（低）。一处中等 + 数处轻微，故 4 分。"
+    },
+    "readability": {
+      "score": 4,
+      "rationale": "zh-CN 行文 + 英文结构关键词，proposal 裁剪范围表 26 行齐整、design 决策索引与 D6/D7/D10 枚举表规范、Open Questions 为真实源码疑点（IsTwoCallESIMCall 恒 false、PostTask 反判等）、无超长代码块、'需人工复核'标注清晰，易于人工评审。主要代价在 delta 体量：275 条需求中 161 条被标 MODIFIED 并整段复述（含未变化场景逐字照抄 + '（照抄）'注记），变更全文约 4148 行（参考约 1040 行），实际改动埋在逐句括注里，人工需在 500 行级的单能力 delta 中做人工 diff；该写法在 OpenSpec MODIFIED 需全文的格式下可辩护，且注释体系系统化，但评审负担确实高于参考的手术式 delta。一处中等负担 + 整体规范，故 4 分。"
+    }
+  },
+  "gaps": [
+    {
+      "id": "code_level_design/appstate-observer-two-ways",
+      "dimension": "code_level_design",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "同一决策两种说法：call-control-management delta 的'VoIP 状态注入与畅连冲突'场景称 IDLE/UNKNOWN 时注销/注册 ApplicationStateObserver'照抄保留'，而 call-report delta 已 REMOVED '系统应用进程死亡复位 VoIP 状态'并删除 app_state_observer.cpp/.h、明确 RegisterApplicationStateObserver 注册点不迁移。",
+      "evidence": "_inputs/student/openspec/changes/migrate-call-manager-to-liteos/specs/call-control-management/spec.md:422 vs .../specs/call-report/spec.md REMOVED '系统应用进程死亡复位 VoIP 状态'；telephony_call_manager/services/call/src/call_control_manager.cpp:1587-1609"
+    },
+    {
+      "id": "readability_rules/delta-full-restatement",
+      "dimension": "readability_rules",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "delta 以全文复述方式呈现：161/275 条需求标 MODIFIED（参考 63 条），未变化场景逐字重抄并加'（照抄）'注记，单能力 delta 达 300-500 行（call-control-management 504 行 vs 参考 59 行），实际改动混在逐句括注中，人工评审需自行 diff。",
+      "evidence": "_inputs/student/openspec/changes/migrate-call-manager-to-liteos/specs/call-control-management/spec.md (504 行) vs _inputs/reference/.../specs/call-control-manager/spec.md (59 行)；metrics: delta MODIFIED 161 vs 63"
+    },
+    {
+      "id": "baseline_coverage/migration-preview-in-baseline",
+      "dimension": "baseline_coverage",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "native-client-api 与 call-utils 两个基线规格各含一条'手表移植预计移除面'需求，描述 liteOS 迁移计划而非'HMOS 现状'（task.md 要求基线只写移植前行为），其场景（'具体由裁剪 delta 决定'）无法落 gtest。",
+      "evidence": "_inputs/student/openspec/specs/native-client-api/spec.md '手表移植预计移除面（native 层）'；_inputs/student/openspec/specs/call-utils/spec.md '手表移植预计移除面（utils 层）'；_inputs/task.md 交付物 1"
+    },
+    {
+      "id": "baseline_coverage/hallucinated-init-events",
+      "dimension": "baseline_coverage",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "call-report 基线与 delta 的'状态监听接入'需求引用不存在的 CallControlManager::InitEvents，实际注册函数为 CallStateObserve()；学生自己的 call-control-management 规格用了正确函数名，属自相矛盾的虚构引用（行为描述本身正确）。",
+      "evidence": "_inputs/student/openspec/specs/call-report/spec.md 与 .../changes/.../specs/call-report/spec.md '状态监听接入'；telephony_call_manager/services/call/src/call_control_manager.cpp:1648 CallStateObserve()"
+    },
+    {
+      "id": "code_level_design/spam-file-disposal-two-ways",
+      "dimension": "code_level_design",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "spam_call_proxy/stub/connection 三文件处置两种说法：design D6 表写'文件删除'，而 OQ6/delta/tasks 默认'保留可编译最小形'（OQ 登记部分缓解了矛盾）。",
+      "evidence": "_inputs/student/.../design.md D6 骚扰来电行 vs Open Questions 6；spam-call-identification delta '检测 IPC 携带结果回调桩'；tasks.md 5.4"
+    },
+    {
+      "id": "code_level_design/ffrt-audio-queue-design-gap",
+      "dimension": "code_level_design",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "design D6/D8 的 ffrt 落点枚举漏掉音频场景队列 reportAudioStateChangeQueue（audio_scene_processor.cpp），该队列仅在 audio delta 中覆盖；参考 design D6 明确列出该队列。",
+      "evidence": "_inputs/student/.../design.md D8 落点清单 vs _inputs/reference/.../design.md D6；_inputs/student/.../specs/audio-device-management/spec.md '音频场景状态机'"
+    },
+    {
+      "id": "code_level_design/timewait-single-thread",
+      "dimension": "code_level_design",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "spam delta 为 TimeWaitHelper 保留 cv_.wait_until 阻塞等待语义，与 design D8 '桩内同步逐条执行、不新增线程'组合后，响一声/骚扰检测窗口会阻塞唯一线程 3-5 秒；参考实现显式裁决'单线程下等待立即按超时返回'。",
+      "evidence": "_inputs/student/.../specs/spam-call-identification/spec.md '同步等待检测结果' vs _inputs/reference/.../design.md D7 TimeWaitHelper 行；_inputs/student/.../design.md D8"
+    },
+    {
+      "id": "code_level_design/tasks-fuzz-list-mismatch",
+      "dimension": "code_level_design",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "tasks 7.4 称要删除'conference/bluetooth/satellite/antifraud/spam connection 系 fuzz' target，但基线 fuzz 清单（19 个）中不存在这些 target；build-config delta 给出的实际删除清单（6 个 + voice assistant 目录）与之不符。",
+      "evidence": "_inputs/student/.../tasks.md 7.4 vs _inputs/student/.../specs/build-config/spec.md 'fuzztest 与 mock 组织' 与基线 build-config 规格的 19 fuzzer 清单"
+    },
+    {
+      "id": "baseline_coverage/ref-proximity-sensor-inverted",
+      "dimension": "baseline_coverage",
+      "severity": "medium",
+      "tag": "reference_questionable",
+      "summary": "参考基线称 ProximitySensor 在 CallDestroyed 且 HasCallExist() 为假时灭屏；源码实为'为真时灭屏、为假时不操作'（上游反直觉现状）。学生基线如实记录了该现状，比参考准确，不扣学生分。",
+      "evidence": "telephony_call_manager/services/call/call_state_observer/src/proximity_sensor.cpp:36-42 vs _inputs/reference/openspec/specs/call-state-observer/spec.md '贴耳灭屏'"
+    },
+    {
+      "id": "code_level_design/ref-powerlock-wakeup-removal",
+      "dimension": "code_level_design",
+      "severity": "medium",
+      "tag": "reference_questionable",
+      "summary": "参考删除 incoming_call_wake_up.cpp 并将 ABILITY_POWER_SUPPORT 的 gni 块列入'删块'，但 AGENTS 将 ABILITY_POWER_SUPPORT 列为支持宏、外部依赖处理要求功耗锁调用点 todo 占位，且参考自身 D4/D12 又写'功耗锁调用点按 D4 todo 占位'——内部张力，疑似过度裁剪；学生保留观察者并 [powerLock] todo 桩化，与 AGENTS 更一致。",
+      "evidence": "AGENTS.md 特性宏支持范围/外部依赖处理；_inputs/reference/.../design.md D12/D17 与 specs/call-state-observer/spec.md REMOVED '来电亮屏与电源锁'"
+    },
+    {
+      "id": "code_level_design/ref-celia-chain-kept",
+      "dimension": "code_level_design",
+      "severity": "medium",
+      "tag": "reference_questionable",
+      "summary": "AGENTS 功能范围明确'新通话'不支持，但参考的 call-manager-service delta 保留 EVENT_IS_CELIA_CALL→dealCeliaCallEvent 与 EVENT_CELIA_AUTO_ANSWER_CALL_ON/OFF 路由、tasks 7.6 写'celia 事件保留'，疑似漏裁；学生移除 Celia 链并用 rg 证明 IsNewCallAllowed 与新通话无关而保留该接口。",
+      "evidence": "AGENTS.md 功能范围 '新通话'；_inputs/reference/.../specs/call-manager-service/spec.md 'UI 事件路由' 与 tasks.md 7.6；_inputs/student/.../design.md D9"
+    },
+    {
+      "id": "baseline_coverage/ref-call-setting-datashare",
+      "dimension": "baseline_coverage",
+      "severity": "low",
+      "tag": "reference_questionable",
+      "summary": "参考 proposal 的 call-setting 行写'设置项 DataShare 查询 todo 占位'，但 services/call_setting 目录无任何 DataShare 使用（其 delta 也未提 DataShare），该行理由不实。",
+      "evidence": "_inputs/reference/.../proposal.md 裁剪范围 call-setting 行；rg 'DataShare|datashare' telephony_call_manager/services/call_setting/ 无命中"
+    },
+    {
+      "id": "code_level_design/ref-rtt-file-node-label",
+      "dimension": "code_level_design",
+      "severity": "low",
+      "tag": "reference_questionable",
+      "summary": "参考 D14 将本仓 CellularCallConnection::StartRtt/StopRtt 转发称为'RTT 的文件节点读写调用点'；本仓 RTT 链路无文件节点操作（文件节点在 cellular_call 侧），学生的表述（'本仓 RTT 链路不含文件节点操作，在适配器出口标 [rtt] todo'）更精确，两者实际处置一致。",
+      "evidence": "_inputs/reference/.../design.md D14 vs _inputs/student/.../design.md D6 RTT 行；telephony_call_manager/services/telephony_interaction/src/cellular_call_connection.cpp"
+    }
+  ]
+}

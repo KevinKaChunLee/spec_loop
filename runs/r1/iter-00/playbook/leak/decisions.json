@@ -1,0 +1,585 @@
+{
+  "features": {
+    "video_call": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "conference_call": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "satellite_call": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "distributed_call": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "bluetooth_call": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        },
+        {
+          "file": "playbook.md",
+          "quote": "如宣告彩振不迁移却保留了彩振播放链；BT/ESIM 不支持却保留其判定条件活跃"
+        }
+      ],
+      "files": []
+    },
+    "ott_call": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "earthquake_alarm": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "crs_video_ring": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "wired_headset": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "voice_broadcast": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "antifraud": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "super_privacy": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "fold_screen": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "edm_dial_block": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "incoming_flash": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "status_bar_icon": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "proximity_sensor": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "nearlink": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "make_call_with_token": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "str_mode": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "esim": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "new_call": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "「不支持……相关代码无需迁移」→ 整目录/整链删除 + delta REMOVED（如视频、会议、卫星、彩振、ESIM、防诈等）。"
+        }
+      ],
+      "files": []
+    },
+    "voip": {
+      "value": "stub",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "**\"暂不支持/暂不调用/依赖后续\"条目=保留代码+桩化/todo 占位**，不是删除（§5.1）。VoIP 必须这样核实并定稿。"
+        },
+        {
+          "file": "playbook.md",
+          "quote": "外部出口桩化即可，对象/冲突链/统计保留。**这条判定做出后就固定下来**"
+        }
+      ],
+      "files": []
+    },
+    "dsda": {
+      "value": null
+    },
+    "single_sim": {
+      "value": null
+    },
+    "single_account": {
+      "value": null
+    },
+    "bindings": {
+      "value": null
+    }
+  },
+  "macros": {
+    "CALL_MANAGER_CALL_TRANSFER": {
+      "value": null
+    },
+    "SUPPORT_HEARING_AID": {
+      "value": null
+    },
+    "SUPPORT_DSOFTBUS": {
+      "value": null
+    },
+    "CALL_MANAGER_AUTO_START_OPTIMIZE": {
+      "value": null
+    },
+    "HFP_ASYNC_ENABLE": {
+      "value": null
+    },
+    "ABILITY_BLUETOOTH_SUPPORT": {
+      "value": null
+    },
+    "ABILITY_CAMERA_FRAMEWORK_SUPPORT": {
+      "value": null
+    },
+    "SUPPORT_MUTE_BY_DATABASE": {
+      "value": null
+    },
+    "SUPPORT_VIBRATOR": {
+      "value": null
+    },
+    "HICOLLIE_ENABLE": {
+      "value": null
+    },
+    "OHOS_SUBSCRIBE_USER_STATUS_ENABLE": {
+      "value": null
+    },
+    "ABILITY_SCREENLOCKMGR_SUPPORT": {
+      "value": null
+    },
+    "ABILITY_NOTIFICATION_SUPPORT": {
+      "value": null
+    },
+    "ABILITY_DISPLAY_SUPPORT": {
+      "value": null
+    },
+    "ABILITY_STATUS_BAR_CONTROL_SUPPORT": {
+      "value": null
+    },
+    "ABILITY_MEDIA_SUPPORT": {
+      "value": null
+    },
+    "ABILITY_CONFIG_SUPPORT": {
+      "value": null
+    },
+    "RECONNECT_MAX_TRY_COUNT": {
+      "value": null
+    },
+    "ABILITY_CAMERA_SUPPORT": {
+      "value": null
+    },
+    "OHOS_SUBSCRIBE_MOTION_ENABLE": {
+      "value": null
+    },
+    "SUPPORT_RTT_CALL": {
+      "value": null
+    },
+    "NOT_SUPPORT_MULTICALL": {
+      "value": null
+    },
+    "CALL_MANAGER_SOS_NO_RINGBACK_TONE": {
+      "value": null
+    },
+    "CALL_MANAGER_WATCH_CALL_BLOCKING": {
+      "value": null
+    },
+    "CALL_MANAGER_THERMAL_PROTECTION": {
+      "value": null
+    },
+    "ABILITY_CELLULAR_SUPPORT": {
+      "value": null
+    },
+    "ABILITY_SMS_SUPPORT": {
+      "value": null
+    },
+    "CELLULAR_DATA_SUPPORT": {
+      "value": null
+    },
+    "ABILITY_POWER_SUPPORT": {
+      "value": null
+    },
+    "TELEPHONY_CUST_SUPPORT": {
+      "value": null
+    },
+    "OHOS_BUILD_ENABLE_TELEPHONY_CUST": {
+      "value": null
+    },
+    "CONFIG_FACTORY_VERSION": {
+      "value": null
+    },
+    "ABILITY_AUDIO_SUPPORT": {
+      "value": null
+    },
+    "AUDIO_SUPPORT": {
+      "value": null
+    },
+    "ABILIT_CONFIG_SUPPORT": {
+      "value": null
+    }
+  },
+  "dependencies": {
+    "audio": {
+      "value": "todo",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "外部依赖处理节对 audio/database/broadcast 等全是\"暂不调用、todo 占位\"的同款句式。"
+        }
+      ],
+      "files": []
+    },
+    "database": {
+      "value": "todo",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "外部依赖处理节对 audio/database/broadcast 等全是\"暂不调用、todo 占位\"的同款句式。"
+        }
+      ],
+      "files": []
+    },
+    "broadcast": {
+      "value": "todo",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "外部依赖处理节对 audio/database/broadcast 等全是\"暂不调用、todo 占位\"的同款句式。"
+        }
+      ],
+      "files": []
+    },
+    "power_lock": {
+      "value": "todo",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "**\"暂不支持/暂不调用/依赖后续\"条目=保留代码+桩化/todo 占位**，不是删除（§5.1）。VoIP 必须这样核实并定稿。"
+        }
+      ],
+      "files": []
+    },
+    "call_ui": {
+      "value": null
+    },
+    "notification": {
+      "value": "todo",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "**\"暂不支持/暂不调用/依赖后续\"条目=保留代码+桩化/todo 占位**，不是删除（§5.1）。VoIP 必须这样核实并定稿。"
+        }
+      ],
+      "files": []
+    },
+    "spam_call": {
+      "value": "todo",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "**\"暂不支持/暂不调用/依赖后续\"条目=保留代码+桩化/todo 占位**，不是删除（§5.1）。VoIP 必须这样核实并定稿。"
+        }
+      ],
+      "files": []
+    },
+    "number_identity": {
+      "value": "todo",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "**\"暂不支持/暂不调用/依赖后续\"条目=保留代码+桩化/todo 占位**，不是删除（§5.1）。VoIP 必须这样核实并定稿。"
+        }
+      ],
+      "files": []
+    },
+    "rtt_file_node": {
+      "value": "todo",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "**\"暂不支持/暂不调用/依赖后续\"条目=保留代码+桩化/todo 占位**，不是删除（§5.1）。VoIP 必须这样核实并定稿。"
+        }
+      ],
+      "files": []
+    },
+    "sptr": {
+      "value": null
+    },
+    "hisysevent_hitrace": {
+      "value": null
+    },
+    "cellular_call": {
+      "value": "stub",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "AGENTS 只规定\"调用形态用 XxxClient::GetInstance().Xxx() 的桩\"，并没规定要删 wrapper"
+        }
+      ],
+      "files": []
+    },
+    "core_service": {
+      "value": "stub",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "AGENTS 只规定\"调用形态用 XxxClient::GetInstance().Xxx() 的桩\"，并没规定要删 wrapper"
+        }
+      ],
+      "files": []
+    },
+    "cellular_data": {
+      "value": "stub",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "AGENTS 只规定\"调用形态用 XxxClient::GetInstance().Xxx() 的桩\"，并没规定要删 wrapper"
+        }
+      ],
+      "files": []
+    },
+    "sms_mms": {
+      "value": "stub",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "AGENTS 只规定\"调用形态用 XxxClient::GetInstance().Xxx() 的桩\"，并没规定要删 wrapper"
+        }
+      ],
+      "files": []
+    },
+    "telephony_cust": {
+      "value": "stub",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "AGENTS 只规定\"调用形态用 XxxClient::GetInstance().Xxx() 的桩\"，并没规定要删 wrapper"
+        }
+      ],
+      "files": []
+    },
+    "ffrt": {
+      "value": null
+    },
+    "libphonenumber": {
+      "value": null
+    },
+    "parameter": {
+      "value": null
+    },
+    "cjson": {
+      "value": null
+    },
+    "base_libs": {
+      "value": null
+    },
+    "pacmap": {
+      "value": null
+    }
+  },
+  "architecture": {
+    "systemability_ipc": {
+      "value": "remove",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "运行时共享约定（进程内直调、stub/ 桩目录、todo 格式、恒返 0）集中在 design 决策表里"
+        }
+      ],
+      "files": []
+    },
+    "permission_checks": {
+      "value": null
+    },
+    "locks": {
+      "value": null
+    },
+    "dsds_mode_zero": {
+      "value": "yes",
+      "evidence": [
+        {
+          "file": "playbook.md",
+          "quote": "运行时共享约定（进程内直调、stub/ 桩目录、todo 格式、恒返 0）集中在 design 决策表里"
+        }
+      ],
+      "files": []
+    },
+    "slot_id_kept": {
+      "value": null
+    }
+  },
+  "baseline_facts": [
+    {
+      "quote": "来电拒接判定在基线里至少含四个独立语义分支（ECC 在通话中、开机向导未完成、免打扰静默、其余放行），另外\"同号同时来电\"有专门的判定+改写链",
+      "fact": "来电拒接判定至少含四个分支（ECC、开机向导未完成、免打扰、其余放行），同号同时来电另有专门判定+改写链"
+    },
+    {
+      "quote": "如拨号特殊码集合匹配后发广播、UI 事件按名分发路由、拨号成功后语音信箱计数清零",
+      "fact": "服务门面存在特殊码匹配后发广播、UI 事件按名路由、拨号成功清零语音信箱计数等散行为"
+    },
+    {
+      "quote": "状态上报的\"全局\"与\"带卡槽\"两路并存就是基线语义，两路的消费方不同，合并是行为变更",
+      "fact": "状态上报的全局与带卡槽两路并存，消费方不同"
+    },
+    {
+      "quote": "如宣告彩振不迁移却保留了彩振播放链；BT/ESIM 不支持却保留其判定条件活跃",
+      "fact": "代码中存在彩振播放链与 BT/ESIM 判定条件"
+    },
+    {
+      "quote": "audio 的 delta 保留了彩振播放链、被删通话对象的事件转发还留在交互能力 delta 里",
+      "fact": "audio 能力含彩振播放链，交互能力含被删通话对象的事件转发"
+    },
+    {
+      "quote": "行为改动（尤其紧急呼叫的豁免拨号、强制不静音、查卡判定）必须成组具名 gtest",
+      "fact": "存在紧急呼叫豁免拨号、强制不静音、查卡判定等行为改动点"
+    },
+    {
+      "quote": "`services/call/` 同时承担通话对象、呼叫控制、上行状态机、观察者等多个职责，规模远超一个 spec",
+      "fact": "services/call/ 兼含通话对象、呼叫控制、上行状态机、观察者等多项职责"
+    },
+    {
+      "quote": "外部出口桩化即可，对象/冲突链/统计保留",
+      "fact": "VoIP 代码含通话对象、冲突链与统计，仅外部出口需桩化"
+    }
+  ]
+}

@@ -1,0 +1,585 @@
+{
+  "scoring": "decisions-v2",
+  "total": 75.0,
+  "dimensions": {
+    "agents_compliance": {
+      "value": 1.0,
+      "score": 5.0,
+      "parts": {
+        "agents_compliance": 1.0
+      }
+    },
+    "open_decisions": {
+      "value": 0.6667,
+      "score": 3.33,
+      "parts": {
+        "open_decisions": 0.6667
+      }
+    },
+    "baseline_coverage": {
+      "value": 0.647,
+      "score": 3.23,
+      "parts": {
+        "module_coverage": 1.0,
+        "behaviour_coverage": 0.6116,
+        "requirements_correctness": 0.6
+      },
+      "rationale": "The student's 24 baseline capabilities are broad, well-grounded and often more accurate than the reference (ProximitySensor condition, HasDialingMaximum quirk, event-result chain, antifraud detail), but three clusters of behaviours the reference covers correctly are missing: service-level behaviours of call_manager_service.cpp (InputDialerSpecialCode, SendCallUiEvent routing, SetCallPolicyInfo, voice-mail count reset, GetProxyObjectPtr), the OOBE-rejection and ESIM one-number-dual-terminal branches in the uplink state machine, and the CRS video-ring plus VideoStateUpdated voice/video device-switch chains in the audio module. Several medium gaps -> 3."
+    },
+    "code_level_design": {
+      "value": 0.6892,
+      "score": 3.45,
+      "parts": {
+        "build_coverage": 0.8974,
+        "design_quality": 0.6
+      },
+      "rationale": "The design is unusually concrete (file-by-file deletion lists, per-macro placement table, stub naming, todo tag table, risks, rollback) and covers concurrency and the direct-call/stub architecture well. However: the proposal's claimed CRS (video ring) trim is never turned into code-level actions (no design decision, no delta Migration entry, unlike the reference); the student's own artifacts contradict each other (design deletes call_manager_proxy.cpp while the client-framework delta still specifies registration via CallManagerProxy::RegisterCallBack; the call-report delta silently collapses the state-registry dual route to a single slotId route with no proposal/design trace and no AGENTS.md basis); and knock-on effects are only half-handled (waiting-tone chain kept while its first step into the removed IMSCall video machine is silently dropped; design's removed-callType drop rule vs delta keeping UpdateOttEventInfo dispatch; FoldStatusManager listener cleanup not listed). Several medium gaps -> 3."
+    },
+    "testability_grounding": {
+      "value": 0.8422,
+      "score": 4.21,
+      "parts": {
+        "grounding_rate": 0.954,
+        "task_rules": 0.9259,
+        "scenario_quality": 0.6
+      },
+      "rationale": "Scenarios are generally concrete (error codes, functions, injected stub values, timings) and expand decision chains better than the reference in places, but the deltas systematically pad near-duplicate scenarios: the same WHEN/THEN restated under two titles (~11 pairs in call-state-observer delta alone; 374 scenarios total vs 143), which the rubric explicitly penalizes. In addition, safety-relevant ECC behaviour has scenarios but no gtest task (only a review item), while the reference has explicit ECC gtests. One high-severity plus one medium gap -> 3."
+    },
+    "readability_rules": {
+      "value": 0.9357,
+      "score": 4.68,
+      "parts": {
+        "rule_checklist": 0.9939,
+        "readability": 0.8
+      },
+      "rationale": "zh-CN prose with English OpenSpec keywords, 25-row trim table, per-capability deltas, decision index with 决策/理由/落点, real open questions, tables for enumerations, no long code blocks. Minor deductions only: the near-duplicate scenario pairs inflate and repeat content, a few delta requirement/scenario titles are kept while their THEN now asserts the opposite (e.g. 六类通话对象按类型构造 now describing two types; IMS 对象构造后初始化视频状态 whose THEN says InitVideoCall is not called), and some WHEN clauses embed rationale. 4."
+    }
+  },
+  "weights": {
+    "agents_compliance": 10,
+    "open_decisions": 15,
+    "baseline_coverage": 35,
+    "code_level_design": 15,
+    "testability_grounding": 15,
+    "readability_rules": 10
+  },
+  "agreement": {
+    "open": {
+      "items": 6,
+      "agree_code": 1,
+      "agree_ruling": 3,
+      "value": 0.6667,
+      "code_value": 0.1667
+    },
+    "settled": {
+      "items": 101,
+      "agree_code": 101,
+      "agree_ruling": 0,
+      "value": 1.0,
+      "code_value": 1.0
+    },
+    "modules": {
+      "items": 22,
+      "agree_code": 22,
+      "agree_ruling": 0,
+      "value": 1.0,
+      "code_value": 1.0
+    },
+    "features": {
+      "items": 24,
+      "agree_code": 23,
+      "agree_ruling": 0,
+      "value": 0.9583,
+      "code_value": 0.9583
+    },
+    "macros": {
+      "items": 34,
+      "agree_code": 31,
+      "agree_ruling": 2,
+      "value": 0.9706,
+      "code_value": 0.9118
+    },
+    "dependencies": {
+      "items": 22,
+      "agree_code": 22,
+      "agree_ruling": 0,
+      "value": 1.0,
+      "code_value": 1.0
+    },
+    "architecture": {
+      "items": 5,
+      "agree_code": 4,
+      "agree_ruling": 1,
+      "value": 1.0,
+      "code_value": 0.8
+    }
+  },
+  "code_share": {
+    "code_points": 49.8,
+    "llm_points": 25.2,
+    "code_share_of_total": 0.664,
+    "code_share_of_weights": 0.715
+  },
+  "disputes": 5,
+  "gaps": [
+    {
+      "id": "feature/voip",
+      "dimension": "open_decisions",
+      "severity": "high",
+      "tag": "student_wrong",
+      "summary": "VOIP 类型通话（AGENTS.md：暂不支持，依赖后续畅连通话）：参考 stub（代码与逻辑保留，但外部接入或依赖调用换成桩 / todo 占位，功能暂不可用、待后续接入），学生 remove（该功能的代码不迁移：文件、对象、分支删除，liteOS 版本中不存在）。AGENTS.md 将 VOIP 单列为「暂不支持，依赖后续跟 meetime 畅连通话解决畅连与蜂窝通话冲突场景」，与不支持清单「相关代码无需迁移」刻意区分，且总约束明确「代码按功能实现，不能因为无外部接口而丢弃功能」。reference 保留 VoIPCall、voipCallObjectList_ 与 CarrierAndVoipConflictProcess/HangUpVoipCall/HandleVoipCallReportInfo 并仅桩化 VoipCallConnection，符合该口径；student 整通路删除（voip_call.cpp、voip_call_connection.cpp 及织入 CS/IMS 主流程的冲突分支），丢弃了 AGENTS.md 为畅连明确预留的冲突处理能力。",
+      "evidence": "AGENTS.md 功能范围（VOIP 暂不支持、依赖畅连）与约束（不能因为无外部接口而丢弃功能）；telephony_call_manager/services/call/src/call_status_manager.cpp:126（TYPE_VOIP→HandleVoipCallReportInfo）、call_control_manager.cpp:330（CarrierAndVoipConflictProcess）、call_object_manager.cpp:80-83（AddOneCallObject 的 VoIP 振铃判定）",
+      "source": "decision"
+    },
+    {
+      "id": "macro/NOT_SUPPORT_MULTICALL",
+      "dimension": "open_decisions",
+      "severity": "medium",
+      "tag": "reference_questionable",
+      "summary": "支持宏：NOT_SUPPORT_MULTICALL：参考 keep（宏作为开关保留，两个分支的代码都迁移），学生 unguard（守卫的代码迁移并生效：去掉守卫，或在构建中恒定义）。AGENTS.md 将该宏列入「支持宏（无需显示定义宏）」，且说明 2 仅对 CONFIG_FACTORY_VERSION 要求「这个宏需要保留」，即其余支持宏应按已定义生效；student 固定 feature 为 true、按已定义处理符合此口径。reference 保留 declare_args 且默认 false 不定义，使 liteOS 默认构建放开通话上限 2 的多通话行为，与支持宏定位相悖，也与其自身 D12「支持宏恒定义」规则矛盾。",
+      "evidence": "AGENTS.md 特性宏支持范围及说明 2；telephony_call_manager/BUILD.gn:19（declare_args 默认 false）、call_control_manager.cpp:227（AnswerCall 的 HangUpFirstCall）；_inputs/reference/openspec/changes/migrate-call-manager-to-liteos/specs/build-and-feature-flags/spec.md:16",
+      "source": "decision"
+    },
+    {
+      "id": "macro/ABILITY_POWER_SUPPORT",
+      "dimension": "open_decisions",
+      "severity": "high",
+      "tag": "reference_questionable",
+      "summary": "支持宏：ABILITY_POWER_SUPPORT（功耗锁接口本身暂不调用，见外部依赖）：参考 remove（宏及其守卫的代码不迁移：按未定义处理，删除对应分支或构建块），学生 unguard（守卫的代码迁移并生效：去掉守卫，或在构建中恒定义）。AGENTS.md 将 ABILITY_POWER_SUPPORT 列为支持宏，外部依赖处理只要求功耗锁「调用点用 todo 注释占位」而非删功能，并有「不能因为无外部接口而丢弃功能」的总约束；student 宏生效保留 incoming_call_wake_up.cpp 代码路径、RunningLock 调用点 todo，符合口径。reference 将其并入 gni 不支持块删除并整文件不迁移 IncomingCallWakeup（来电亮屏需求被 REMOVED），与其对 ABILITY_SMS_SUPPORT 等支持宏「代码迁移+桩化」的同类处理不一致。",
+      "evidence": "AGENTS.md 支持宏清单与外部依赖处理（功耗锁 todo 占位）；telephony_call_manager/services/call/call_state_observer/src/incoming_call_wake_up.cpp:36-89（ABILITY_POWER_SUPPORT 守卫的持锁/亮屏逻辑）；_inputs/reference/openspec/changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md（REMOVED Requirement: 来电亮屏与电源锁）",
+      "source": "decision"
+    },
+    {
+      "id": "macro/ABILIT_CONFIG_SUPPORT",
+      "dimension": "open_decisions",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "源码中的宏（AGENTS.md 未列出，ABILITY_CONFIG_SUPPORT 的拼写变体）：ABILIT_CONFIG_SUPPORT：参考 remove（宏及其守卫的代码不迁移：按未定义处理，删除对应分支或构建块），学生 -（未作决定）。源码在保留文件 cs_call.cpp:177、ims_call.cpp:282 存在拼写变体 ABILIT_CONFIG_SUPPORT 守卫的 carrier config 查询（IsSupportConferenceable）；AGENTS.md 规定「宏定义按实际代码实现来判断」，ABILITY_CONFIG_SUPPORT 为不支持宏，reference 将该变体一并删守卫（查询走默认值）是正确决策。student 全部规格对该变体只字未提，漏掉了这一处置点；因所守卫的是本就不支持的会议容量查询，实际影响很小。",
+      "evidence": "telephony_call_manager/services/call/src/cs_call.cpp:177、ims_call.cpp:282；AGENTS.md 特性宏支持范围（ABILITY_CONFIG_SUPPORT 不支持）与约束（宏按实际代码实现判断）；_inputs/reference/openspec/changes/migrate-call-manager-to-liteos/design.md D12 宏表",
+      "source": "decision"
+    },
+    {
+      "id": "architecture/locks",
+      "dimension": "open_decisions",
+      "severity": "low",
+      "tag": "student_defensible",
+      "summary": "现有的锁（std::mutex、ffrt::mutex 等）与加锁调用（remove = 锁成员与加锁调用删除；keep = 加锁代码保留，原样或换成空实现的桩）：参考 remove（删除：对应代码不迁移），学生 keep（保留：对应代码保留（原样，或换成空实现的桩））。AGENTS.md 只说单线程环境「不需要加锁」，并未要求删除既有锁；student 原样保留 std::mutex（单线程无争用、行为一致，契合「架构尽量与 HMOS 保持一致」）并将 ffrt::mutex 换空实现桩（符合 ffrt 打桩规则）。reference 删除全部锁成员与加锁调用是同一前提下的另一种合理处置，两种做法运行时行为一致，属可辩护的架构取舍。",
+      "evidence": "AGENTS.md「以下接口不调用：…目前只有一个线程，因此不需要加锁」、ffrt 替换/打桩条目与架构要求；student design.md D5（std::mutex 原样保留、ffrt::mutex 空桩）；reference design.md D7",
+      "source": "decision"
+    },
+    {
+      "id": "coverage/behaviour",
+      "dimension": "baseline_coverage",
+      "severity": "high",
+      "tag": "student_wrong",
+      "summary": "参考 baseline 引用的 1295 个 HMOS 名称中，学生覆盖 61%；缺失示例：`ABILIT_CONFIG_SUPPORT`、`ACTION_TYPE`、`ALWAYS_ON`、`ANSWER_CALL`、`AUDIO_VIDEO_HEADPHONES`、`AUDIO_VIDEO_WEARABLE_HEADSET`、`AddAudioDevice`、`AddEarpiece`、`AdjustVolumesForCrs`、`AlertingState`、`Answer`、`AntiFraudDetectResListener`",
+      "evidence": "baseline specs 中反引号引用的 HMOS 名称",
+      "source": "code"
+    },
+    {
+      "id": "rule/design_decision_structure",
+      "dimension": "readability_rules",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "规则检查 design_decision_structure = 0.933（14/15 decisions have 决策/理由/落点）",
+      "evidence": "config.yaml / task.md",
+      "source": "code"
+    },
+    {
+      "id": "rule/tasks-gtest",
+      "dimension": "testability_grounding",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "tasks.md 规则 gtest 满足率 0.778",
+      "evidence": "config.yaml rules.tasks",
+      "source": "code"
+    },
+    {
+      "id": "testability_grounding/scenario-padding",
+      "dimension": "testability_grounding",
+      "severity": "high",
+      "tag": "student_wrong",
+      "summary": "Student deltas systematically pad near-duplicate scenarios: the same WHEN/THEN is restated under two titles (~11 pairs in the call-state-observer delta alone; 374 scenarios vs the reference's 143), violating the no-padding rule for scenario quality.",
+      "evidence": "student changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md (断话触发组包不落库 vs 蜂窝通话落库; 超限清理 vs 超限清理判定; 拦截名单查询未命中 vs 拦截名单查询; etc.), call-report/spec.md (双路上报 vs 单路直调上报)",
+      "source": "judge"
+    },
+    {
+      "id": "baseline_coverage/service-entry-behaviours",
+      "dimension": "baseline_coverage",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "The call-manager-service baseline misses several service-level behaviours of the large call_manager_service.cpp that the reference covers: InputDialerSpecialCode special codes, SendCallUiEvent UI-event routing, SetCallPolicyInfo (EDM uid 3057) and the voice-mail count reset after DialCall (plus GetProxyObjectPtr).",
+      "evidence": "student openspec/specs/call-manager-service/spec.md (no mention of the four behaviours); telephony_call_manager/services/call_manager_service/src/call_manager_service.cpp:331,1466,1694,1829",
+      "source": "judge"
+    },
+    {
+      "id": "baseline_coverage/oobe-esim-branches",
+      "dimension": "baseline_coverage",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "The uplink-status baseline does not expand the OOBE rejection chain (ShouldRejectIncomingCall with device_provisioned/user_setup_complete and OOBEStatusObserver) nor the ESIM one-number-dual-terminal chain (IsFromTheSameNumberAtTheSameTime -> ModifyEsimType); the reference expands both branch by branch.",
+      "evidence": "reference openspec/specs/call-status-manager/spec.md:27-56 vs student openspec/specs/call-status-management/spec.md:33-36 (only a generic IsRejectCall mention)",
+      "source": "judge"
+    },
+    {
+      "id": "baseline_coverage/audio-crs-branches",
+      "dimension": "baseline_coverage",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "The audio baseline misses the CRS video-ring branches (dealCrsScene, MuteNetWorkRingTone, AdjustVolumesForCrs, NeedPlayVideoRing) and the VideoStateUpdated/CheckTypeAndSetAudioDevice voice-to-video device switch; the reference covers both and removes them explicitly in its delta.",
+      "evidence": "reference openspec/specs/audio-control-manager/spec.md (铃声播放/视频彩振振动 requirements) vs student openspec/specs/audio-management/spec.md (rg 'CRS|NeedPlayVideoRing|VideoStateUpdated' zero hits)",
+      "source": "judge"
+    },
+    {
+      "id": "code_level_design/crs-removal-undesigned",
+      "dimension": "code_level_design",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "The proposal claims 视频彩振 (crsType==CRS_TYPE) is not migrated, but no design decision and no audio delta requirement turn that into code-level actions (which CRS branches are deleted, which guards cleaned); the reference's audio delta does this branch by branch with Migration notes.",
+      "evidence": "student proposal.md (What Changes, 功能裁剪 list) and design.md (no CRS decision) vs reference changes/specs/audio-control-manager/spec.md:16-23,66-71",
+      "source": "judge"
+    },
+    {
+      "id": "code_level_design/artifact-contradictions",
+      "dimension": "code_level_design",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "The student's own artifacts contradict each other: design D2/D3 delete call_manager_proxy.cpp and all proxy classes, yet the client-framework delta's MODIFIED requirement still specifies registration via CallManagerProxy::RegisterCallBack; and the call-report delta collapses the baseline dual state-registry reporting route into a single slotId route, a functional change absent from proposal and design and unsupported by AGENTS.md.",
+      "evidence": "student design.md D2/D3 vs student changes/specs/client-framework/spec.md (回调注册与注销); student changes/specs/call-report/spec.md (系统状态注册上报) vs reference call-report delta (双路上报 kept via stub)",
+      "source": "judge"
+    },
+    {
+      "id": "testability_grounding/ecc-gtest-missing",
+      "dimension": "testability_grounding",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "ECC (safety-relevant) has baseline and delta scenarios but tasks.md contains no emergency-call gtest (ECC appears only as a review item in 9.2); the reference defines explicit ECC gtests (DialEmergencyNumber_BypassesMulticallLimitButChecksSimState, SetMute_ForcedOffDuringEmergencyCall).",
+      "evidence": "student changes/migrate-call-manager-to-liteos/tasks.md (rg 'ECC|Emergency' only hits 9.2) vs reference tasks.md task 7.1",
+      "source": "judge"
+    },
+    {
+      "id": "code_level_design/dangling-half-chains",
+      "dimension": "code_level_design",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "Knock-on effects of removals are only half-handled: the kept waiting-tone chain silently drops its first step (ReportCallInfoHandler::ReceiveImsCallModeRequest into the removed IMSCall video machine); design D10 says removed callTypes are dropped in report_call_info_handler, yet the delta keeps the UpdateOttEventInfo dispatch; and the FoldStatusManager listener call inside AddOneCallObject is not listed for cleanup (the reference names it in the fold-display delta).",
+      "evidence": "student changes/specs/telephony-interaction/spec.md (等待音定时停止) vs design.md D10; source telephony_call_manager/services/telephony_interaction/src/call_status_callback.cpp:398-433; call_object_manager.cpp:96-98",
+      "source": "judge"
+    },
+    {
+      "id": "baseline_coverage/proximity-condition-inverted",
+      "dimension": "baseline_coverage",
+      "severity": "medium",
+      "tag": "reference_questionable",
+      "summary": "The reference inverts the ProximitySensor screen-off condition (claims ShutDown when HasCallExist() is false), but the source shuts down when calls still exist (HasCallExist() == true); the student's baseline states it correctly, so no penalty for the student.",
+      "evidence": "telephony_call_manager/services/call/call_state_observer/src/proximity_sensor.cpp:37-44; reference openspec/specs/call-state-observer/spec.md (贴耳灭屏 requirement)",
+      "source": "judge"
+    },
+    {
+      "id": "code_level_design/notification-observer-overtrim",
+      "dimension": "code_level_design",
+      "severity": "low",
+      "tag": "reference_questionable",
+      "summary": "AGENTS.md lists 通知 (NotificationHelper) and 功耗锁 (ABILITY_POWER_SUPPORT) as '暂不调用 -> todo 占位' dependencies and does not list incoming-call notification / missed-call reminder / incoming wakeup among unsupported features, yet the reference deletes incoming_call_notification.cpp, missed_call_notification.cpp, incoming_call_wake_up.cpp and the ABILITY_POWER_SUPPORT gni block outright; the student keeps them as todo placeholders, which matches the constraints more literally. Flag for the human reviewer since dependency handling is script-scored.",
+      "evidence": "AGENTS.md 外部依赖处理/功能范围; reference design.md D12/D17 and tasks.md 2.4/3.1; student design.md D7",
+      "source": "judge"
+    }
+  ],
+  "code_checks": {
+    "module_coverage": {
+      "value": 1.0,
+      "missing": []
+    },
+    "behaviour_coverage": {
+      "value": 0.6116,
+      "recall": 0.6116,
+      "padding_factor": 1.0,
+      "reference_names": 1295,
+      "student_names": 1399,
+      "missing": [
+        "ABILIT_CONFIG_SUPPORT",
+        "ACTION_TYPE",
+        "ALWAYS_ON",
+        "ANSWER_CALL",
+        "AUDIO_VIDEO_HEADPHONES",
+        "AUDIO_VIDEO_WEARABLE_HEADSET",
+        "AddAudioDevice",
+        "AddEarpiece",
+        "AdjustVolumesForCrs",
+        "AlertingState",
+        "Answer",
+        "AntiFraudDetectResListener",
+        "AppStateObserver",
+        "AudioDeviceChangeCallback",
+        "AudioOnlyState",
+        "AutoAnswerForVideoCall",
+        "AutoAnswerForVoiceCall",
+        "AutoUnHoldForDsda",
+        "BindAsync",
+        "BluetoothAudioManager",
+        "BluetoothCallClient",
+        "BluetoothCallInterfaceCode",
+        "BluetoothDeviceState",
+        "BtCallWaitSlotId",
+        "BuildCallDetailsInfo",
+        "BuildCallReportInfo",
+        "CALL_ANSWER_FAILED_EVENT",
+        "CALL_ANSWER_IN_SUPER_PRIVACY",
+        "CALL_ANSWER_MISSED",
+        "CALL_BLOCK",
+        "CALL_DIAL_CLOSE_SUPER_PRIVACY",
+        "CALL_DIAL_FAILED_EVENT",
+        "CALL_DIAL_IN_SUPER_PRIVACY",
+        "CALL_DIRECTION_IN",
+        "CALL_DISPLAY_NAME",
+        "CALL_ERR_CONFERENCE_CALL_EXCEED_LIMIT",
+        "CALL_ERR_EMERGENCY_UNSUPPORT_CONFERENCEABLE",
+        "CALL_ERR_NOT_NEW_STATE",
+        "CALL_ERR_NUMBER_OUT_OF_RANGE",
+        "CALL_FAILED_CTCARD_NO_IMS",
+        "CALL_FAILED_DUE_TO_FDN",
+        "CALL_FAILED_IN_AIRPLANE_MODE",
+        "CALL_FAILED_NO_SERVICE",
+        "CALL_FAILED_NO_SIM_CARD",
+        "CALL_HANGUP_FAILED_EVENT",
+        "CALL_INCOMING_FAILED_EVENT",
+        "CALL_INCOMING_REJECT_BY_SYSTEM",
+        "CALL_IS_READ",
+        "CALL_MODE_AUDIO_ONLY",
+        "CALL_MODE_SEND_RECEIVE",
+        "CALL_MUTE_RINGER_URI",
+        "CALL_REJECT_IN_SUPER_PRIVACY",
+        "CALL_START_ID",
+        "CALL_STATUS_ANSWERED",
+        "CALL_SUBSECTION_SILENCE",
+        "COMMON_EVENT_DATA_SHARE_READY",
+        "COMMON_EVENT_RADIO_STATE_CHANGE",
+        "COMMON_EVENT_SPECIAL_CODE",
+        "CSCallState",
+        "CS_CALL_TYPE",
+        "CallManagerCallback",
+        "CallStateObserve",
+        "CallStatusInterfaceCode",
+        "CancelTimer",
+        "CellularCallInterfaceCode",
+        "CheckAntiFraudService",
+        "CheckTypeAndSetAudioDevice",
+        "CheckWindow",
+        "CloseSuperPrivacyMode",
+        "CloseToEarMotionEventCallback",
+        "CommonEventSupport",
+        "ConnectCallUiService",
+        "ConnectHsdr",
+        "ConnectSco",
+        "ConnectSpamCallAbility",
+        "ContactInfo",
+        "CoreManagerInner",
+        "CreateRunningLock",
+        "Creator",
+        "DECISION_REASON",
+        "DECLARE_DELAYED_REF_SINGLETON",
+        "DECLARE_SYSTEM_ABILITY",
+        "DETECT_DETAILS",
+        "DETECT_RESULT",
+        "DEVICE_NEARLINK",
+        "DEVICE_SPEAKER",
+        "DIA_ReleaseAnonymize",
+        "DIA_ReleaseConfig",
+        "DIA_ReleaseOutputData",
+        "DISCONNECTED",
+        "DISCONNECTED_REASON_CS_CALL_ANSWERED_ELSEWHER",
+        "DISCONNECTED_REASON_NORMAL",
+        "DISPLAY_SPECIFIED_CALL_PAGE_BY_CALL_ID",
+        "DSDS_MODE_V3",
+        "DSDS_MODE_V5_DSDA",
+        "DSDS_MODE_V5_TDM",
+        "DcCallHfpListener",
+        "DcCallSourceHfpListener",
+        "DelayedRefSingleton",
+        "DelayedSingleton",
+        "DetectAntiFraud",
+        "DialingState",
+        "DisableAll",
+        "DisconnectSco",
+        "DisconnectSpamCallAbility",
+        "DisconnectedReason",
+        "DisconnectingHandle",
+        "DistributedCallDeviceListener",
+        "DistributedDeviceSwitchController",
+        "EVENT_ANSWER_VOIP_CALL",
+        "EVENT_BLUETOOTH_SCO_STATE_ON",
+        "EVENT_CELIA_AUTO_ANSWER_CALL_ON",
+        "EVENT_INVALID_VIDEO_FD",
+        "EVENT_IS_CELIA_CALL",
+        "EVENT_MUTE_RING",
+        "EVENT_NOT_SUPPORT_BLUETOOTH_CALL",
+        "EVENT_SPEAKER_OFF",
+        "EVENT_SUPPORT_BLUETOOTH_CALL",
+        "EVENT_VOIP_CALL_SUCCESS",
+        "EarpieceDeviceState",
+        "EdmPolicyFlag",
+        "EnableBtHearingAid",
+        "EnableBtSco",
+        "EnableEarpiece",
+        "EnableNearlink",
+        "EnableSpeaker",
+        "EnableWiredHeadset",
+        "ExcludeBluetoothSco",
+        "ExcludeOutputDevices",
+        "FAILED",
+        "FeatureType",
+        "FinishAsyncTrace",
+        "FlipMotionEventCallback",
+        "GET_CALL_CLIP_ID",
+        "GET_CALL_CLIR_ID",
+        "GET_CALL_RESTRICTION_REPORT_ID",
+        "GET_CALL_TRANSFER_REPORT_ID",
+        "GET_CALL_WAITING_REPORT_ID",
+        "GET_IMS_CONFIG_REPORT_ID",
+        "GET_IMS_FEATURE_VALUE_REPORT_ID",
+        "GetActiveVoipCallInfo",
+        "GetAirplaneMode",
+        "GetAllCallInfoList",
+        "GetBackupVoiceVolume",
+        "GetBtSlotIdByPhoneNumber",
+        "GetCallFeatures",
+        "GetCallRestrictionPolicy",
+        "GetCallerIndex",
+        "GetCanUnHoldState",
+        "GetCountryIso",
+        "GetCurrentCallNum",
+        "GetCurrentRingtoneAttribute",
+        "GetDCallDeviceInfo",
+        "GetDeviceProductType",
+        "GetErrorDescription",
+        "GetHelperAndUrl",
+        "GetHfpContactName",
+        "GetID",
+        "GetInitAudioDeviceType",
+        "GetMeetimeCallState",
+        "GetNameAndIndexForUid",
+        "GetOldConferenceState",
+        "GetOneCallObjectByIndex",
+        "GetOnlineDeviceList",
+        "GetParameter",
+        "GetParseResult",
+        "GetProxyObjectPtr",
+        "GetSatelliteCallList",
+        "GetSlotId",
+        "GetToneDescriptorPath",
+        "GetVideoUpdateStatus",
+        "GetVoipCallInfo",
+        "GetVoipCallInfoList",
+        "GetWearBtHeadsetAddress",
+        "HandleCeliaAutoAnswerCall",
+        "HandleDisplaySpecifiedCallPage",
+        "HandleNextState",
+        "HandlePriorState",
+        "HandleSetTorchMode",
+        "HandleVideoRingPlayFail",
+        "HandleVoIPCallEvent",
+        "HandleVoipEventReportInfo",
+        "HangUpFirstCall",
+        "HfpScoConnectState",
+        "HiWriteBehaviorEvent",
+        "HiWriteFaultEvent",
+        "HoldingState",
+        "IMSCallState",
+        "IMS_CALL_TYPE",
+        "INTERFACE_BT_ANSWER_CALL",
+        "INTERFACE_GET_PROXY_OBJECT_PTR",
+        "IS_CLOUD",
+        "ISocketListener",
+        "ImsConfigItem",
+        "InactiveDeviceState",
+        "IncomingCallType",
+        "IncomingState",
+        "InitBluetoothOperationRequest",
+        "InitCallConferenceRequest",
+        "InitCallDtmfRequest"
+      ]
+    },
+    "grounding_rate": 0.954,
+    "task_rules": {
+      "value": 0.9259,
+      "groups": 9,
+      "parts": {
+        "gate": 1.0,
+        "gtest": 0.778,
+        "gni_sync": 1.0
+      },
+      "groups_without_gate": [],
+      "groups_without_gtest": [
+        "1. 基线固定与整棵拷贝",
+        "9. 收尾复核"
+      ],
+      "deletion_tasks": 6,
+      "deletion_tasks_with_gni": 6
+    },
+    "build_coverage": {
+      "value": 0.8974,
+      "design_names_gni_and_bundle": 1.0,
+      "token_coverage": 0.7949,
+      "reference_tokens": 39,
+      "missing_tokens": [
+        "cJSON:cjson",
+        "cflags_cc",
+        "fwk_group",
+        "inner_kits",
+        "libphonenumber:phonenumber_standard",
+        "multimedia_camera_framework",
+        "service_group",
+        "tel_call_manager"
+      ]
+    },
+    "rule_checklist": {
+      "value": 0.9939,
+      "checks": {
+        "trim_table": {
+          "value": 1.0,
+          "detail": "25 rows parsed"
+        },
+        "trim_covers_capabilities": {
+          "value": 1.0,
+          "detail": "missing: "
+        },
+        "trim_matches_deltas": {
+          "value": 1.0,
+          "detail": "inconsistent: "
+        },
+        "proposal_non_goals": {
+          "value": 1.0,
+          "detail": ""
+        },
+        "proposal_review_markers": {
+          "value": 1.0,
+          "detail": ""
+        },
+        "design_decision_index": {
+          "value": 1.0,
+          "detail": ""
+        },
+        "design_decision_structure": {
+          "value": 0.933,
+          "detail": "14/15 decisions have 决策/理由/落点"
+        },
+        "design_open_questions": {
+          "value": 1.0,
+          "detail": ""
+        },
+        "zh_cn_prose": {
+          "value": 1.0,
+          "detail": "CJK share 0.58"
+        },
+        "no_long_code_blocks": {
+          "value": 1.0,
+          "detail": "0 block(s) over 10 lines"
+        },
+        "openspec_validate": {
+          "value": 1.0,
+          "detail": ""
+        }
+      }
+    }
+  }
+}

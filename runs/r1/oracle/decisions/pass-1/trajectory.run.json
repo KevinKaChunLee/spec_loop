@@ -1,0 +1,29 @@
+{
+  "label": "trajectory",
+  "model_id": "glm-5p3-max",
+  "model_expected": "GLM 5.3 Max",
+  "model_reported": "GLM 5.3 Max",
+  "model_ok": true,
+  "session_id": "c319f601-69c5-4ba4-a415-cbd290283f77",
+  "resumed_from": null,
+  "workspace": "/home/kevin/Work/spec-loop-ws/r1/extract-oracle-p1",
+  "exit_code": 0,
+  "timed_out": false,
+  "startup_retries": 0,
+  "continuations": 0,
+  "nudges": 0,
+  "incomplete": [],
+  "has_result": true,
+  "is_error": false,
+  "duration_s": 947.6,
+  "usage": {
+    "inputTokens": 135465,
+    "outputTokens": 87084,
+    "cacheReadTokens": 974548,
+    "cacheWriteTokens": 0
+  },
+  "final_text": "已读取规范、设计和任务。现在让我搜索 delta 规范以解决那些尚未明确的关键内容（`MAKE_CALL_WITH_TOKEN`、`STR` 模式、新通话、`AUDIO_SUPPORT` 等）。`MAKE_CALL_WITH_TOKEN`、`TELEPHONY_EXIT_STR` 和“新通话”需要更具体地搜索，因为我当前的搜索没有查到相关的结果。`MAKE_CALL_WITH_TOKEN` 和 `TELEPHONY_EXIT_STR` 在变更中未找到匹配项。现在让我完整阅读关键的增量规范以确认判定，从主要规范开始。现在正在阅读剩余的 delta specs。让我检查一下已移除的能力增量（目录级移除）以确认证据。All spec files read. Let me run final verification searches for the remaining unclear keys (`STR` mode, token, 新通话) before writing the output.Confirmed: `MAKE_CALL_WITH_TOKEN`, `TELEPHONY_EXIT_STR`, 新通话 are not decided anywhere in the change (`HasNewCall` appears only inside an ECC-exemption scenario, not a decision on the 新通话 feature) — they stay `unstated`. Now writing the output table.Now validating the JSON syntax and verifying every quote against the spec files with a script.`_outputs/decisions.json` 已生成并通过校验（`python3 -m json.tool` + 自检脚本：词汇表全部键覆盖、取值合法、每条 evidence 均在 spec 中逐字命中、单行且 ≤200 字符、files ≤5）。\n\n提取结果概览：\n\n- **features（27 键）**：除 `make_call_with_token`、`str_mode`、`new_call` 无任何决定（`unstated`，全文检索无命中）外，其余均有决定——移除类功能（视频/会议/卫星/分布式/蓝牙/OTT/地震预警/彩振/有线耳机/语音播报/防诈/超级隐私/折叠屏/EDM/闪光/状态栏/贴耳灭屏/星闪/ESIM/DSDA 非零分支/JS-ETS-仓颉绑定）全部 `remove`；`voip` 为 `stub`（D15 代码全保留、`VoipCallConnection` 桩化待畅连）；`single_sim`/`single_account` 为 `simplify`。\n- **macros（35 键）**：D12 表逐行落实——不支持宏 `remove`；五个客户端宏 `unguard`（恒定义）；`SUPPORT_RTT_CALL` 等四宏 `no_code`（v6.0 零引用）；`NOT_SUPPORT_MULTICALL` `keep`（declare_args 开关保留、开/关两形态验证）；`CONFIG_FACTORY_VERSION` `keep`（保留定义能力、两分支都支持，note 记录零引用矛盾）；`ABILITY_POWER_SUPPORT` 记 `remove`（gni 宏块删除），note 说明功耗锁调用点按 D4 保留为 `// todo!!! [powerLock]` 空操作占位；`AUDIO_SUPPORT` 单独出现时无决定，`unstated`。\n- **dependencies（22 键）**：todo 类（audio/database/broadcast/power_lock/notification/spam/number_identity/rtt_file_node）、stub 类（五个跨模块客户端、call_ui、libphonenumber、parameter、cjson、base_libs）、replace 类（sptr、hisysevent_hitrace、ffrt、pacmap）。`call_ui` 按 design.md 优先记 `stub`，note 记录了 proposal 把拉起通话界面列入 todo 占位清单的矛盾。\n- **architecture（5 键）**：`systemability_ipc`/`permission_checks`/`locks` 均 `remove`，`dsds_mode_zero` `yes`，`slot_id_kept` `yes`。",
+  "transcript_project": "home-kevin-Work-spec-loop-ws-r1-extract-oracle-p1",
+  "transcript_copy": "/home/kevin/Work/telephony_migration/spec_loop/runs/r1/oracle/decisions/pass-1/transcripts/trajectory/c319f601-69c5-4ba4-a415-cbd290283f77",
+  "ok": true
+}

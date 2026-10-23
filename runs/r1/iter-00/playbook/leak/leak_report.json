@@ -1,0 +1,225 @@
+{
+  "ok": false,
+  "problems": [],
+  "lines": 137,
+  "copied_chars": 76,
+  "spans": [
+    "telephonycallmanager/services/callmanagerservice/src/callmanagerservice.cpp（"
+  ],
+  "capability_ids_named": [],
+  "capability_id_share": 0.0,
+  "symbol_leaks": [
+    {
+      "line": 22,
+      "text": "python3 -c \"import json;print(json.load(open('telephony_call_manager/bundle.json'))['component'].get('features'));print('inner_kits')\"",
+      "reasons": [
+        "HMOS ident `inner_kits`"
+      ]
+    },
+    {
+      "line": 31,
+      "text": "- **构建面必须有独立能力**并写足基线需求：gni 的 sources/include_dirs/宏块结构、根 BUILD.gn 的 declare_args、bundle.json 的 features 与 inner_kits、sa_profile、单测/fuzz target 组织。config.yaml 明说\"构建真源是 callmanager.gni\"、feature 开关在 BUI",
+      "reasons": [
+        "HMOS ident `inner_kits`"
+      ]
+    },
+    {
+      "line": 65,
+      "text": "`rg -n \"CallManagerService::\\w+\\(\" telephony_call_manager/services/call_manager_service/src/call_manager_service.cpp`",
+      "reasons": [
+        "HMOS file `call_manager_service.cpp`"
+      ]
+    },
+    {
+      "line": 66,
+      "text": "（定义形如 `int32_t CallManagerService::Foo(`，同一结果里也包含内部调用，过一遍去重即可。）服务门面类还可以直接用接口头（`frameworks/native/include/i_call_manager_service.h`）的纯虚函数全集当清单。哪些函数没被覆盖，要么补需求，要么在交付摘要里写明不纳入的原因。",
+      "reasons": [
+        "HMOS file `i_call_manager_service.h`"
+      ]
+    },
+    {
+      "line": 68,
+      "text": "- [ ] **服务门面级散行为**：超长 cpp 里容易漏服务级行为（如拨号特殊码集合匹配后发广播、UI 事件按名分发路由、拨号成功后语音信箱计数清零）。核实法：`rg -n \"supportSpecialCode_|dealCeliaCallEvent|COMMON_EVENT\" telephony_call_manager/services` 之类用常量/私有函数名当锚点，再与门面函数清单逐",
+      "reasons": [
+        "HMOS ident `dealCeliaCallEvent`",
+        "HMOS ident `supportSpecialCode_`"
+      ]
+    },
+    {
+      "line": 110,
+      "text": "- VoIP 条目即此句式：句尾\"解决畅连通话和蜂窝通话冲突场景\"就是要求保留冲突处理能力；核实法：`rg -n \"VoipCallConnection|voip_call_connection|HangUpVoipCall\" telephony_call_manager` 看它被 gni、call_base、call_control、audio 引用多少处，再对照它的外部出口（对 voip_ca",
+      "reasons": [
+        "HMOS ident `HangUpVoipCall`",
+        "HMOS ident `VoipCallConnection`",
+        "HMOS ident `call_base`",
+        "HMOS ident `voip_call_connection`"
+      ]
+    }
+  ],
+  "decision_leaks": [
+    {
+      "line": 29,
+      "text": "- 大目录拆分：`services/call/` 同时承担通话对象、呼叫控制、上行状态机、观察者等多个职责，规模远超一个 spec，按职责拆成 3~4 个能力；拆法自定，但一旦定下，proposal 裁剪范围表、delta、tasks 用同一组 id；",
+      "reasons": [
+        "baseline fact: services/call/ 兼含通话对象、呼叫控制、上行状态机、观察者等多项职责"
+      ]
+    },
+    {
+      "line": 67,
+      "text": "- [ ] **判定链展开**：所有 `ShouldXxx / IsXxx / CanXxx / NeedXxx` 谓词及其调用的下游函数，读到外部依赖叶子（DataShare/通知/设置项/系统参数）为止；每个弃/留分支各成一条场景。举例：来电拒接判定在基线里至少含四个独立语义分支（ECC 在通话中、开机向导未完成、免打扰静默、其余放行），另外\"同号同时来电\"有专门的判定+改写链——这些名字全部",
+      "reasons": [
+        "baseline fact: 来电拒接判定至少含四个分支（ECC、开机向导未完成、免打扰、其余放行），同号同时来电另有专门判定+改写链"
+      ]
+    },
+    {
+      "line": 68,
+      "text": "- [ ] **服务门面级散行为**：超长 cpp 里容易漏服务级行为（如拨号特殊码集合匹配后发广播、UI 事件按名分发路由、拨号成功后语音信箱计数清零）。核实法：`rg -n \"supportSpecialCode_|dealCeliaCallEvent|COMMON_EVENT\" telephony_call_manager/services` 之类用常量/私有函数名当锚点，再与门面函数清单逐",
+      "reasons": [
+        "baseline fact: 服务门面存在特殊码匹配后发广播、UI 事件按名路由、拨号成功清零语音信箱计数等散行为"
+      ]
+    },
+    {
+      "line": 75,
+      "text": "- [ ] **\"暂不支持/暂不调用/依赖后续\"条目=保留代码+桩化/todo 占位**，不是删除（§5.1）。VoIP 必须这样核实并定稿。",
+      "reasons": [
+        "decision feature/voip = stub"
+      ]
+    },
+    {
+      "line": 82,
+      "text": "每个命中点必须：处于 REMOVED 块 / 文义即\"不迁移、不可达、todo 占位\" 。若出现在某 MODIFIED 里描述活行为，就是自身矛盾（如宣告彩振不迁移却保留了彩振播放链；BT/ESIM 不支持却保留其判定条件活跃）。现场改正：该行转 REMOVED/改写需求，或反过来修 proposal 声明——两者必须一致。",
+      "reasons": [
+        "baseline fact: 代码中存在彩振播放链与 BT/ESIM 判定条件"
+      ]
+    },
+    {
+      "line": 92,
+      "text": "- [ ] **行为保持默认原则**：任何 AGENTS 未明令改变的行为一律照基线保留、外部出口用桩（比如：状态上报的\"全局\"与\"带卡槽\"两路并存就是基线语义，两路的消费方不同，合并是行为变更）。检查法：你改语义的每一点，都写得出\"AGENTS 条文（或 HMOS 本身缺陷）\"依据；写不出就恢复保留读法。",
+      "reasons": [
+        "baseline fact: 状态上报的全局与带卡槽两路并存，消费方不同"
+      ]
+    },
+    {
+      "line": 98,
+      "text": "- [ ] **\"需人工复核\"绝不替代用例**：ECC、IPC 枚举、权限校验、跨部件结构体各成复核标记之外，行为改动（尤其紧急呼叫的豁免拨号、强制不静音、查卡判定）必须成组具名 gtest。安全行为无测试=硬伤。",
+      "reasons": [
+        "baseline fact: 存在紧急呼叫豁免拨号、强制不静音、查卡判定等行为改动点"
+      ]
+    },
+    {
+      "line": 110,
+      "text": "- VoIP 条目即此句式：句尾\"解决畅连通话和蜂窝通话冲突场景\"就是要求保留冲突处理能力；核实法：`rg -n \"VoipCallConnection|voip_call_connection|HangUpVoipCall\" telephony_call_manager` 看它被 gni、call_base、call_control、audio 引用多少处，再对照它的外部出口（对 voip_ca",
+      "reasons": [
+        "baseline fact: VoIP 代码含通话对象、冲突链与统计，仅外部出口需桩化",
+        "decision feature/voip = stub"
+      ]
+    },
+    {
+      "line": 124,
+      "text": "- \"暂不迁移\"列表与 delta 的交叉验证（4.3 涟漪清扫）每轮都要跑——常犯：audio 的 delta 保留了彩振播放链、被删通话对象的事件转发还留在交互能力 delta 里。",
+      "reasons": [
+        "baseline fact: audio 能力含彩振播放链，交互能力含被删通话对象的事件转发"
+      ]
+    }
+  ],
+  "leak_lines": [
+    {
+      "line": 22,
+      "text": "python3 -c \"import json;print(json.load(open('telephony_call_manager/bundle.json'))['component'].get('features'));print('inner_kits')\"",
+      "reasons": [
+        "HMOS ident `inner_kits`"
+      ]
+    },
+    {
+      "line": 29,
+      "text": "- 大目录拆分：`services/call/` 同时承担通话对象、呼叫控制、上行状态机、观察者等多个职责，规模远超一个 spec，按职责拆成 3~4 个能力；拆法自定，但一旦定下，proposal 裁剪范围表、delta、tasks 用同一组 id；",
+      "reasons": [
+        "baseline fact: services/call/ 兼含通话对象、呼叫控制、上行状态机、观察者等多项职责"
+      ]
+    },
+    {
+      "line": 31,
+      "text": "- **构建面必须有独立能力**并写足基线需求：gni 的 sources/include_dirs/宏块结构、根 BUILD.gn 的 declare_args、bundle.json 的 features 与 inner_kits、sa_profile、单测/fuzz target 组织。config.yaml 明说\"构建真源是 callmanager.gni\"、feature 开关在 BUI",
+      "reasons": [
+        "HMOS ident `inner_kits`"
+      ]
+    },
+    {
+      "line": 65,
+      "text": "`rg -n \"CallManagerService::\\w+\\(\" telephony_call_manager/services/call_manager_service/src/call_manager_service.cpp`",
+      "reasons": [
+        "HMOS file `call_manager_service.cpp`"
+      ]
+    },
+    {
+      "line": 66,
+      "text": "（定义形如 `int32_t CallManagerService::Foo(`，同一结果里也包含内部调用，过一遍去重即可。）服务门面类还可以直接用接口头（`frameworks/native/include/i_call_manager_service.h`）的纯虚函数全集当清单。哪些函数没被覆盖，要么补需求，要么在交付摘要里写明不纳入的原因。",
+      "reasons": [
+        "HMOS file `i_call_manager_service.h`"
+      ]
+    },
+    {
+      "line": 67,
+      "text": "- [ ] **判定链展开**：所有 `ShouldXxx / IsXxx / CanXxx / NeedXxx` 谓词及其调用的下游函数，读到外部依赖叶子（DataShare/通知/设置项/系统参数）为止；每个弃/留分支各成一条场景。举例：来电拒接判定在基线里至少含四个独立语义分支（ECC 在通话中、开机向导未完成、免打扰静默、其余放行），另外\"同号同时来电\"有专门的判定+改写链——这些名字全部",
+      "reasons": [
+        "baseline fact: 来电拒接判定至少含四个分支（ECC、开机向导未完成、免打扰、其余放行），同号同时来电另有专门判定+改写链"
+      ]
+    },
+    {
+      "line": 68,
+      "text": "- [ ] **服务门面级散行为**：超长 cpp 里容易漏服务级行为（如拨号特殊码集合匹配后发广播、UI 事件按名分发路由、拨号成功后语音信箱计数清零）。核实法：`rg -n \"supportSpecialCode_|dealCeliaCallEvent|COMMON_EVENT\" telephony_call_manager/services` 之类用常量/私有函数名当锚点，再与门面函数清单逐",
+      "reasons": [
+        "HMOS ident `dealCeliaCallEvent`",
+        "HMOS ident `supportSpecialCode_`",
+        "baseline fact: 服务门面存在特殊码匹配后发广播、UI 事件按名路由、拨号成功清零语音信箱计数等散行为"
+      ]
+    },
+    {
+      "line": 75,
+      "text": "- [ ] **\"暂不支持/暂不调用/依赖后续\"条目=保留代码+桩化/todo 占位**，不是删除（§5.1）。VoIP 必须这样核实并定稿。",
+      "reasons": [
+        "decision feature/voip = stub"
+      ]
+    },
+    {
+      "line": 82,
+      "text": "每个命中点必须：处于 REMOVED 块 / 文义即\"不迁移、不可达、todo 占位\" 。若出现在某 MODIFIED 里描述活行为，就是自身矛盾（如宣告彩振不迁移却保留了彩振播放链；BT/ESIM 不支持却保留其判定条件活跃）。现场改正：该行转 REMOVED/改写需求，或反过来修 proposal 声明——两者必须一致。",
+      "reasons": [
+        "baseline fact: 代码中存在彩振播放链与 BT/ESIM 判定条件"
+      ]
+    },
+    {
+      "line": 92,
+      "text": "- [ ] **行为保持默认原则**：任何 AGENTS 未明令改变的行为一律照基线保留、外部出口用桩（比如：状态上报的\"全局\"与\"带卡槽\"两路并存就是基线语义，两路的消费方不同，合并是行为变更）。检查法：你改语义的每一点，都写得出\"AGENTS 条文（或 HMOS 本身缺陷）\"依据；写不出就恢复保留读法。",
+      "reasons": [
+        "baseline fact: 状态上报的全局与带卡槽两路并存，消费方不同"
+      ]
+    },
+    {
+      "line": 98,
+      "text": "- [ ] **\"需人工复核\"绝不替代用例**：ECC、IPC 枚举、权限校验、跨部件结构体各成复核标记之外，行为改动（尤其紧急呼叫的豁免拨号、强制不静音、查卡判定）必须成组具名 gtest。安全行为无测试=硬伤。",
+      "reasons": [
+        "baseline fact: 存在紧急呼叫豁免拨号、强制不静音、查卡判定等行为改动点"
+      ]
+    },
+    {
+      "line": 110,
+      "text": "- VoIP 条目即此句式：句尾\"解决畅连通话和蜂窝通话冲突场景\"就是要求保留冲突处理能力；核实法：`rg -n \"VoipCallConnection|voip_call_connection|HangUpVoipCall\" telephony_call_manager` 看它被 gni、call_base、call_control、audio 引用多少处，再对照它的外部出口（对 voip_ca",
+      "reasons": [
+        "HMOS ident `HangUpVoipCall`",
+        "HMOS ident `VoipCallConnection`",
+        "HMOS ident `call_base`",
+        "HMOS ident `voip_call_connection`",
+        "baseline fact: VoIP 代码含通话对象、冲突链与统计，仅外部出口需桩化",
+        "decision feature/voip = stub"
+      ]
+    },
+    {
+      "line": 124,
+      "text": "- \"暂不迁移\"列表与 delta 的交叉验证（4.3 涟漪清扫）每轮都要跑——常犯：audio 的 delta 保留了彩振播放链、被删通话对象的事件转发还留在交互能力 delta 里。",
+      "reasons": [
+        "baseline fact: audio 能力含彩振播放链，交互能力含被删通话对象的事件转发"
+      ]
+    }
+  ]
+}

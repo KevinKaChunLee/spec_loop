@@ -1,0 +1,102 @@
+{
+  "parts": {
+    "requirements_correctness": {
+      "score": 3,
+      "rationale": "The student's 24 baseline capabilities are broad, well-grounded and often more accurate than the reference (ProximitySensor condition, HasDialingMaximum quirk, event-result chain, antifraud detail), but three clusters of behaviours the reference covers correctly are missing: service-level behaviours of call_manager_service.cpp (InputDialerSpecialCode, SendCallUiEvent routing, SetCallPolicyInfo, voice-mail count reset, GetProxyObjectPtr), the OOBE-rejection and ESIM one-number-dual-terminal branches in the uplink state machine, and the CRS video-ring plus VideoStateUpdated voice/video device-switch chains in the audio module. Several medium gaps -> 3."
+    },
+    "scenario_quality": {
+      "score": 3,
+      "rationale": "Scenarios are generally concrete (error codes, functions, injected stub values, timings) and expand decision chains better than the reference in places, but the deltas systematically pad near-duplicate scenarios: the same WHEN/THEN restated under two titles (~11 pairs in call-state-observer delta alone; 374 scenarios total vs 143), which the rubric explicitly penalizes. In addition, safety-relevant ECC behaviour has scenarios but no gtest task (only a review item), while the reference has explicit ECC gtests. One high-severity plus one medium gap -> 3."
+    },
+    "design_quality": {
+      "score": 3,
+      "rationale": "The design is unusually concrete (file-by-file deletion lists, per-macro placement table, stub naming, todo tag table, risks, rollback) and covers concurrency and the direct-call/stub architecture well. However: the proposal's claimed CRS (video ring) trim is never turned into code-level actions (no design decision, no delta Migration entry, unlike the reference); the student's own artifacts contradict each other (design deletes call_manager_proxy.cpp while the client-framework delta still specifies registration via CallManagerProxy::RegisterCallBack; the call-report delta silently collapses the state-registry dual route to a single slotId route with no proposal/design trace and no AGENTS.md basis); and knock-on effects are only half-handled (waiting-tone chain kept while its first step into the removed IMSCall video machine is silently dropped; design's removed-callType drop rule vs delta keeping UpdateOttEventInfo dispatch; FoldStatusManager listener cleanup not listed). Several medium gaps -> 3."
+    },
+    "readability": {
+      "score": 4,
+      "rationale": "zh-CN prose with English OpenSpec keywords, 25-row trim table, per-capability deltas, decision index with 决策/理由/落点, real open questions, tables for enumerations, no long code blocks. Minor deductions only: the near-duplicate scenario pairs inflate and repeat content, a few delta requirement/scenario titles are kept while their THEN now asserts the opposite (e.g. 六类通话对象按类型构造 now describing two types; IMS 对象构造后初始化视频状态 whose THEN says InitVideoCall is not called), and some WHEN clauses embed rationale. 4."
+    }
+  },
+  "gaps": [
+    {
+      "id": "testability_grounding/scenario-padding",
+      "dimension": "testability_grounding",
+      "severity": "high",
+      "tag": "student_wrong",
+      "summary": "Student deltas systematically pad near-duplicate scenarios: the same WHEN/THEN is restated under two titles (~11 pairs in the call-state-observer delta alone; 374 scenarios vs the reference's 143), violating the no-padding rule for scenario quality.",
+      "evidence": "student changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md (断话触发组包不落库 vs 蜂窝通话落库; 超限清理 vs 超限清理判定; 拦截名单查询未命中 vs 拦截名单查询; etc.), call-report/spec.md (双路上报 vs 单路直调上报)"
+    },
+    {
+      "id": "baseline_coverage/service-entry-behaviours",
+      "dimension": "baseline_coverage",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "The call-manager-service baseline misses several service-level behaviours of the large call_manager_service.cpp that the reference covers: InputDialerSpecialCode special codes, SendCallUiEvent UI-event routing, SetCallPolicyInfo (EDM uid 3057) and the voice-mail count reset after DialCall (plus GetProxyObjectPtr).",
+      "evidence": "student openspec/specs/call-manager-service/spec.md (no mention of the four behaviours); telephony_call_manager/services/call_manager_service/src/call_manager_service.cpp:331,1466,1694,1829"
+    },
+    {
+      "id": "baseline_coverage/oobe-esim-branches",
+      "dimension": "baseline_coverage",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "The uplink-status baseline does not expand the OOBE rejection chain (ShouldRejectIncomingCall with device_provisioned/user_setup_complete and OOBEStatusObserver) nor the ESIM one-number-dual-terminal chain (IsFromTheSameNumberAtTheSameTime -> ModifyEsimType); the reference expands both branch by branch.",
+      "evidence": "reference openspec/specs/call-status-manager/spec.md:27-56 vs student openspec/specs/call-status-management/spec.md:33-36 (only a generic IsRejectCall mention)"
+    },
+    {
+      "id": "baseline_coverage/audio-crs-branches",
+      "dimension": "baseline_coverage",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "The audio baseline misses the CRS video-ring branches (dealCrsScene, MuteNetWorkRingTone, AdjustVolumesForCrs, NeedPlayVideoRing) and the VideoStateUpdated/CheckTypeAndSetAudioDevice voice-to-video device switch; the reference covers both and removes them explicitly in its delta.",
+      "evidence": "reference openspec/specs/audio-control-manager/spec.md (铃声播放/视频彩振振动 requirements) vs student openspec/specs/audio-management/spec.md (rg 'CRS|NeedPlayVideoRing|VideoStateUpdated' zero hits)"
+    },
+    {
+      "id": "code_level_design/crs-removal-undesigned",
+      "dimension": "code_level_design",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "The proposal claims 视频彩振 (crsType==CRS_TYPE) is not migrated, but no design decision and no audio delta requirement turn that into code-level actions (which CRS branches are deleted, which guards cleaned); the reference's audio delta does this branch by branch with Migration notes.",
+      "evidence": "student proposal.md (What Changes, 功能裁剪 list) and design.md (no CRS decision) vs reference changes/specs/audio-control-manager/spec.md:16-23,66-71"
+    },
+    {
+      "id": "code_level_design/artifact-contradictions",
+      "dimension": "code_level_design",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "The student's own artifacts contradict each other: design D2/D3 delete call_manager_proxy.cpp and all proxy classes, yet the client-framework delta's MODIFIED requirement still specifies registration via CallManagerProxy::RegisterCallBack; and the call-report delta collapses the baseline dual state-registry reporting route into a single slotId route, a functional change absent from proposal and design and unsupported by AGENTS.md.",
+      "evidence": "student design.md D2/D3 vs student changes/specs/client-framework/spec.md (回调注册与注销); student changes/specs/call-report/spec.md (系统状态注册上报) vs reference call-report delta (双路上报 kept via stub)"
+    },
+    {
+      "id": "testability_grounding/ecc-gtest-missing",
+      "dimension": "testability_grounding",
+      "severity": "medium",
+      "tag": "student_wrong",
+      "summary": "ECC (safety-relevant) has baseline and delta scenarios but tasks.md contains no emergency-call gtest (ECC appears only as a review item in 9.2); the reference defines explicit ECC gtests (DialEmergencyNumber_BypassesMulticallLimitButChecksSimState, SetMute_ForcedOffDuringEmergencyCall).",
+      "evidence": "student changes/migrate-call-manager-to-liteos/tasks.md (rg 'ECC|Emergency' only hits 9.2) vs reference tasks.md task 7.1"
+    },
+    {
+      "id": "code_level_design/dangling-half-chains",
+      "dimension": "code_level_design",
+      "severity": "low",
+      "tag": "student_wrong",
+      "summary": "Knock-on effects of removals are only half-handled: the kept waiting-tone chain silently drops its first step (ReportCallInfoHandler::ReceiveImsCallModeRequest into the removed IMSCall video machine); design D10 says removed callTypes are dropped in report_call_info_handler, yet the delta keeps the UpdateOttEventInfo dispatch; and the FoldStatusManager listener call inside AddOneCallObject is not listed for cleanup (the reference names it in the fold-display delta).",
+      "evidence": "student changes/specs/telephony-interaction/spec.md (等待音定时停止) vs design.md D10; source telephony_call_manager/services/telephony_interaction/src/call_status_callback.cpp:398-433; call_object_manager.cpp:96-98"
+    },
+    {
+      "id": "baseline_coverage/proximity-condition-inverted",
+      "dimension": "baseline_coverage",
+      "severity": "medium",
+      "tag": "reference_questionable",
+      "summary": "The reference inverts the ProximitySensor screen-off condition (claims ShutDown when HasCallExist() is false), but the source shuts down when calls still exist (HasCallExist() == true); the student's baseline states it correctly, so no penalty for the student.",
+      "evidence": "telephony_call_manager/services/call/call_state_observer/src/proximity_sensor.cpp:37-44; reference openspec/specs/call-state-observer/spec.md (贴耳灭屏 requirement)"
+    },
+    {
+      "id": "code_level_design/notification-observer-overtrim",
+      "dimension": "code_level_design",
+      "severity": "low",
+      "tag": "reference_questionable",
+      "summary": "AGENTS.md lists 通知 (NotificationHelper) and 功耗锁 (ABILITY_POWER_SUPPORT) as '暂不调用 -> todo 占位' dependencies and does not list incoming-call notification / missed-call reminder / incoming wakeup among unsupported features, yet the reference deletes incoming_call_notification.cpp, missed_call_notification.cpp, incoming_call_wake_up.cpp and the ABILITY_POWER_SUPPORT gni block outright; the student keeps them as todo placeholders, which matches the constraints more literally. Flag for the human reviewer since dependency handling is script-scored.",
+      "evidence": "AGENTS.md 外部依赖处理/功能范围; reference design.md D12/D17 and tasks.md 2.4/3.1; student design.md D7"
+    }
+  ]
+}

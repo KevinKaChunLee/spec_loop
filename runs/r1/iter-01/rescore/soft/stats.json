@@ -1,0 +1,50 @@
+{
+  "model_reported": "GLM 5.3 Max",
+  "session_id": "87062a38-dece-4040-b346-45a8d7d95764",
+  "has_result": true,
+  "duration_ms": 395904,
+  "usage": {
+    "inputTokens": 325754,
+    "outputTokens": 45251,
+    "cacheReadTokens": 12377600,
+    "cacheWriteTokens": 0
+  },
+  "events": 11316,
+  "event_types": {
+    "assistant/None": 3,
+    "result/success": 1,
+    "system/init": 1,
+    "thinking/completed": 58,
+    "thinking/delta": 11086,
+    "tool_call/completed": 83,
+    "tool_call/started": 83,
+    "user/None": 1
+  },
+  "unknown_event_types": [],
+  "tool_calls_total": 83,
+  "tool_calls": {
+    "read": 48,
+    "shell": 33,
+    "edit": 2
+  },
+  "tool_failures": 2,
+  "files_read": 57,
+  "files_written": [
+    "_outputs/soft_report.md",
+    "_outputs/soft_score.json"
+  ],
+  "hmos_files_total": 454,
+  "hmos_files_read_main": 8,
+  "hmos_files_read_incl_subagents": 8,
+  "hmos_coverage": 0.018,
+  "outside_workspace_reads": [
+    "/home/kevin/.cursor/projects/home-kevin-Work-spec-loop-ws-r1-iter-01-rescore-soft/agent-tools/0fabd78b-53ae-4f49-9557-bb3a02828e5b.txt"
+  ],
+  "openspec_validate_runs": 0,
+  "openspec_validate_failures": 0,
+  "subagents": 0,
+  "subagent_tool_uses": 0,
+  "web_calls": 0,
+  "thinking_chars": 138783,
+  "assistant_chars": 1322
+}

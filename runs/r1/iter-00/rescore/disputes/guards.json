@@ -1,0 +1,11 @@
+{
+  "no_code": {
+    "ok": true,
+    "allowed": [
+      "_outputs/"
+    ],
+    "changed": 1,
+    "violations": [],
+    "ignored": []
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "items": 89,
+  "same": 88,
+  "agreement": 0.9888,
+  "stated_items": 88,
+  "stated_same": 87,
+  "stated_agreement": 0.9886,
+  "diffs": [
+    {
+      "id": "macro/CALL_MANAGER_AUTO_START_OPTIMIZE",
+      "a": "remove",
+      "b": "no_code"
+    }
+  ]
+}

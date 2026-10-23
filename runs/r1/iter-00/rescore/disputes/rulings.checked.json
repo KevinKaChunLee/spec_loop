@@ -1,0 +1,35 @@
+{
+  "rulings": {
+    "feature/voip": {
+      "ruling": "student_wrong",
+      "severity": "high",
+      "reason": "AGENTS.md 将 VOIP 单列为「暂不支持，依赖后续跟 meetime 畅连通话解决畅连与蜂窝通话冲突场景」，与不支持清单「相关代码无需迁移」刻意区分，且总约束明确「代码按功能实现，不能因为无外部接口而丢弃功能」。reference 保留 VoIPCall、voipCallObjectList_ 与 CarrierAndVoipConflictProcess/HangUpVoipCall/HandleVoipCallReportInfo 并仅桩化 VoipCallConnection，符合该口径；student 整通路删除（voip_call.cpp、voip_call_connection.cpp 及织入 CS/IMS 主流程的冲突分支），丢弃了 AGENTS.md 为畅连明确预留的冲突处理能力。",
+      "evidence": "AGENTS.md 功能范围（VOIP 暂不支持、依赖畅连）与约束（不能因为无外部接口而丢弃功能）；telephony_call_manager/services/call/src/call_status_manager.cpp:126（TYPE_VOIP→HandleVoipCallReportInfo）、call_control_manager.cpp:330（CarrierAndVoipConflictProcess）、call_object_manager.cpp:80-83（AddOneCallObject 的 VoIP 振铃判定）"
+    },
+    "macro/NOT_SUPPORT_MULTICALL": {
+      "ruling": "reference_questionable",
+      "severity": "medium",
+      "reason": "AGENTS.md 将该宏列入「支持宏（无需显示定义宏）」，且说明 2 仅对 CONFIG_FACTORY_VERSION 要求「这个宏需要保留」，即其余支持宏应按已定义生效；student 固定 feature 为 true、按已定义处理符合此口径。reference 保留 declare_args 且默认 false 不定义，使 liteOS 默认构建放开通话上限 2 的多通话行为，与支持宏定位相悖，也与其自身 D12「支持宏恒定义」规则矛盾。",
+      "evidence": "AGENTS.md 特性宏支持范围及说明 2；telephony_call_manager/BUILD.gn:19（declare_args 默认 false）、call_control_manager.cpp:227（AnswerCall 的 HangUpFirstCall）；_inputs/reference/openspec/changes/migrate-call-manager-to-liteos/specs/build-and-feature-flags/spec.md:16"
+    },
+    "macro/ABILITY_POWER_SUPPORT": {
+      "ruling": "reference_questionable",
+      "severity": "high",
+      "reason": "AGENTS.md 将 ABILITY_POWER_SUPPORT 列为支持宏，外部依赖处理只要求功耗锁「调用点用 todo 注释占位」而非删功能，并有「不能因为无外部接口而丢弃功能」的总约束；student 宏生效保留 incoming_call_wake_up.cpp 代码路径、RunningLock 调用点 todo，符合口径。reference 将其并入 gni 不支持块删除并整文件不迁移 IncomingCallWakeup（来电亮屏需求被 REMOVED），与其对 ABILITY_SMS_SUPPORT 等支持宏「代码迁移+桩化」的同类处理不一致。",
+      "evidence": "AGENTS.md 支持宏清单与外部依赖处理（功耗锁 todo 占位）；telephony_call_manager/services/call/call_state_observer/src/incoming_call_wake_up.cpp:36-89（ABILITY_POWER_SUPPORT 守卫的持锁/亮屏逻辑）；_inputs/reference/openspec/changes/migrate-call-manager-to-liteos/specs/call-state-observer/spec.md（REMOVED Requirement: 来电亮屏与电源锁）"
+    },
+    "macro/ABILIT_CONFIG_SUPPORT": {
+      "ruling": "student_wrong",
+      "severity": "low",
+      "reason": "源码在保留文件 cs_call.cpp:177、ims_call.cpp:282 存在拼写变体 ABILIT_CONFIG_SUPPORT 守卫的 carrier config 查询（IsSupportConferenceable）；AGENTS.md 规定「宏定义按实际代码实现来判断」，ABILITY_CONFIG_SUPPORT 为不支持宏，reference 将该变体一并删守卫（查询走默认值）是正确决策。student 全部规格对该变体只字未提，漏掉了这一处置点；因所守卫的是本就不支持的会议容量查询，实际影响很小。",
+      "evidence": "telephony_call_manager/services/call/src/cs_call.cpp:177、ims_call.cpp:282；AGENTS.md 特性宏支持范围（ABILITY_CONFIG_SUPPORT 不支持）与约束（宏按实际代码实现判断）；_inputs/reference/openspec/changes/migrate-call-manager-to-liteos/design.md D12 宏表"
+    },
+    "architecture/locks": {
+      "ruling": "student_defensible",
+      "severity": "low",
+      "reason": "AGENTS.md 只说单线程环境「不需要加锁」，并未要求删除既有锁；student 原样保留 std::mutex（单线程无争用、行为一致，契合「架构尽量与 HMOS 保持一致」）并将 ffrt::mutex 换空实现桩（符合 ffrt 打桩规则）。reference 删除全部锁成员与加锁调用是同一前提下的另一种合理处置，两种做法运行时行为一致，属可辩护的架构取舍。",
+      "evidence": "AGENTS.md「以下接口不调用：…目前只有一个线程，因此不需要加锁」、ffrt 替换/打桩条目与架构要求；student design.md D5（std::mutex 原样保留、ffrt::mutex 空桩）；reference design.md D7"
+    }
+  },
+  "errors": []
+}

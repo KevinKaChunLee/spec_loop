@@ -1,0 +1,7 @@
+{
+  "errors": [],
+  "warnings": [
+    "dependencies.libphonenumber: cited files not in the HMOS tree: utils/call_number_utils.cpp"
+  ],
+  "dropped": []
+}
