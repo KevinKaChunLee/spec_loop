@@ -11,3 +11,5 @@ runs/**/_staging/
 runs/**/trajviz/
 runs/smoke*/
 runs/**/*.log
+runs/.*.lock
+runs/**/.*.tmp

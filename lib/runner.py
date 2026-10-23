@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import functools
 import json
 import os
 import shutil
@@ -33,6 +35,42 @@ instructions as text), follow all of the original instructions, and stop only wh
 completion criteria are met."""
 TRANSCRIPTS_ROOT = Path.home() / ".cursor" / "projects"
 _slots = threading.BoundedSemaphore(8)
+# Process groups of the agent sessions running now; each session runs in its own group, so it
+# outlives this process unless it is stopped explicitly.
+_live: set[int] = set()
+
+
+def stop_agents() -> None:
+    """Terminate every agent session this process is running."""
+    for pgid in list(_live):
+        with contextlib.suppress(ProcessLookupError):
+            os.killpg(pgid, signal.SIGTERM)
+
+
+def tool_version(cmd: list[str]) -> str:
+    try:
+        return subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                              text=True, timeout=60).stdout.strip() or "unknown"
+    except (OSError, subprocess.TimeoutExpired):
+        return "unknown"
+
+
+@functools.cache
+def _binary_version(path: str, _mtime_ns: int) -> str:
+    return tool_version([path, "--version"])
+
+
+def cli_version() -> str:
+    """Version of the `agent` CLI on PATH. The CLI updates itself, so this is read per run: the
+    installed binary lives in .../versions/<version>/; another layout is asked once per binary
+    file (path and modification time)."""
+    exe = shutil.which("agent")
+    if not exe:
+        return "unknown"
+    real = Path(exe).resolve()
+    if real.parent.parent.name == "versions":
+        return real.parent.name
+    return _binary_version(str(real), real.stat().st_mtime_ns)
 
 
 def set_parallel_limit(n: int) -> None:
@@ -86,20 +124,28 @@ def _run_once(cmd: list[str], ws: Path, traj: Path, errf: Path, label: str, star
     progress.offset = traj.stat().st_size
     with open(traj, "a", encoding="utf-8") as fout, open(errf, "a", encoding="utf-8") as ferr:
         proc = subprocess.Popen(cmd, cwd=ws, stdout=fout, stderr=ferr, start_new_session=True)
-        while True:
-            try:
-                return proc.wait(timeout=60), False
-            except subprocess.TimeoutExpired:
-                elapsed = time.time() - started
-                log(f"  {label}: {elapsed / 60:.0f}m, {progress.poll()}")
-                if elapsed > timeout_min * 60:
-                    log(f"  {label}: timeout after {timeout_min}m, terminating")
-                    os.killpg(proc.pid, signal.SIGTERM)
-                    try:
-                        return proc.wait(timeout=30), True
-                    except subprocess.TimeoutExpired:
-                        os.killpg(proc.pid, signal.SIGKILL)
-                        return proc.wait(), True
+        _live.add(proc.pid)
+        try:
+            while True:
+                try:
+                    return proc.wait(timeout=60), False
+                except subprocess.TimeoutExpired:
+                    elapsed = time.time() - started
+                    log(f"  {label}: {elapsed / 60:.0f}m, {progress.poll()}")
+                    if elapsed > timeout_min * 60:
+                        log(f"  {label}: timeout after {timeout_min}m, terminating")
+                        os.killpg(proc.pid, signal.SIGTERM)
+                        try:
+                            return proc.wait(timeout=30), True
+                        except subprocess.TimeoutExpired:
+                            os.killpg(proc.pid, signal.SIGKILL)
+                            return proc.wait(), True
+        except BaseException:
+            with contextlib.suppress(ProcessLookupError):
+                os.killpg(proc.pid, signal.SIGTERM)
+            raise
+        finally:
+            _live.discard(proc.pid)
 
 
 def find_transcript(session_id: str) -> Path | None:
@@ -139,6 +185,7 @@ def _run_agent(*, model: dict, ws: Path, prompt: str, out_dir: Path, label: str,
             "--force", "--trust", "--sandbox", "enabled", "--workspace", str(ws)]
 
     log(f"agent start: model={model['id']} ws={ws} label={label} timeout={timeout_min}m")
+    cli_start = cli_version()
     started = time.time()
     traj.write_text("", encoding="utf-8")
     errf.write_text("", encoding="utf-8")
@@ -202,8 +249,11 @@ def _run_agent(*, model: dict, ws: Path, prompt: str, out_dir: Path, label: str,
             shutil.copy2(transcript_src, transcript_dst)
 
     model_reported = init.get("model", "")
+    cli_end = cli_version()
     meta = {
         "label": label,
+        "agent_cli": cli_start,
+        **({"agent_cli_end": cli_end} if cli_end != cli_start else {}),
         "model_id": model["id"],
         "model_expected": model["expect"],
         "model_reported": model_reported,

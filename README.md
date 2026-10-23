@@ -17,7 +17,7 @@ Every agent runs headless through the Cursor CLI (`agent -p`), each in its own t
 1. **Shared inputs.** `AGENTS.md`, `openspec/config.yaml`, the HMOS module, the OpenSpec skills and `prompts/task.md` are fixed at `base_sha` and identical for every agent. `inputs.lock.json` records their hashes and the CLI versions.
 2. **Isolated agent runs.** Each oracle, student, extractor, judge and synthesizer call gets a fresh snapshot with no git history, runs through `runner.py`, and is checked by `guards.py`. Its trajectory is rendered for reading and exported for TrajViz.
 3. **Oracle.** The oracle writes the reference spec once and the extractor proposes its decision table. You review both, edit them or ask the oracle to revise, then freeze them. Later runs reuse the frozen reference with `prepare --reference-from`.
-4. **Baseline and noise.** Iteration 0 runs several students without a playbook, each scored against the frozen reference by two independent judge passes. The first playbook is written from all samples' gaps, recurring ones first, plus the median sample's full report and trajectory. The spread across samples and judges gives the noise threshold, which code uses from iteration 1 on: to mark score changes as within noise or significant, and to decide when the synthesizer reverts to an earlier playbook.
+4. **Baseline and noise.** Iteration 0 runs several students without a playbook, each scored against the frozen reference by two independent judge passes. The first playbook is written from all samples' gaps, recurring ones first, plus the median sample's full report and trajectory. The spread across samples, judges and extraction passes gives the noise estimates. From iteration 1 on, code uses them to mark score changes as within noise or significant, and to decide when the synthesizer takes back a playbook revision.
 5. **Teaching loop.** Iterations 1 to N. The student writes its spec blind. Scoring compares its decision table with the reference in code, has a judge rule on disagreements and score four quality parts, and computes the total in code. The synthesizer turns the gaps and the student's trajectory into the next playbook. A script checks the playbook for copied text and leaked answers, and the loop runs a fixed number of iterations.
 6. **Verification.** After the loop, the top playbook is re-tested on fresh students and compared with the iteration-0 baseline students, who had no playbook.
 7. **Outputs and analysis.** Specs, scores, reports and playbooks land in `runs/<run>/`; trajectories can be opened in TrajViz.
@@ -78,13 +78,13 @@ A later run can reuse a frozen reference instead of running the oracle again. Me
 python3 loop.py prepare --run r2 --reference-from r1          # copies the frozen spec, manifest and decisions
 python3 loop.py student --run r2 --iter 0 --samples 3         # three students without a playbook
 python3 loop.py compare --run r2 --iter 0 --judges 2          # two independent judge passes per student
-python3 loop.py noise   --run r2                              # spreads and the iteration threshold
+python3 loop.py noise   --run r2                              # spreads, extractor noise, thresholds
 python3 loop.py iterate --run r2 --start 0 --iters 4          # playbooks from iterations 0-2, scored in 1-3
 python3 loop.py ablate  --run r2 --playbook top --samples 3   # fresh students with the top playbook vs the baseline
 python3 loop.py status  --run r2
 ```
 
-`iterate` runs a fixed number of iterations and never stops early: with one sample per iteration, most score changes are within noise, and an early stop would end the loop on noise. It skips stages that already completed, so it is safe to re-run after an interruption; the last iteration writes no playbook. With `--samples M` it runs M students in parallel per iteration: the iteration score is their mean, and the synthesizer learns from the median sample. With `--judges N` (default `judges` in config.json) every sample gets N independent judge passes; its score is their mean.
+`iterate` runs a fixed number of iterations and never stops early: with one sample per iteration, most score changes are within noise, and an early stop would end the loop on noise. It skips stages that already completed, so it is safe to re-run after an interruption; the last iteration writes no playbook. A completed stage counts only if its record matches: student runs made with another prompt stop the loop (reset the iteration), and a score produced from another student spec is scored again. With `--samples M` it runs M students in parallel per iteration: the iteration score is the mean of the valid ones, and the synthesizer learns from the median sample. With `--judges N` (default `judges` in config.json) every sample gets N independent judge passes; its score is their mean.
 
 Stages are long: an oracle about 45 minutes, a student 30 to 70, a compare with two judges about 25, a synthesis 15 to 35 including its leak checks. Run them detached:
 
@@ -94,17 +94,20 @@ nohup python3 -u loop.py iterate --run r2 --start 0 --iters 4 > runs/r2-iterate.
 
 ### Reading noise and ablation results
 
-- **Noise** (`noise.md`, `noise.json`, and `state.json` under `noise`). From the iteration-0 samples, σ_judge = sqrt(mean within-sample variance of the judge totals); σ²_student = var(sample means) − σ²_judge / J; one iteration score (1 sample, J judges) has σ = sqrt(σ²_student + σ²_judge / J). Two iteration scores differ significantly only when they differ by more than the threshold 2 × √2 × σ. `noise.md` also lists the decision items that flip between samples and between judges. Measure it once per run: re-judge the existing specs after changing the rubric, a judge prompt, the judge model or the scoring code; prepare a new run after changing the student model, the task or the reference.
-- **Iteration marks.** `status`, `scores.csv` (`vs_best`) and the iterate log mark each iteration's score against the best earlier one as "within noise" or "significant". `gaps_closed` and `gaps_reopened` count the code-derived gap ids (decisions, coverage, rules) that disappeared since the previous iteration, or came back after an earlier one had closed them.
-- **Revert.** The synthesizer revises the latest playbook unless the latest iteration scored more than the threshold below the best one. Then it revises the best iteration's playbook instead and gets the worse one as evidence. `state.json` records `based_on` (and `reverted_from`) for each playbook.
-- **Ablation** (`ablation/report.md`, `ablation/ablation.json`). The "highest-scoring playbook" is the one with the highest raw iteration score, which overstates it, because it was picked from noisy scores; fresh samples correct that. By default two arms are judged the same way: none, the iteration-0 baseline students (no new runs), and full, fresh students with the playbook as it passed the leak check; full − none is the playbook's effect. `--arms full,process_only` adds a third arm with the same playbook minus every line a strict leak pass flags (any decision value, including those AGENTS.md settles; any HMOS symbol; any finding about the HMOS code; saved as `ablation/playbook.process_only.md`). full − process-only then estimates residual answer content. Because every playbook already passed the normal leak check, the two playbooks differ little, and with a few samples per arm that difference is rarely measurable. A difference is significant when it exceeds 2 × SE_diff, SE_diff = sqrt(s²_a / n_a + s²_b / n_b), using each arm's own spread across samples. The report also breaks the differences down by dimension, by decision group and kind, and by gap id.
+- **Noise** (`noise.md`, `noise.json`, and `state.json` under `noise`). From the valid iteration-0 samples, all scored with the same number J of judge passes: σ_judge = sqrt(mean within-sample variance of the judge totals), and σ²_student = var(sample means). The latter is not reduced by σ²_judge / J: with a handful of samples that difference is often clamped to 0, which would leave only judge noise in the threshold, so the estimate errs on the high side instead. An iteration score is the mean of n valid samples with J judge passes each, with variance σ²_student / n + σ²_judge / (n J). Two iteration scores differ significantly only when they differ by more than 2 × sqrt(var_a + var_b); for two one-sample iterations that is 2 × √2 × σ, the `threshold` shown by `status`. A baseline measured before σ²_student was defined this way marks nothing until `noise` runs again (`--extract-passes 1` needs no agent runs). By default `noise` also runs a second extraction of every sample (`--extract-passes 1` skips it): each sample has one extraction shared by all its judge passes, so extractor noise sits inside σ_student. `noise.md` reports per sample which decisions the two extractions read differently and how many points that could move (an upper bound, `σ_extract ≤`), and it marks the decision items that flip between samples and between judges, separating the flips the extractor itself causes. Measure it once per run: re-judge the existing specs after changing the rubric, a judge prompt, the judge model or the scoring code; prepare a new run after changing the student model, the task or the reference.
+- **Iteration marks.** `status`, `scores.csv` (`vs_best`) and the iterate log mark each iteration's score against the best earlier one as "within noise" or "significant", using that pair's threshold. `gaps_closed` and `gaps_reopened` count the code-derived gap ids (decisions, coverage, rules) that disappeared since the previous iteration, or came back after an earlier one had closed them.
+- **Revert.** The synthesizer revises the latest playbook unless the latest iteration scored clearly below its parent, the iteration that used the playbook the latest one was revised from (iteration 0 for a playbook written from scratch). Then it revises the parent playbook instead and gets the worse one as evidence. It compares with the parent, not with the best earlier iteration, because the best of several noisy scores is biased upward and would trigger reverts more often as iterations accumulate. `state.json` records `based_on` (and `reverted_from`) for each playbook. Without a noise baseline there are no marks and no reverts; `iterate` and `synthesize` warn about it.
+- **Ablation** (`ablation/report.md`, `ablation/ablation.json`). The "highest-scoring playbook" is the one with the highest raw iteration score, which overstates it, because it was picked from noisy scores; fresh samples correct that. By default two arms are judged the same way: none, the valid iteration-0 baseline students (no new runs), and full, at least three fresh students with the playbook as it passed the leak check. full − none is the playbook's effect and the only primary comparison. `--arms full,process_only` adds a third arm with the same playbook minus every line a strict leak pass flags (any decision value, including those AGENTS.md settles; any HMOS symbol; any finding about the HMOS code; saved as `ablation/playbook.process_only.md`). full − process-only then estimates residual answer content; it and process-only − none are exploratory. Because every playbook already passed the normal leak check, the two playbooks differ little, and with a few samples per arm that difference is rarely measurable. Every comparison is a two-sided Welch t test at α = 0.05, with Welch–Satterthwaite degrees of freedom from each arm's own spread: with three samples per arm the critical value is about 2.8, not 2. `ablate` stops when an arm has fewer than three valid scored samples, when the none arm was judged with another number of judge passes, or when its scores carry a provenance stamp from other inputs (`--allow-drift` overrides the last). The report lists each sample's student attempts and flags arms that ran under different CLI versions or judge inputs. It also breaks the differences down by dimension, by decision group and kind, and by gap id.
 
 ---
 
 ## What keeps the experiment fair
 
 - **One task.** `prompts/task.md` goes unchanged to the oracle and the student. A student run differs only in the model and the playbook appended after the task.
-- **Locked inputs.** `prepare` records `base_sha`, the hashes of AGENTS.md, config.yaml, the skills, every prompt and the rubric, and the CLI versions. The student, judge and synthesizer stages warn if a prompt has changed since then.
+- **Locked inputs.** `prepare` records `base_sha`, the hashes of AGENTS.md, config.yaml, the skills, every prompt, the rubric and the decision vocabulary, a fingerprint of config.json (all keys except `iterations`, `judges`, `max_parallel_agents`, `model_notes` and `workspace_root`), the models and the CLI versions. Every stage that runs agents stops when any of these changed since, unless you pass `--allow-drift`; accepted drift is recorded in `state.json` and shown by `status`. The agent CLI updates itself, so every run also records the CLI version it ran with (`agent_cli` in its `.run.json`). `prepare --reference-from` also stops when the vocabulary, the extraction prompt or the task changed since the reference decisions were extracted (recorded at freeze, followed back through runs that copied them).
+- **Provenance.** Every `score.json` carries the inputs, the student spec hash, the reference manifest, the judge count and the scoring code it came from. `compare` and `ablate` reuse a score only when all of these match (`compare --fresh` judges again anyway); when only the scoring code changed, they recompute the total from the saved model outputs. Every student run writes `provenance.json` with its prompt hash and attempts.
+- **Only valid student runs count.** A student run that failed, still missed deliverables after the nudges, or leaked is retried from scratch (`student_retries`); the earlier attempt is kept as `student-sN.attemptN`, and the attempt count goes to `scores.csv` and the ablation report. A run that stays invalid is not scored and is left out of the iteration mean, the gap table, the noise baseline and the ablation; `status` lists it. When a valid sample fails to score, the iteration gets no score until `compare` succeeds for every valid sample. A dispute run that leaves a ruling out after its fix attempt fails the same way, instead of charging the student.
+- **Same judging everywhere.** The judge gets the same inputs in every iteration, in the noise baseline and in the ablation; in particular it never sees the previous iteration's gaps.
 - **Blind workspaces.** Each agent works in a fresh `git archive` snapshot with a single commit and no history; the original repository's history and branches contain earlier specs. Oracle outputs live outside the student's workspace. The leak check scans every tool call, including subagent transcripts, plus tool outputs for exposed paths. It fails a run that touches `spec_loop/`, another stage's workspace, the original workspace, other projects' agent transcripts, or earlier GLM exports.
 - **Frozen reference.** `freeze` writes `MANIFEST.sha256` and makes the spec and the human-checked reference decisions read-only; every later stage re-verifies them.
 - **Planning only.** The no-code guard reads `git status` in the workspace. Anything written outside `openspec/` fails an oracle run and is excluded from a student's score.
@@ -122,8 +125,8 @@ nohup python3 -u loop.py iterate --run r2 --start 0 --iters 4 > runs/r2-iterate.
 | `extract --target oracle` | `extractor` | reference spec, `decision_vocab.json` | `oracle/decisions/pass-N/`, `decisions.proposed.json`, `decisions.review.md` |
 | `freeze` | none | `oracle/spec/`, `oracle/decisions.proposed.json` | `oracle/MANIFEST.sha256`, `oracle/decisions.json` |
 | `student --iter k` | `student` | task.md and the playbook from iteration k-1 | `iter-k/student[-sN]/` |
-| `compare --iter k` | `extractor`, then `judge` (disputes, soft parts) | task, rubric, reference spec and decisions, student spec, `metrics.md`, script checks, previous gap ids | `iter-k/compare[-sN]/score.json`, `report.md`, `decisions_compare.json`; a row in `scores.csv` |
-| `noise` | none | the iteration-0 samples' scores | `noise.json`, `noise.md`; `noise` in `state.json` |
+| `compare --iter k` | `extractor`, then `judge` (disputes, soft parts) | task, rubric, reference spec and decisions, student spec, `metrics.md`, script checks | `iter-k/compare[-sN]/score.json`, `report.md`, `decisions_compare.json`; a row in `scores.csv` |
+| `noise` | `extractor` (second extraction pass) | the iteration-0 samples' scores and specs | `noise.json`, `noise.md`, `iter-00/compare-sN/decisions-pass2/`; `noise` in `state.json` |
 | `ablate` | `student`, `extractor` and `judge` (scoring); `extractor` (strict leak pass, process_only arm only) | the selected playbook, the iteration-0 samples | `ablation/full/student-sN`, `compare-sN`; `ablation/report.md`, `ablation.json` |
 | `synthesize --iter k` | `synthesizer`, `extractor` (leak check) | task, reference, student spec, trajectory, stats, TrajViz views, report, score, previous playbook and changelogs, scores, playbook rules | `iter-k/playbook/playbook.md`, `changelog.md`, `overlap_report.json` |
 
@@ -153,9 +156,11 @@ runs/<run>/
     trajectory.md  stats.json  guards.json  metrics.json  *.run.json  *.prompt.md
     trajectory.jsonl  transcripts/  trajviz/            # local only
   iter-00/
-    student-s1/    spec/  trajectory.md  stats.json  guards.json  metrics.json ...
+    student-s1/    spec/  provenance.json  trajectory.md  stats.json  guards.json  metrics.json ...
+    student-s1.attempt1/                                # an earlier, invalid attempt (if any)
     compare-s1/    score.json  report.md  decisions_compare.json  code_checks.md  metrics.md
                    decisions/                           # the extractor's table of this student
+                   decisions-pass2/                     # the second extraction of `noise`
                    judge-1/ judge-2/                    # disputes/, soft/, score.json per judge pass
     playbook/      playbook.md  changelog.md  overlap_report.json  leak-N/ ...
   iter-01/ ...
@@ -221,15 +226,15 @@ To change the task, the rubric or the base commit, edit the file and `prepare` a
 
 | Command | Purpose |
 |---|---|
-| `prepare --run R [--smoke] [--force] [--reference-from R0]` | Create a run: lock the inputs, extract the base snapshot; with `--reference-from`, copy R0's frozen reference and decisions |
+| `prepare --run R [--smoke] [--force] [--reference-from R0 [--allow-drift]]` | Create a run: lock the inputs, extract the base snapshot; with `--reference-from`, copy R0's frozen reference and decisions |
 | `oracle --run R` | Run the oracle in a fresh workspace |
 | `oracle --run R --revise TEXT` (or `--revise-file F`) | Resume the oracle session with reviewer feedback |
 | `extract --run R --target T [--passes N]` | Extract a decision table from `T` (a run-relative directory holding `spec/`, or a playbook `.md`); `--target oracle` proposes the reference decisions |
 | `freeze --run R [--force]` | Validate, hash and make the reference read-only; on a frozen spec, freezes the reviewed reference decisions |
 | `student --run R --iter K [--samples M] [--dry-run]` | Run the student; `--dry-run` prints its prompt |
-| `compare --run R --iter K [--judges N]` | Score the student spec(s) of an iteration, N judge passes each |
-| `noise --run R [--iter K]` | Spread between samples and between judges; writes `noise.md` and the iteration threshold |
-| `ablate --run R [--playbook top\|iter-NN] [--samples M] [--judges N] [--arms full,process_only]` | Fresh students with the playbook against the iteration-0 baseline; resumable |
+| `compare --run R --iter K [--judges N] [--fresh]` | Score the valid student spec(s) of an iteration, N judge passes each; reuses scores with matching provenance unless `--fresh` |
+| `noise --run R [--iter K] [--extract-passes 1\|2]` | Spread between samples, judges and (default) extraction passes; writes `noise.md` and the thresholds |
+| `ablate --run R [--playbook top\|iter-NN] [--samples M] [--judges N] [--arms full,process_only]` | At least three fresh students with the playbook against the iteration-0 baseline, Welch t test; resumable |
 | `rescore --run R --iter K [--out NAME] [--student-decisions F] [--reuse] [--judges N]` | Score an existing student spec again into `iter-K/NAME/` without touching `state.json` or `scores.csv` |
 | `synthesize --run R --iter K` | Write the playbook for iteration K+1 |
 | `leak-check --run R --iter K [--strict] [--write-stripped]` | Run the playbook checks on an existing playbook and list the flagged lines |
@@ -238,6 +243,10 @@ To change the task, the rubric or the base commit, edit the file and `prepare` a
 | `status --run R` | Oracle state, validity of each student run, scores |
 | `trajviz --run R [--stage S]` | (Re-)export runs for TrajViz |
 | `smoke --run R` | End-to-end plumbing test |
+
+`student`, `compare`, `noise`, `synthesize`, `ablate` and `iterate` take `--allow-drift` to continue although the locked inputs changed.
+
+Commands hold run locks (`runs/.<run>.<scope>.lock`) while they run, so two `loop.py` processes cannot work on the same part of a run at once. `oracle`, `freeze` and `extract --target oracle` hold the oracle scope; `student`, `compare`, `noise`, `synthesize`, `ablate`, `iterate` and `reset` hold the loop scope; `prepare` and `smoke` hold both. A command whose scope is taken stops at once and names the process holding it. The baseline student can therefore still run while the oracle writes the reference, and `status`, `trajviz`, `rescore`, `leak-check` and other `extract` targets, which write only their own outputs, take no lock. Every change to `state.json` is a short locked read-modify-write, so commands of the two scopes never lose each other's updates. JSON and CSV records are fsynced to a temporary file and renamed into place, so neither a reader nor a crash ever sees a half-written file. Ctrl-C or `kill` stops a command's agent sessions as well, so no orphaned agent keeps running after its lock is gone.
 
 ---
 
@@ -253,7 +262,9 @@ To change the task, the rubric or the base commit, edit the file and `prepare` a
 
 **`zsh: == not found` in a trajectory.** Agents' shell commands run in zsh, where a bare `echo ===` fails. It is harmless.
 
-**`warning: prompts changed since prepare`.** A prompt or the rubric differs from what the run was prepared with, so later scores may not be comparable with earlier ones. Prepare a new run for deliberate changes.
+**`inputs changed since prepare`.** A prompt, the rubric, the vocabulary, config.json, a skill, a model or a CLI version differs from what the run was prepared with, so later scores would not be comparable with earlier ones. The agent CLI updating itself between stages is the most common cause. Prepare a new run for deliberate changes, or pass `--allow-drift` when you accept the difference.
+
+**`run 'R' is in use by another loop.py process`.** Another command of the same lock scope is still running on that run; the message names its pid and command line. Wait for it, or stop it with Ctrl-C or `kill <pid>`, which also stops its agent sessions; the lock goes away with the process.
 
 **`the frozen oracle spec changed since freeze`.** Something modified `runs/<run>/oracle/spec/`. Restore it (for example with `git checkout`); the manifest is the source of truth.
 
@@ -264,7 +275,20 @@ To change the task, the rubric or the base commit, edit the file and `prepare` a
 ## Layout
 
 ```
-loop.py                 CLI and stage orchestration
+loop.py                 the command line: argument parsing, dispatch to the stages
+stages/
+  core.py               config, run paths, models, sample directories, shared helpers
+  provenance.py         locked inputs, drift checks, provenance stamps of scores
+  agents.py             running agents and finishing their stages (guards, trajectories, TrajViz)
+  extraction.py         decision tables from a spec or a playbook
+  oracle.py             prepare, oracle, extract, freeze
+  student.py            student prompts, runs, attempts and validity
+  marks.py              which samples count, iteration variance and thresholds, marks, gap ids
+  scoring.py            compare, rescore: disputes, soft judge, the total of a sample
+  synthesis.py          synthesize, leak-check, revert rule
+  noise.py              noise: spread between samples, judges and extraction passes
+  ablation.py           ablate and its report
+  pipeline.py           iterate, reset, status, trajviz, smoke
 config.json             paths, models, limits, scoring weights
 rubric.md               scoring dimensions and the judge's soft parts
 decision_vocab.json     fixed decision keys and values, from AGENTS.md
@@ -286,6 +310,7 @@ lib/
   guards.py             no-code guard, validation, leak check, playbook checker
   render_traj.py        trajectory.md and stats.json
   spec_metrics.py       deterministic spec metrics and the reference/student diff
+  stats.py              Student's t distribution and Welch's test (no SciPy)
   trajviz_export.py     stream-json to TrajViz export, views and HTML report
   common.py             paths, run state, file helpers
 ```

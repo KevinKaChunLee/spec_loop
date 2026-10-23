@@ -132,8 +132,8 @@
 
   <rect x="720" y="650" width="480" height="76" rx="10" fill="#ffffff" stroke="#d9a520" stroke-width="1.5"/>
   <text x="736" y="676" font-size="15" font-weight="700" fill="#0f172a">Noise baseline</text>
-  <text x="736" y="697" font-size="11.5" fill="#64748b">&#963;_judge, &#963;_student, decisions that flip &#183; noise.md</text>
-  <text x="736" y="715" font-size="11.5" fill="#64748b">threshold = 2&#8730;2 &#183; &#963;, used by code from iteration 1 on (5)</text>
+  <text x="736" y="697" font-size="11.5" fill="#64748b">&#963;_judge, &#963;_student, &#963;_extract, decision flips &#183; noise.md</text>
+  <text x="736" y="715" font-size="11.5" fill="#64748b">pair threshold 2&#183;sqrt(var_a + var_b), used from iteration 1 on (5)</text>
   <polyline points="680,688 718,688" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
 
   <!-- ============ 5. TEACHING LOOP ============ -->
@@ -186,14 +186,14 @@
   <rect x="310" y="992" width="230" height="96" rx="10" fill="#ffffff" stroke="#5b8def" stroke-width="1.5"/>
   <text x="326" y="1018" font-size="15" font-weight="700" fill="#0f172a">scores.csv</text>
   <text x="326" y="1039" font-size="11.5" fill="#64748b">sample = mean of judge passes</text>
-  <text x="326" y="1057" font-size="11.5" fill="#64748b">vs best earlier: within threshold (4)?</text>
+  <text x="326" y="1057" font-size="11.5" fill="#64748b">vs best earlier: significant (4)?</text>
   <text x="326" y="1075" font-size="11.5" fill="#64748b">gaps closed / reopened</text>
 
   <rect x="580" y="992" width="340" height="96" rx="10" fill="#eefaf4" stroke="#17a673" stroke-width="1.5"/>
   <text x="596" y="1018" font-size="15" font-weight="700" fill="#0f172a">Playbook for k+1</text>
   <text x="596" y="1039" font-size="11.5" fill="#64748b">playbook.md &#183; changelog.md</text>
-  <text x="596" y="1057" font-size="11.5" fill="#64748b">revises the latest playbook, or the best one</text>
-  <text x="596" y="1075" font-size="11.5" fill="#64748b">if the latest scored worse by &gt; threshold (4)</text>
+  <text x="596" y="1057" font-size="11.5" fill="#64748b">revises the latest playbook, or its parent</text>
+  <text x="596" y="1075" font-size="11.5" fill="#64748b">if the latest scored clearly below the parent (4)</text>
 
   <rect x="960" y="992" width="240" height="96" rx="10" fill="#ffffff" stroke="#8fd6b8" stroke-width="1.5"/>
   <text x="976" y="1018" font-size="15" font-weight="700" fill="#0f172a">Playbook checker</text>
@@ -219,18 +219,18 @@
 
   <rect x="40" y="1222" width="420" height="76" rx="10" fill="#ffffff" stroke="#e48ab6" stroke-width="1.5"/>
   <text x="56" y="1248" font-size="15" font-weight="700" fill="#0f172a">No playbook (control)</text>
-  <text x="56" y="1269" font-size="11.5" fill="#64748b">the iteration-0 baseline students (4)</text>
+  <text x="56" y="1269" font-size="11.5" fill="#64748b">the valid iteration-0 baseline students (4)</text>
   <text x="56" y="1287" font-size="11.5" fill="#64748b">no new runs</text>
 
   <rect x="500" y="1222" width="420" height="76" rx="10" fill="#ffffff" stroke="#e48ab6" stroke-width="1.5"/>
   <text x="516" y="1248" font-size="15" font-weight="700" fill="#0f172a">With the top playbook</text>
-  <text x="516" y="1269" font-size="11.5" fill="#64748b">3 fresh students &#215; 2 judges, same scoring</text>
+  <text x="516" y="1269" font-size="11.5" fill="#64748b">&#8805;3 fresh students &#215; 2 judges, same scoring</text>
   <text x="516" y="1287" font-size="11.5" fill="#64748b">fresh: its own iteration score was the lucky max</text>
   <polyline points="460,1260 498,1260" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
 
   <rect x="960" y="1222" width="240" height="76" rx="10" fill="#ffffff" stroke="#e48ab6" stroke-width="1.5"/>
   <text x="976" y="1248" font-size="15" font-weight="700" fill="#0f172a">ablation/report.md</text>
-  <text x="976" y="1269" font-size="11.5" fill="#64748b">difference vs 2 &#215; SE_diff</text>
+  <text x="976" y="1269" font-size="11.5" fill="#64748b">Welch t test, full &#8722; none primary</text>
   <text x="976" y="1287" font-size="11.5" fill="#64748b">per dimension &#183; decision &#183; gap id</text>
   <polyline points="920,1260 958,1260" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
 
