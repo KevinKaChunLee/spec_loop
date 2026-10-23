@@ -12,6 +12,7 @@
     "oracle":      {"id": "glm-5p3-max",  "expect": "GLM 5.3 Max"},
     "judge":       {"id": "glm-5p3-max",  "expect": "GLM 5.3 Max"},
     "synthesizer": {"id": "glm-5p3-max",  "expect": "GLM 5.3 Max"},
+    "extractor":   {"id": "glm-5p3-max",  "expect": "GLM 5.3 Max"},
     "student":     {"id": "glm-5p3-high", "expect": "GLM 5.3 High"}
   },
   "smoke_model": {"id": "glm-5p3-high", "expect": "GLM 5.3 High"},
@@ -22,23 +23,38 @@
     "student": 240,
     "judge": 120,
     "synthesizer": 120,
+    "extractor": 60,
     "smoke": 40
   },
 
   "iterations": 3,
-  "plateau": 2,
+  "judges": 2,
+  "max_parallel_agents": 8,
   "student_retries": 1,
   "completion_nudges": 2,
   "judge_fix_retries": 1,
+  "extract_fix_retries": 1,
   "synth_fix_retries": 2,
 
-  "rubric_weights": {
-    "baseline_coverage": 20,
-    "trim_scope": 25,
-    "external_deps": 15,
-    "code_level_design": 15,
-    "testability_grounding": 15,
-    "readability_rules": 10
+  "scoring": {
+    "weights": {
+      "agents_compliance": 10,
+      "open_decisions": 15,
+      "baseline_coverage": 35,
+      "code_level_design": 15,
+      "testability_grounding": 15,
+      "readability_rules": 10
+    },
+    "parts": {
+      "agents_compliance":     {"agents_compliance": 1.0},
+      "open_decisions":        {"open_decisions": 1.0},
+      "baseline_coverage":     {"module_coverage": 0.1, "behaviour_coverage": 0.6, "requirements_correctness": 0.3},
+      "code_level_design":     {"build_coverage": 0.3, "design_quality": 0.7},
+      "testability_grounding": {"grounding_rate": 0.5, "task_rules": 0.2, "scenario_quality": 0.3},
+      "readability_rules":     {"rule_checklist": 0.7, "readability": 0.3}
+    },
+    "llm_parts": ["requirements_correctness", "scenario_quality", "design_quality", "readability"],
+    "coverage_padding_ratio": 2.0
   },
 
   "playbook_limits": {

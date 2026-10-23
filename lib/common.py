@@ -66,10 +66,6 @@ def iter_dir(run_id: str, k: int) -> Path:
     return run_dir(run_id) / f"iter-{k:02d}"
 
 
-def sample_suffix(sample: int, samples: int) -> str:
-    return f"-s{sample}" if samples > 1 else ""
-
-
 def load_state(run_id: str) -> dict:
     state = read_json(run_dir(run_id) / "state.json")
     if state is None:

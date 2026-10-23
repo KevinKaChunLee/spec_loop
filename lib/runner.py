@@ -7,6 +7,7 @@ import os
 import shutil
 import signal
 import subprocess
+import threading
 import time
 from pathlib import Path
 
@@ -31,6 +32,13 @@ Continue now. Use your tools to create the missing files (do not only describe a
 instructions as text), follow all of the original instructions, and stop only when the task's
 completion criteria are met."""
 TRANSCRIPTS_ROOT = Path.home() / ".cursor" / "projects"
+_slots = threading.BoundedSemaphore(8)
+
+
+def set_parallel_limit(n: int) -> None:
+    """At most `n` agent sessions run at once across all threads of this process."""
+    global _slots
+    _slots = threading.BoundedSemaphore(max(1, n))
 
 
 class _Progress:
@@ -102,9 +110,14 @@ def find_transcript(session_id: str) -> Path | None:
     return None
 
 
-def run_agent(*, model: dict, ws: Path, prompt: str, out_dir: Path, label: str,
-              timeout_min: float, resume_session: str | None = None,
-              completion_check=None, max_nudges: int = 0) -> dict:
+def run_agent(**kwargs) -> dict:
+    with _slots:
+        return _run_agent(**kwargs)
+
+
+def _run_agent(*, model: dict, ws: Path, prompt: str, out_dir: Path, label: str,
+               timeout_min: float, resume_session: str | None = None,
+               completion_check=None, max_nudges: int = 0) -> dict:
     """Run `agent -p` in `ws`; write <label>.jsonl, <label>.stderr.log, <label>.run.json.
 
     Returns the run metadata. `ok` is True only if the stream ended with a

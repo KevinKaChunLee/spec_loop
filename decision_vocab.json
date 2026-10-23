@@ -1,0 +1,147 @@
+{
+  "about": "Fixed decision keys taken from AGENTS.md. The extractor maps a spec (or a playbook) onto these keys; the compare stage diffs the reference and student tables in code. agents_value is the value AGENTS.md itself settles (null when AGENTS.md leaves the decision open); a playbook may repeat a settled value but not the reference's value for an open key. Macros without any reference in the HMOS tree have nothing to migrate, so every stated value counts as agreement for them.",
+  "kinds": {
+    "features": {
+      "label": "功能范围",
+      "question": "该功能在 liteOS 版本中如何处置",
+      "values": {
+        "remove": "该功能的代码不迁移：文件、对象、分支删除，liteOS 版本中不存在",
+        "stub": "代码与逻辑保留，但外部接入或依赖调用换成桩 / todo 占位，功能暂不可用、待后续接入",
+        "keep": "代码保留且功能照常可用（只做通用的依赖替换）",
+        "simplify": "代码保留但按约束精简，例如只保留单卡 / 单帐号路径，删去多卡 / 多帐号分支",
+        "unstated": "spec 没有就该功能作出决定"
+      },
+      "items": {
+        "video_call":           {"label": "视频通话", "agents_value": "remove"},
+        "conference_call":      {"label": "会议通话", "agents_value": "remove"},
+        "satellite_call":       {"label": "卫星通话", "agents_value": "remove"},
+        "distributed_call":     {"label": "分布式（distributed 及 interoperable）通话", "agents_value": "remove"},
+        "bluetooth_call":       {"label": "BLUETOOTH 类型通话", "agents_value": "remove"},
+        "ott_call":             {"label": "OTT 类型通话", "agents_value": "remove"},
+        "earthquake_alarm":     {"label": "地震预警", "agents_value": "remove"},
+        "crs_video_ring":       {"label": "视频彩振（crsType==CRS_TYPE）", "agents_value": "remove"},
+        "wired_headset":        {"label": "有线耳机", "agents_value": "remove"},
+        "voice_broadcast":      {"label": "语音播报", "agents_value": "remove"},
+        "antifraud":            {"label": "防诈 antifraud", "agents_value": "remove"},
+        "super_privacy":        {"label": "超级隐私", "agents_value": "remove"},
+        "fold_screen":          {"label": "折叠屏", "agents_value": "remove"},
+        "edm_dial_block":       {"label": "EDM 企业禁拨", "agents_value": "remove"},
+        "incoming_flash":       {"label": "来电闪光（incoming flash）", "agents_value": "remove"},
+        "status_bar_icon":      {"label": "状态栏静音图标（StatusBar）", "agents_value": "remove"},
+        "proximity_sensor":     {"label": "贴耳灭屏（proximity_sensor）", "agents_value": "remove"},
+        "nearlink":             {"label": "星闪（NearLink）耳机设备连接", "agents_value": "remove"},
+        "make_call_with_token": {"label": "MAKE_CALL_WITH_TOKEN", "agents_value": "remove"},
+        "str_mode":             {"label": "STR 模式（TELEPHONY_EXIT_STR）", "agents_value": "remove"},
+        "esim":                 {"label": "ESIM", "agents_value": "remove"},
+        "new_call":             {"label": "新通话", "agents_value": "remove"},
+        "voip":                 {"label": "VOIP 类型通话（AGENTS.md：暂不支持，依赖后续畅连通话）", "agents_value": null},
+        "dsda":                 {"label": "DSDA（GetDsdsMode() 非 0 流程）", "agents_value": "remove"},
+        "single_sim":           {"label": "单卡（预留双卡扩展能力）", "agents_value": "simplify"},
+        "single_account":       {"label": "单主帐号（OsAccountManager、os_account）", "agents_value": "simplify"},
+        "bindings":             {"label": "JS / ETS / 仓颉绑定的外部接口", "agents_value": "remove"}
+      }
+    },
+    "macros": {
+      "label": "特性宏",
+      "question": "该宏及其守卫的代码如何处置",
+      "values": {
+        "remove": "宏及其守卫的代码不迁移：按未定义处理，删除对应分支或构建块",
+        "unguard": "守卫的代码迁移并生效：去掉守卫，或在构建中恒定义",
+        "keep": "宏作为开关保留，两个分支的代码都迁移",
+        "no_code": "spec 明确认为该宏在 v6.0 源码中没有引用，无代码需要处理",
+        "unstated": "spec 没有就该宏作出决定"
+      },
+      "items": {
+        "CALL_MANAGER_CALL_TRANSFER":         {"label": "不支持宏：CALL_MANAGER_CALL_TRANSFER（跨设备通话转移，不是 UT 呼叫转移）", "agents_value": "remove"},
+        "SUPPORT_HEARING_AID":                {"label": "不支持宏：SUPPORT_HEARING_AID", "agents_value": "remove"},
+        "SUPPORT_DSOFTBUS":                   {"label": "不支持宏：SUPPORT_DSOFTBUS", "agents_value": "remove"},
+        "CALL_MANAGER_AUTO_START_OPTIMIZE":   {"label": "不支持宏：CALL_MANAGER_AUTO_START_OPTIMIZE", "agents_value": "remove"},
+        "HFP_ASYNC_ENABLE":                   {"label": "不支持宏：HFP_ASYNC_ENABLE", "agents_value": "remove"},
+        "ABILITY_BLUETOOTH_SUPPORT":          {"label": "不支持宏：ABILITY_BLUETOOTH_SUPPORT", "agents_value": "remove"},
+        "ABILITY_CAMERA_FRAMEWORK_SUPPORT":   {"label": "不支持宏：ABILITY_CAMERA_FRAMEWORK_SUPPORT", "agents_value": "remove"},
+        "SUPPORT_MUTE_BY_DATABASE":           {"label": "不支持宏：SUPPORT_MUTE_BY_DATABASE", "agents_value": "remove"},
+        "SUPPORT_VIBRATOR":                   {"label": "不支持宏：SUPPORT_VIBRATOR", "agents_value": "remove"},
+        "HICOLLIE_ENABLE":                    {"label": "不支持宏：HICOLLIE_ENABLE", "agents_value": "remove"},
+        "OHOS_SUBSCRIBE_USER_STATUS_ENABLE":  {"label": "不支持宏：OHOS_SUBSCRIBE_USER_STATUS_ENABLE", "agents_value": "remove"},
+        "ABILITY_SCREENLOCKMGR_SUPPORT":      {"label": "不支持宏：ABILITY_SCREENLOCKMGR_SUPPORT", "agents_value": "remove"},
+        "ABILITY_NOTIFICATION_SUPPORT":       {"label": "不支持宏：ABILITY_NOTIFICATION_SUPPORT", "agents_value": "remove"},
+        "ABILITY_DISPLAY_SUPPORT":            {"label": "不支持宏：ABILITY_DISPLAY_SUPPORT", "agents_value": "remove"},
+        "ABILITY_STATUS_BAR_CONTROL_SUPPORT": {"label": "不支持宏：ABILITY_STATUS_BAR_CONTROL_SUPPORT", "agents_value": "remove"},
+        "ABILITY_MEDIA_SUPPORT":              {"label": "不支持宏：ABILITY_MEDIA_SUPPORT", "agents_value": "remove"},
+        "ABILITY_CONFIG_SUPPORT":             {"label": "不支持宏：ABILITY_CONFIG_SUPPORT", "agents_value": "remove"},
+        "RECONNECT_MAX_TRY_COUNT":            {"label": "不支持宏：RECONNECT_MAX_TRY_COUNT", "agents_value": "remove"},
+        "ABILITY_CAMERA_SUPPORT":             {"label": "不支持宏：ABILITY_CAMERA_SUPPORT", "agents_value": "remove"},
+        "OHOS_SUBSCRIBE_MOTION_ENABLE":       {"label": "不支持宏：OHOS_SUBSCRIBE_MOTION_ENABLE", "agents_value": "remove"},
+        "SUPPORT_RTT_CALL":                   {"label": "支持宏：SUPPORT_RTT_CALL", "agents_value": "unguard"},
+        "NOT_SUPPORT_MULTICALL":              {"label": "支持宏：NOT_SUPPORT_MULTICALL", "agents_value": "unguard"},
+        "CALL_MANAGER_SOS_NO_RINGBACK_TONE":  {"label": "支持宏：CALL_MANAGER_SOS_NO_RINGBACK_TONE", "agents_value": "unguard"},
+        "CALL_MANAGER_WATCH_CALL_BLOCKING":   {"label": "支持宏：CALL_MANAGER_WATCH_CALL_BLOCKING", "agents_value": "unguard"},
+        "CALL_MANAGER_THERMAL_PROTECTION":    {"label": "支持宏：CALL_MANAGER_THERMAL_PROTECTION", "agents_value": "unguard"},
+        "ABILITY_CELLULAR_SUPPORT":           {"label": "支持宏：ABILITY_CELLULAR_SUPPORT", "agents_value": "unguard"},
+        "ABILITY_SMS_SUPPORT":                {"label": "支持宏：ABILITY_SMS_SUPPORT", "agents_value": "unguard"},
+        "CELLULAR_DATA_SUPPORT":              {"label": "支持宏：CELLULAR_DATA_SUPPORT", "agents_value": "unguard"},
+        "ABILITY_POWER_SUPPORT":              {"label": "支持宏：ABILITY_POWER_SUPPORT（功耗锁接口本身暂不调用，见外部依赖）", "agents_value": "unguard"},
+        "TELEPHONY_CUST_SUPPORT":             {"label": "支持宏：TELEPHONY_CUST_SUPPORT", "agents_value": "unguard"},
+        "OHOS_BUILD_ENABLE_TELEPHONY_CUST":   {"label": "支持宏：OHOS_BUILD_ENABLE_TELEPHONY_CUST", "agents_value": "unguard"},
+        "CONFIG_FACTORY_VERSION":             {"label": "支持宏：CONFIG_FACTORY_VERSION（产线打开，#else 分支用于商用，两个分支都要支持）", "agents_value": "keep"},
+        "ABILITY_AUDIO_SUPPORT":              {"label": "源码中的宏（AGENTS.md 未列出）：ABILITY_AUDIO_SUPPORT", "agents_value": null},
+        "AUDIO_SUPPORT":                      {"label": "源码中的宏（AGENTS.md 未列出）：AUDIO_SUPPORT", "agents_value": null},
+        "ABILIT_CONFIG_SUPPORT":              {"label": "源码中的宏（AGENTS.md 未列出，ABILITY_CONFIG_SUPPORT 的拼写变体）：ABILIT_CONFIG_SUPPORT", "agents_value": null}
+      }
+    },
+    "dependencies": {
+      "label": "外部依赖处理",
+      "question": "调用该外部依赖的代码如何处置",
+      "values": {
+        "todo": "调用点保留并写 `// todo!!!` 占位，周边逻辑保留，暂不真正调用",
+        "stub": "通过桩实现，包括 `XxxClient::GetInstance().Xxx()` 客户端单例桩和 stub/ 下的同名桩",
+        "replace": "换成 liteOS 可用的替代物（智能指针、日志、结构体、EventHandler 等）",
+        "remove": "调用代码连同所在文件、观察者或分支整体删除，不保留调用点",
+        "keep": "原样调用，不做处理",
+        "unstated": "spec 没有就该依赖作出决定"
+      },
+      "items": {
+        "audio":              {"label": "音频 audio 相关接口", "agents_value": "todo"},
+        "database":           {"label": "数据库 DataShare 相关接口", "agents_value": "todo"},
+        "broadcast":          {"label": "广播 EventFwk::CommonEventManager 相关接口", "agents_value": "todo"},
+        "power_lock":         {"label": "功耗锁（ABILITY_POWER_SUPPORT）相关接口", "agents_value": "todo"},
+        "call_ui":            {"label": "拉起通话界面 CallConnectAbility 的外部依赖接口", "agents_value": "stub"},
+        "notification":       {"label": "通知 NotificationHelper 相关接口", "agents_value": "todo"},
+        "spam_call":          {"label": "骚扰来电相关接口（不用 dlopen）", "agents_value": "todo"},
+        "number_identity":    {"label": "号码识别 / 黄页标记相关接口", "agents_value": "todo"},
+        "rtt_file_node":      {"label": "RTT 文件节点调用", "agents_value": "todo"},
+        "sptr":               {"label": "sptr（换 std::shared_ptr / unique_ptr）", "agents_value": "replace"},
+        "hisysevent_hitrace": {"label": "HiSysEvent、HITRACE 维测（换日志打印）", "agents_value": "replace"},
+        "cellular_call":      {"label": "与 cellular_call 的 IPC（CellularCallClient::GetInstance().Xxx()）", "agents_value": "stub"},
+        "core_service":       {"label": "与 core_service 的 IPC（CoreServiceClient::GetInstance().Xxx()）", "agents_value": "stub"},
+        "cellular_data":      {"label": "与 cellular_data 的 IPC（CellularDataClient::GetInstance().Xxx()）", "agents_value": "stub"},
+        "sms_mms":            {"label": "与 sms_mms 的 IPC（SmsClient::GetInstance().Xxx()）", "agents_value": "stub"},
+        "telephony_cust":     {"label": "与 TelephonyCust 的通信（TelephonyCustClient::GetInstance().Xxx()）", "agents_value": "stub"},
+        "ffrt":               {"label": "ffrt 异步任务（换打桩的 EventHandler）", "agents_value": "replace"},
+        "libphonenumber":     {"label": "libphonenumber 相关接口", "agents_value": "stub"},
+        "parameter":          {"label": "系统参数（parameter）相关接口", "agents_value": "stub"},
+        "cjson":              {"label": "三方库 cJSON", "agents_value": "stub"},
+        "base_libs":          {"label": "基础库 securec、c_utils、log、eventhandler", "agents_value": "stub"},
+        "pacmap":             {"label": "AppExecFwk::PacMap 等 liteOS 无法使用的数据结构（换结构体）", "agents_value": "replace"}
+      }
+    },
+    "architecture": {
+      "label": "架构开关",
+      "question": "该架构开关在 liteOS 版本中的处置",
+      "values": {
+        "remove": "删除：对应代码不迁移",
+        "keep": "保留：对应代码保留（原样，或换成空实现的桩）",
+        "yes": "是",
+        "no": "否",
+        "unstated": "spec 没有就该开关作出决定"
+      },
+      "items": {
+        "systemability_ipc": {"label": "CallManagerService 继承 SystemAbility 与 IPC（remove = 不继承、不实现 IPC，CallManagerClient 直接调用 CallManagerService）", "values": ["remove", "keep", "unstated"], "agents_value": "remove"},
+        "permission_checks": {"label": "对外接口的权限校验（remove = 不调用权限校验接口）", "values": ["remove", "keep", "unstated"], "agents_value": "remove"},
+        "locks":             {"label": "现有的锁（std::mutex、ffrt::mutex 等）与加锁调用（remove = 锁成员与加锁调用删除；keep = 加锁代码保留，原样或换成空实现的桩）", "values": ["remove", "keep", "unstated"], "agents_value": null},
+        "dsds_mode_zero":    {"label": "DSDS 模式查询恒返回 0（yes = 恒 0，非 0 分支不迁移）", "values": ["yes", "no", "unstated"], "agents_value": "yes"},
+        "slot_id_kept":      {"label": "保留 slotId 参数与字段以备双卡扩展", "values": ["yes", "no", "unstated"], "agents_value": "yes"}
+      }
+    }
+  }
+}

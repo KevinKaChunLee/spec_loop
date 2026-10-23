@@ -9,6 +9,7 @@ import re
 import subprocess
 from pathlib import Path
 
+from . import decisions
 from .render_traj import tool_calls, transcript_tool_uses
 from .stream import parse_events
 from .workspace import changed_paths
@@ -61,16 +62,33 @@ def _strings(obj, skip=CONTENT_KEYS):
             yield from _strings(v, skip)
 
 
+# Parts of a stage workspace that differ between stages: other agents' specs, inputs (the
+# reference) and outputs. Everything else is the same base snapshot in every workspace.
+PRIVATE_WS_DIRS = {"_inputs", "_outputs", "openspec", ".git", ".cursor"}
+
+
 def _forbidden_reason(path: str, ws: Path, cfg: dict, own_project: str | None,
                       spec_loop_root: Path) -> tuple[str, str] | None:
-    """Return (severity, reason) for a path the agent must not touch, else None."""
+    """Return (severity, reason) for a path the agent must not touch, else None. Reading another
+    stage's copy of a shared snapshot file (one that also exists in this workspace, outside the
+    private directories) is only a warning: its content is the same as this workspace's copy."""
     p = os.path.normpath(os.path.expanduser(path))
     wsr = str(ws)
     if p == wsr or p.startswith(wsr + "/"):
         return None
+
+    def shared(parts: tuple[str, ...]) -> bool:
+        return bool(parts) and parts[0] not in PRIVATE_WS_DIRS and (ws / Path(*parts)).exists()
+
     if p.startswith(str(spec_loop_root)):
+        rel = Path(p).relative_to(spec_loop_root).parts
+        if len(rel) > 3 and rel[0] == "runs" and rel[2] == "base" and shared(rel[3:]):
+            return "warning", f"shared snapshot file in the base copy of run {rel[1]}"
         return "violation", "spec_loop tooling or run outputs"
     if p.startswith(str(Path(cfg["repo"]).parent)):
+        repo = Path(cfg["repo"])
+        if p.startswith(str(repo) + "/") and shared(Path(p).relative_to(repo).parts):
+            return "warning", "shared snapshot file in the original repository's working tree"
         return "violation", "original workspace (repo with history, branches, tooling)"
     if "/.cursor/projects/" in p + "/":
         if own_project and f"/.cursor/projects/{own_project}" in p:
@@ -82,6 +100,9 @@ def _forbidden_reason(path: str, ws: Path, cfg: dict, own_project: str | None,
     if p.startswith(wroot + "/"):
         rel = Path(p).relative_to(wroot).parts
         if len(rel) >= 2 and (Path(wroot) / rel[0] / rel[1]).is_dir():
+            inner = rel[2:]
+            if inner and inner[0] not in PRIVATE_WS_DIRS and (ws / Path(*inner)).exists():
+                return "warning", f"shared snapshot file in another stage's workspace ({rel[0]}/{rel[1]})"
             return "violation", f"another stage's workspace ({rel[0]}/{rel[1]})"
         return "warning", "parent of the stage workspaces"
     if p == wroot:
@@ -107,14 +128,18 @@ def leak_check(cfg: dict, ws: Path, traj: Path, transcripts: Path | None,
                     entry = {"where": where, "tool": tool, "path": c[:300], "reason": r[1]}
                     (violations if r[0] == "violation" else warnings).append(entry)
         if result is not None:
-            result_strings = list(_strings(result, skip=frozenset()))
-            for marker in markers:
-                if any(marker in s for s in result_strings):
-                    entry = {"where": where, "tool": tool, "path": marker,
-                             "reason": "tool output exposed a forbidden path"}
-                    if (entry["reason"], marker, tool) not in seen:
-                        seen.add((entry["reason"], marker, tool))
-                        violations.append(entry)
+            for s in _strings(result, skip=frozenset()):
+                if not any(marker in s for marker in markers):
+                    continue
+                for c in ABS_PATH_RE.findall(s):
+                    if not c.startswith(markers):
+                        continue
+                    r = _forbidden_reason(c, ws, cfg, own_project, spec_loop_root)
+                    key = ("tool output exposed a forbidden path", c, tool)
+                    if r and r[0] == "violation" and key not in seen:
+                        seen.add(key)
+                        violations.append({"where": where, "tool": tool, "path": c[:300],
+                                           "reason": f"tool output exposed a forbidden path ({r[1]})"})
         if "web" in tool.lower():
             warnings.append({"where": where, "tool": tool, "path": "", "reason": "web tool used"})
 
@@ -169,12 +194,18 @@ def _allowed_corpus(base: Path, hmos_dir: str, task_text: str) -> str:
 
 
 def check_playbook(cfg: dict, playbook_path: Path, reference_root: Path, base: Path,
-                   reference_caps: list[str], task_text: str) -> dict:
+                   reference_caps: list[str], task_text: str, index: dict) -> dict:
+    """Code-only playbook checks. `problems` reject the playbook; `symbol_leaks` are lines that
+    name HMOS identifiers or file names the shared documents do not name (strippable)."""
     lim = cfg["playbook_limits"]
     problems = []
     if not playbook_path.exists():
-        return {"ok": False, "problems": ["playbook.md was not written"]}
+        return {"ok": False, "problems": ["playbook.md was not written"], "symbol_leaks": []}
     text = playbook_path.read_text(encoding="utf-8", errors="replace")
+    shared = [(base / rel).read_text(encoding="utf-8", errors="replace")
+              for rel in ("AGENTS.md", "openspec/config.yaml") if (base / rel).exists()]
+    idents, files = decisions.allowed_symbols([*shared, task_text])
+    symbol_leaks = decisions.symbol_leaks(text, index, idents, files)
     n_lines = text.count("\n") + 1
     if n_lines > lim["max_lines"]:
         problems.append(f"playbook has {n_lines} lines; the limit is {lim['max_lines']}")
@@ -200,6 +231,7 @@ def check_playbook(cfg: dict, playbook_path: Path, reference_root: Path, base: P
         problems.append(f"playbook names {len(named)} of the reference's {len(caps)} capability ids "
                         f"(share {share} > {lim['max_capability_id_share']}); describe how to derive "
                         f"capabilities instead of listing them")
-    return {"ok": not problems, "problems": problems, "lines": n_lines,
+    return {"ok": not problems and not symbol_leaks, "problems": problems, "lines": n_lines,
             "copied_chars": total, "spans": [s[:200] for s in sorted(spans, key=len, reverse=True)[:15]],
-            "capability_ids_named": named, "capability_id_share": share}
+            "capability_ids_named": named, "capability_id_share": share,
+            "symbol_leaks": symbol_leaks}
