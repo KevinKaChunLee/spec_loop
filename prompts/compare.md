@@ -13,7 +13,6 @@ A script already scores the decisions (which modules, features and feature macro
 - `_inputs/reference/openspec/` and `_inputs/student/openspec/`: the two specs. In both, ignore `specs/pc-test-harness` and `changes/setup-pc-test-env`; they predate the task.
 - `_inputs/metrics.md`: deterministic metrics (counts, capability ids, macros mentioned, name grounding, validation and guard results).
 - `_inputs/code_checks.md`: what the script's checks found, so you do not repeat them.
-- `_inputs/previous_gaps.json` (only after the first iteration): gap ids from the previous iteration. Reuse an id when the same gap recurs.
 - `AGENTS.md` and `telephony_call_manager/`: the constraints and the HMOS source.
 
 ## How to judge

@@ -765,6 +765,17 @@ def aggregate(scoring: dict, parts: dict[str, float]) -> tuple[dict, float]:
     return dims, round(total / sum(scoring["weights"].values()) * 100, 1)
 
 
+def part_points(scoring: dict) -> dict[str, float]:
+    """Points of the total each part is worth at value 1."""
+    wsum = sum(scoring["weights"].values())
+    points = {}
+    for dim, weight in scoring["weights"].items():
+        pw = scoring["parts"][dim]
+        for p, w in pw.items():
+            points[p] = weight * w / sum(pw.values()) / wsum * 100
+    return points
+
+
 def code_share(scoring: dict, parts: dict[str, float], agree: dict[str, dict]) -> dict:
     """Split the earned total into points decided by code and points decided by a model.
 
@@ -772,23 +783,21 @@ def code_share(scoring: dict, parts: dict[str, float], agree: dict[str, dict]) -
     for items a dispute ruling counted as agreement."""
     llm = set(scoring["llm_parts"])
     part_kind = {p: g for g, p in GROUP_PART.items()}
-    wsum = sum(scoring["weights"].values())
     code_pts = llm_pts = code_max = 0.0
-    for dim, weight in scoring["weights"].items():
-        pw = scoring["parts"][dim]
-        for p, w in pw.items():
-            scale = weight * w / sum(pw.values()) / wsum * 100
-            if p in llm:
-                llm_pts += scale * parts[p]
-            elif p in part_kind:
-                a = agree[part_kind[p]]
-                n = a["items"] or 1
-                code_pts += scale * a["agree_code"] / n if a["items"] else scale
-                llm_pts += scale * a["agree_ruling"] / n if a["items"] else 0
-                code_max += scale
+    for p, scale in part_points(scoring).items():
+        if p in llm:
+            llm_pts += scale * parts[p]
+        elif p in part_kind:
+            a = agree[part_kind[p]]
+            if a["items"]:
+                code_pts += scale * a["agree_code"] / a["items"]
+                llm_pts += scale * a["agree_ruling"] / a["items"]
             else:
-                code_pts += scale * parts[p]
-                code_max += scale
+                code_pts += scale
+            code_max += scale
+        else:
+            code_pts += scale * parts[p]
+            code_max += scale
     total = code_pts + llm_pts
     return {"code_points": round(code_pts, 1), "llm_points": round(llm_pts, 1),
             "code_share_of_total": round(code_pts / total, 3) if total else 0.0,

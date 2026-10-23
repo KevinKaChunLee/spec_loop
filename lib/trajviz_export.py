@@ -11,9 +11,9 @@ from __future__ import annotations
 
 import json
 import subprocess
-import time
 from pathlib import Path
 
+from .common import timestamp, write_text_atomic
 from .stream import bookends, content_text, parse_events, tool_call_key, usage_total
 
 TOOL_NAMES = {
@@ -315,7 +315,7 @@ def convert(traj: Path, ws: Path, transcripts: Path | None, title: str, output_c
         "export_metadata": {
             "schema_version": 1, "source_format": "cursor_composer",
             "generator_name": "spec_loop_cli_stream",
-            "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+            "generated_at": timestamp(),
             "chat_id": sid, "transcript_path": str(traj), "database_path": "",
             "token_semantics": "estimated_log_tokens; real CLI run totals in info.usageData",
             "complete": bool(result), "warnings": warnings,
@@ -330,7 +330,7 @@ def export(cfg: dict, traj: Path, ws: Path, transcripts: Path | None, out_dir: P
     out_dir.mkdir(parents=True, exist_ok=True)
     data = convert(traj, ws, transcripts, title, tv.get("output_chars", 20000))
     path = out_dir / f"{name}.trajviz.json"
-    path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    write_text_atomic(path, json.dumps(data, ensure_ascii=False))
     status = {"export": str(path), "views": None, "report": None, "errors": []}
     binary = Path(tv.get("bin", ""))
     if not tv.get("bin") or not binary.exists():

@@ -6,6 +6,8 @@ import json
 import re
 from pathlib import Path
 
+from .common import write_text_atomic
+
 SRC_EXT = (".cpp", ".h", ".c", ".gn", ".gni", ".json", ".idl")
 PATH_EXT = (".cpp", ".h", ".c", ".gn", ".gni", ".json", ".idl", ".ts", ".js", ".cfg", ".xml")
 IDENT_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]{2,}")
@@ -55,7 +57,7 @@ def build_hmos_index(base: Path, hmos_dir: str, cache: Path | None = None) -> di
     index = {"idents": idents, "agents_idents": agents_idents, "macros": macros,
              "paths": paths, "dirs": dirs}
     if cache:
-        cache.write_text(json.dumps({k: sorted(v) for k, v in index.items()}), encoding="utf-8")
+        write_text_atomic(cache, json.dumps({k: sorted(v) for k, v in index.items()}))
     return index
 
 
