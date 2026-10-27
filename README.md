@@ -2,7 +2,7 @@
 
 English | [简体中文](README_zh.md)
 
-**Teach a weaker model to write an OpenSpec.** A strong oracle model writes a reference OpenSpec that a human reviews and freezes. A weaker student model writes its own spec for the same task without ever seeing the reference. The oracle then scores the gap and writes a playbook, which the student receives on its next attempt. The loop runs a fixed number of iterations, scores are judged against a measured noise threshold, and an ablation on fresh samples tests whether the best playbook really helps.
+**Teach a weaker model to write an OpenSpec.** Three runs of a strong oracle model independently write OpenSpecs, and code forms a frozen reference from what a majority of them agree on. A weaker student model writes its own spec for the same task without ever seeing the reference. The oracle then scores the gap and writes a playbook, which the student receives on its next attempt. The loop runs a fixed number of iterations, scores are judged against a measured noise threshold, and an ablation on fresh samples tests whether the best playbook really helps.
 
 The task: port the HMOS `telephony_call_manager` module (OpenHarmony v6.0) to the liteOS watch platform, under the constraints in `communication_mcu/AGENTS.md`. This stage produces planning artifacts only: baseline capability specs of the HMOS module plus one migration change, `migrate-call-manager-to-liteos`. No production code is written.
 
@@ -18,7 +18,12 @@ The same approach applied to SWE-bench (Qwen3 models on SGLang, opencode, the of
 
 1. **Shared inputs.** `AGENTS.md`, `openspec/config.yaml`, the HMOS module, the OpenSpec skills and `prompts/task.md` are fixed at `base_sha` and identical for every agent. `inputs.lock.json` records their hashes and the CLI versions.
 2. **Isolated agent runs.** Each oracle, student, extractor, judge and synthesizer call gets a fresh snapshot with no git history, runs through `runner.py`, and is checked by `guards.py`. Its trajectory is rendered for reading and exported for TrajViz.
-3. **Oracle.** The oracle writes the reference spec once and the extractor proposes its decision table. You review both, edit them or ask the oracle to revise, then freeze them. Later runs reuse the frozen reference with `prepare --reference-from`.
+3. **Oracle.** `oracle_samples` (3) oracles write their specs independently and in parallel. The extractor reads each spec twice; an oracle states a decision only where both passes agree. An oracle whose spec fails `openspec validate --strict`, or contradicts a value AGENTS.md settles, is asked to repair it in the same session (up to `oracle_repair_rounds` times). These are checks code can make; no model judges the reference, and none of the scoring metrics feed back into it. The reference is then formed in code and frozen:
+   - its decisions are the values a majority of the oracles state;
+   - its coverage target is the HMOS names a majority cite;
+   - its spec text is that of the oracle closest to this consensus.
+
+   No human review is needed. Later runs reuse the frozen reference with `prepare --reference-from`.
 4. **Baseline and noise.** Iteration 0 runs several students without a playbook, each scored against the frozen reference by two independent judge passes. The first playbook is written from all samples' gaps, recurring ones first, plus the median sample's full report and trajectory. The spread across samples, judges and extraction passes gives the noise estimates. From iteration 1 on, code uses them to mark score changes as within noise or significant, and to decide when the synthesizer takes back a playbook revision.
 5. **Teaching loop.** Iterations 1 to N. The student writes its spec blind. Scoring compares its decision table with the reference in code, has a judge rule on disagreements and score four quality parts, and computes the total in code. The synthesizer turns the gaps and the student's trajectory into the next playbook. A script checks the playbook for copied text and leaked answers, and the loop runs a fixed number of iterations.
 6. **Verification.** After the loop, the top playbook is re-tested on fresh students and compared with the iteration-0 baseline students, who had no playbook.
@@ -39,6 +44,12 @@ The same approach applied to SWE-bench (Qwen3 models on SGLang, opencode, the of
 
 ## Quick start: smoke test
 
+The unit tests (standard library, no agents) check the consensus rules and the oracle stage's control flow:
+
+```bash
+cd spec_loop && python3 -m unittest discover -s tests -t .
+```
+
 The smoke test exercises the whole pipeline in about 10 minutes, using a tiny task (one capability) and the student model in every role:
 
 ```bash
@@ -46,7 +57,11 @@ cd spec_loop
 python3 loop.py smoke --run smoke1
 ```
 
-It runs oracle, freeze, student, judge and synthesizer, then prints a PASS/FAIL checklist. The checklist covers the model each run reported, transcript capture, guards, the freeze manifest, a valid score, an accepted playbook, and the playbook being inserted into the next student prompt.
+It runs two oracles and forms their consensus, then runs the student, judge and synthesizer, and prints a PASS/FAIL checklist. The checklist covers:
+- the model each run reported, transcript capture and guards;
+- each oracle's agreed extraction, the consensus, and the medoid's spec as the reference;
+- the freeze manifest;
+- a valid score, an accepted playbook, and the playbook being inserted into the next student prompt.
 
 ---
 
@@ -55,24 +70,21 @@ It runs oracle, freeze, student, judge and synthesizer, then prints a PASS/FAIL 
 ```bash
 cd spec_loop
 python3 loop.py prepare --run r1             # lock inputs, extract the base snapshot
-python3 loop.py oracle  --run r1             # oracle writes the reference spec
+python3 loop.py oracle  --run r1             # three oracles, then the frozen consensus reference
 python3 loop.py student --run r1 --iter 0    # optional: start the baseline student in parallel
 ```
 
-Review `runs/r1/oracle/spec/openspec/`. Edit the files directly, ask the oracle to revise, or both. A revision resumes the oracle's session, and your direct edits are synced into its workspace first:
+`oracle` freezes the reference itself once every oracle is valid. After this neither the reference spec nor its decisions change, and every later stage verifies their hashes. `runs/r1/oracle/consensus.md` shows how the reference was formed:
+- each oracle's agreement with the consensus, a ceiling for reading student scores;
+- the decisions without a majority, which are not scored;
+- the settled decisions set to AGENTS.md's value, and the medoid.
 
-```bash
-python3 loop.py oracle --run r1 --revise "Explain the VoIP decision in design.md and cite AGENTS.md"
-python3 loop.py oracle --run r1 --revise-file review-notes.md
-```
-
-When you are satisfied, extract the reference's decision table, check it, and freeze both. After this neither changes, and every later stage verifies their hashes:
-
-```bash
-python3 loop.py extract --run r1 --target oracle   # two extraction passes; writes oracle/decisions.review.md
-# read oracle/decisions.review.md; correct values in oracle/decisions.proposed.json if needed
-python3 loop.py freeze  --run r1
-```
+The rules:
+- **Unusable oracles.** An oracle that fails, leaks, writes outside `openspec/`, misses deliverables, or still fails validation after its repairs is retried from scratch (`oracle_retries`). If one is still unusable, `oracle` stops. Rerunning it reuses the valid oracles.
+- **Repairs never cost a usable oracle.** A repair of AGENTS.md contradictions that breaks a validated spec, with no round left to fix it, is undone: the last validated spec is restored, and the consensus overrides its contradictions.
+- **Extraction failures.** If only the extraction failed, the spec is kept, and the next `oracle` extracts it again instead of rerunning the oracle.
+- **Majority.** A decision's reference value is the value more than half of the oracles state. For a decision AGENTS.md settles, the reference takes AGENTS.md's value once a majority address it at all.
+- **Reuse.** An oracle's spec is reused only if it was made with the same task prompt, run input lock and oracle model. Otherwise the oracle runs again. Its extraction is reused only under the same extraction prompt, vocabulary and extractor model; otherwise just the extraction runs again. Like the other agent stages, `oracle` stops when the locked inputs changed since `prepare` (`--allow-drift` overrides this). `prepare --force` removes the old oracles.
 
 A later run can reuse a frozen reference instead of running the oracle again. Measure the noise once, then iterate and test the best playbook:
 
@@ -88,7 +100,7 @@ python3 loop.py status  --run r2
 
 `iterate` runs a fixed number of iterations and never stops early: with one sample per iteration, most score changes are within noise, and an early stop would end the loop on noise. It skips stages that already completed, so it is safe to re-run after an interruption; the last iteration writes no playbook. A completed stage counts only if its record matches: student runs made with another prompt stop the loop (reset the iteration), and a score produced from another student spec is scored again. With `--samples M` it runs M students in parallel per iteration: the iteration score is the mean of the valid ones, and the synthesizer learns from the median sample. With `--judges N` (default `judges` in config.json) every sample gets N independent judge passes; its score is their mean.
 
-Stages are long: an oracle about 45 minutes, a student 30 to 70, a compare with two judges about 25, a synthesis 15 to 35 including its leak checks. Run them detached:
+Stages are long: an oracle about 45 minutes (the three run in parallel, plus their extractions and any repairs), a student 30 to 70, a compare with two judges about 25, a synthesis 15 to 35 including its leak checks. Run them detached:
 
 ```bash
 nohup python3 -u loop.py iterate --run r2 --start 0 --iters 4 > runs/r2-iterate.log 2>&1 &
@@ -106,12 +118,13 @@ nohup python3 -u loop.py iterate --run r2 --start 0 --iters 4 > runs/r2-iterate.
 ## What keeps the experiment fair
 
 - **One task.** `prompts/task.md` goes unchanged to the oracle and the student. A student run differs only in the model and the playbook appended after the task.
-- **Locked inputs.** `prepare` records `base_sha`, the hashes of AGENTS.md, config.yaml, the skills, every prompt, the rubric and the decision vocabulary, a fingerprint of config.json (all keys except `iterations`, `judges`, `max_parallel_agents`, `model_notes` and `workspace_root`), the models and the CLI versions. Every stage that runs agents stops when any of these changed since, unless you pass `--allow-drift`; accepted drift is recorded in `state.json` and shown by `status`. The agent CLI updates itself, so every run also records the CLI version it ran with (`agent_cli` in its `.run.json`). `prepare --reference-from` also stops when the vocabulary, the extraction prompt or the task changed since the reference decisions were extracted (recorded at freeze, followed back through runs that copied them).
+- **Locked inputs.** `prepare` records `base_sha`, the hashes of AGENTS.md, config.yaml, the skills, every prompt, the rubric and the decision vocabulary, a fingerprint of config.json (all keys except `iterations`, `judges`, `max_parallel_agents`, `model_notes`, `workspace_root` and the `oracle_*` keys, which shape only the frozen reference), the models and the CLI versions. Every stage that runs agents stops when any of these changed since, unless you pass `--allow-drift`; accepted drift is recorded in `state.json` and shown by `status`. The agent CLI updates itself, so every run also records the CLI version it ran with (`agent_cli` in its `.run.json`). `prepare --reference-from` also stops when the vocabulary, the extraction prompt or the task changed since the reference decisions were extracted (recorded at freeze, followed back through runs that copied them).
 - **Provenance.** Every `score.json` carries the inputs, the student spec hash, the reference manifest, the judge count and the scoring code it came from. `compare` and `ablate` reuse a score only when all of these match (`compare --fresh` judges again anyway); when only the scoring code changed, they recompute the total from the saved model outputs. Every student run writes `provenance.json` with its prompt hash and attempts.
 - **Only valid student runs count.** A student run that failed, still missed deliverables after the nudges, or leaked is retried from scratch (`student_retries`); the earlier attempt is kept as `student-sN.attemptN`, and the attempt count goes to `scores.csv` and the ablation report. A run that stays invalid is not scored and is left out of the iteration mean, the gap table, the noise baseline and the ablation; `status` lists it. When a valid sample fails to score, the iteration gets no score until `compare` succeeds for every valid sample. A dispute run that leaves a ruling out after its fix attempt fails the same way, instead of charging the student.
 - **Same judging everywhere.** The judge gets the same inputs in every iteration, in the noise baseline and in the ablation; in particular it never sees the previous iteration's gaps.
 - **Blind workspaces.** Each agent works in a fresh `git archive` snapshot with a single commit and no history; the original repository's history and branches contain earlier specs. Oracle outputs live outside the student's workspace. The leak check scans every tool call, including subagent transcripts, plus tool outputs for exposed paths. It fails a run that touches `spec_loop/`, another stage's workspace, the original workspace, other projects' agent transcripts, or earlier GLM exports.
-- **Frozen reference.** `freeze` writes `MANIFEST.sha256` and makes the spec and the human-checked reference decisions read-only; every later stage re-verifies them.
+- **A reference no single run decides.** The reference decisions and coverage target are what a majority of independent oracles agree on. A decision they split on has no reference value and is not scored, so no student loses points for choosing what another oracle also chose. The repair rounds use only code checks (validation, AGENTS.md's settled values), so the reference is not tuned toward what students are scored on.
+- **Frozen reference.** The freeze writes `MANIFEST.sha256` and makes the reference spec, the consensus decisions and `consensus.json` read-only; every later stage re-verifies them.
 - **Planning only.** The no-code guard reads `git status` in the workspace. Anything written outside `openspec/` fails an oracle run and is excluded from a student's score.
 - **Scoring is mostly code, and separate from teaching.** Decisions are compared as tables in code, and only disagreements go to a model for a ruling; a model scores just four quality parts (see [How scoring works](#how-scoring-works)). Each gap is tagged `student_wrong`, `student_defensible` or `reference_questionable`; only `student_wrong` gaps are taught.
 - **The playbook may not leak the answer.** A script rejects a playbook that shares long passages with the reference (beyond text that also appears in AGENTS.md, config.yaml, the task or the HMOS source), names most of the reference's capability ids, or exceeds the line limit. It also flags lines that leak answers: the extractor runs on the playbook and flags lines stating the reference's value for a decision AGENTS.md leaves open, or stating findings about what the HMOS code does; code flags lines naming HMOS identifiers or file names that AGENTS.md, config.yaml and the task do not (directories are allowed). The synthesizer gets up to two rewrites with the flagged lines; flagged lines left after that are stripped and recorded as `auto_stripped` in `state.json` and in the changelog. Other rejections still stop the loop.
@@ -123,9 +136,7 @@ nohup python3 -u loop.py iterate --run r2 --start 0 --iters 4 > runs/r2-iterate.
 
 | Stage | Model (config role) | Reads | Writes (under `runs/<run>/`) |
 |---|---|---|---|
-| `oracle` | `oracle` | task.md and the shared inputs | `oracle/spec/`, trajectory, guards, metrics |
-| `extract --target oracle` | `extractor` | reference spec, `decision_vocab.json` | `oracle/decisions/pass-N/`, `decisions.proposed.json`, `decisions.review.md` |
-| `freeze` | none | `oracle/spec/`, `oracle/decisions.proposed.json` | `oracle/MANIFEST.sha256`, `oracle/decisions.json` |
+| `oracle` | `oracle`, `extractor` (two passes each time an oracle's spec validates) | task.md and the shared inputs | `oracle/oN/`: spec, trajectory, guards, metrics, `decisions/pass-N/`, `decisions/agreed.json`, `oracle.json`; then `oracle/spec/` (the medoid's), `decisions.json`, `consensus.json`, `consensus.md`, `MANIFEST.sha256` |
 | `student --iter k` | `student` | task.md and the playbook from iteration k-1 | `iter-k/student[-sN]/` |
 | `compare --iter k` | `extractor`, then `judge` (disputes, soft parts) | task, rubric, reference spec and decisions, student spec, `metrics.md`, script checks | `iter-k/compare[-sN]/score.json`, `report.md`, `decisions_compare.json`; a row in `scores.csv` |
 | `noise` | `extractor` (second extraction pass) | the iteration-0 samples' scores and specs | `noise.json`, `noise.md`, `iter-00/compare-sN/decisions-pass2/`; `noise` in `state.json` |
@@ -151,12 +162,17 @@ runs/<run>/
   inputs.lock.json  state.json  scores.csv
   base/                      # snapshot at base_sha, used for metrics (local only)
   oracle/
-    spec/openspec/           # the reference; edit here during review
-    decisions/pass-N/        # extraction passes; agreement.json compares them
-    decisions.proposed.json  decisions.review.md        # for the human check
-    decisions.json  MANIFEST.sha256                     # after freeze
-    trajectory.md  stats.json  guards.json  metrics.json  *.run.json  *.prompt.md
-    trajectory.jsonl  transcripts/  trajviz/            # local only
+    o1/ o2/ o3/              # one independent oracle each
+      spec/openspec/  oracle.json                       # its spec; validity, repairs, attempts
+      decisions/pass-N/  decisions/agreed.json          # two extractions; the values both agree on
+      trajectory.md  trajectory.repairN.md  stats.json  guards.json  metrics.json  *.run.json  *.prompt.md
+      trajectory.jsonl  transcripts/  trajviz/          # local only
+    o1.attempt1/             # an earlier, unusable oracle run (if any)
+    spec/openspec/           # the reference spec: the medoid oracle's (read-only)
+    guards.json  metrics.json                           # the medoid's
+    decisions.json           # the consensus decisions (read-only)
+    consensus.json  consensus.md                        # votes, contested keys, coverage names, medoid
+    MANIFEST.sha256
   iter-00/
     student-s1/    spec/  provenance.json  trajectory.md  stats.json  guards.json  metrics.json ...
     student-s1.attempt1/                                # an earlier, invalid attempt (if any)
@@ -189,7 +205,7 @@ TrajViz's own collector (`agent-trajviz-collect cursor`) reads tool results from
 
 ```bash
 python3 loop.py trajviz --run r1                  # every stage
-python3 loop.py trajviz --run r1 --stage oracle
+python3 loop.py trajviz --run r1 --stage oracle/o1
 ```
 
 Two caveats:
@@ -214,6 +230,7 @@ Two caveats:
 | `judges` | Independent judge passes per sample (disputes and soft parts) |
 | `max_parallel_agents` | Agent sessions that may run at once across samples, judges and arms |
 | `student_retries`, `judge_fix_retries`, `extract_fix_retries`, `synth_fix_retries` | Retries for an invalid student run, an invalid judge or dispute JSON, an invalid extraction, a rejected playbook |
+| `oracle_samples`, `oracle_retries`, `oracle_repair_rounds` | Independent oracles behind the reference (smoke runs use 2); fresh retries of an unusable oracle; repair rounds per oracle for validation failures and AGENTS.md contradictions |
 | `completion_nudges` | How many times an oracle or student session is resumed when its turn ends before the deliverables exist and validate |
 | `scoring` | `weights` per dimension (sum 100), `parts` (each dimension's mix of parts) and `llm_parts` (the parts the judge scores) |
 | `playbook_limits` | Line cap, n-gram size, copied-passage limits, maximum share of reference capability ids |
@@ -229,10 +246,8 @@ To change the task, the rubric or the base commit, edit the file and `prepare` a
 | Command | Purpose |
 |---|---|
 | `prepare --run R [--smoke] [--force] [--reference-from R0 [--allow-drift]]` | Create a run: lock the inputs, extract the base snapshot; with `--reference-from`, copy R0's frozen reference and decisions |
-| `oracle --run R` | Run the oracle in a fresh workspace |
-| `oracle --run R --revise TEXT` (or `--revise-file F`) | Resume the oracle session with reviewer feedback |
-| `extract --run R --target T [--passes N]` | Extract a decision table from `T` (a run-relative directory holding `spec/`, or a playbook `.md`); `--target oracle` proposes the reference decisions |
-| `freeze --run R [--force]` | Validate, hash and make the reference read-only; on a frozen spec, freezes the reviewed reference decisions |
+| `oracle --run R` | Run the independent oracles (valid ones are reused, failed extractions redone), each repaired against code checks, then form and freeze the reference |
+| `extract --run R --target T [--passes N] [--out O]` | Extract a decision table from `T` (a run-relative directory holding `spec/`, or a playbook `.md`); an offline check. Targets under `oracle/` need `--out`, so the reference's own extractions are never overwritten |
 | `student --run R --iter K [--samples M] [--dry-run]` | Run the student; `--dry-run` prints its prompt |
 | `compare --run R --iter K [--judges N] [--fresh]` | Score the valid student spec(s) of an iteration, N judge passes each; reuses scores with matching provenance unless `--fresh` |
 | `noise --run R [--iter K] [--extract-passes 1\|2]` | Spread between samples, judges and (default) extraction passes; writes `noise.md` and the thresholds |
@@ -246,9 +261,9 @@ To change the task, the rubric or the base commit, edit the file and `prepare` a
 | `trajviz --run R [--stage S]` | (Re-)export runs for TrajViz |
 | `smoke --run R` | End-to-end plumbing test |
 
-`student`, `compare`, `noise`, `synthesize`, `ablate` and `iterate` take `--allow-drift` to continue although the locked inputs changed.
+`oracle`, `student`, `compare`, `noise`, `synthesize`, `ablate` and `iterate` take `--allow-drift` to continue although the locked inputs changed.
 
-Commands hold run locks (`runs/.<run>.<scope>.lock`) while they run, so two `loop.py` processes cannot work on the same part of a run at once. `oracle`, `freeze` and `extract --target oracle` hold the oracle scope; `student`, `compare`, `noise`, `synthesize`, `ablate`, `iterate` and `reset` hold the loop scope; `prepare` and `smoke` hold both. A command whose scope is taken stops at once and names the process holding it. The baseline student can therefore still run while the oracle writes the reference, and `status`, `trajviz`, `rescore`, `leak-check` and other `extract` targets, which write only their own outputs, take no lock. Every change to `state.json` is a short locked read-modify-write, so commands of the two scopes never lose each other's updates. JSON and CSV records are fsynced to a temporary file and renamed into place, so neither a reader nor a crash ever sees a half-written file. Ctrl-C or `kill` stops a command's agent sessions as well, so no orphaned agent keeps running after its lock is gone.
+Commands hold run locks (`runs/.<run>.<scope>.lock`) while they run, so two `loop.py` processes cannot work on the same part of a run at once. `oracle` holds the oracle scope; `student`, `compare`, `noise`, `synthesize`, `ablate`, `iterate` and `reset` hold the loop scope; `prepare` and `smoke` hold both. A command whose scope is taken stops at once and names the process holding it. The baseline student can therefore still run while the oracle writes the reference, and `status`, `trajviz`, `rescore`, `leak-check` and `extract`, which write only their own outputs, take no lock. Every change to `state.json` is a short locked read-modify-write, so commands of the two scopes never lose each other's updates. JSON and CSV records are fsynced to a temporary file and renamed into place, so neither a reader nor a crash ever sees a half-written file. Ctrl-C or `kill` stops a command's agent sessions as well, so no orphaned agent keeps running after its lock is gone.
 
 ---
 
@@ -283,7 +298,7 @@ stages/
   provenance.py         locked inputs, drift checks, provenance stamps of scores
   agents.py             running agents and finishing their stages (guards, trajectories, TrajViz)
   extraction.py         decision tables from a spec or a playbook
-  oracle.py             prepare, oracle, extract, freeze
+  oracle.py             prepare, oracle (independent oracles, their repairs, the consensus), extract
   student.py            student prompts, runs, attempts and validity
   marks.py              which samples count, iteration variance and thresholds, marks, gap ids
   scoring.py            compare, rescore: disputes, soft judge, the total of a sample

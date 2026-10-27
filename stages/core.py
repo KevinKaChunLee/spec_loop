@@ -9,6 +9,7 @@ import statistics
 
 from pathlib import Path
 
+from lib import decisions as dec
 from lib import spec_metrics
 from lib.common import die, iter_dir, load_config, log, prompt, read_json, run_dir, sha256_file, write_text_atomic
 
@@ -19,6 +20,9 @@ DIMENSIONS = list(SCORING["weights"])
 
 
 DECISIONS_FILE = "decisions.json"
+# How the reference was formed from the oracles: votes, contested keys, coverage names, medoid.
+CONSENSUS_FILE = "consensus.json"
+SMOKE_ORACLES = 2
 CSV_FIELDS = ["iter", "sample", "total", "vs_best", *DIMENSIONS, "judges", "judge_spread", "code_share",
               "disputes", "gaps_student_wrong", "gaps_high", "gaps_closed", "gaps_reopened", "validate_ok",
               "leak_ok", "no_code_ok", "hmos_coverage", "subagents", "nudges", "attempts", "input_tokens",
@@ -59,7 +63,31 @@ def oracle_dir(run_id: str) -> Path:
 
 
 def oracle_spec(run_id: str) -> Path:
+    """The reference spec (for a reference formed by consensus, the medoid oracle's, copied here)."""
     return oracle_dir(run_id) / "spec"
+
+
+def oracle_runs(run_id: str, state: dict) -> list[tuple[str, Path]]:
+    """(label, directory) of each independent oracle: o1, o2, ..."""
+    n = SMOKE_ORACLES if smoke(state) else CFG["oracle_samples"]
+    return [(f"o{i}", oracle_dir(run_id) / f"o{i}") for i in range(1, n + 1)]
+
+
+def shared_idents(run_id: str, state: dict) -> set[str]:
+    """Identifiers AGENTS.md, config.yaml and the task already give, left out of coverage."""
+    base = base_dir(run_id)
+    texts = [(base / rel).read_text(encoding="utf-8", errors="replace")
+             for rel in ("AGENTS.md", "openspec/config.yaml") if (base / rel).exists()]
+    return dec.allowed_symbols([*texts, task_text(state)])[0]
+
+
+def reference_names(run_id: str, index: dict, shared: set[str]) -> set[str]:
+    """The behaviour-coverage target: the HMOS names a majority of the oracles cite, or for a
+    reference frozen from a single oracle (no consensus.json), the names its spec cites."""
+    consensus = read_json(oracle_dir(run_id) / CONSENSUS_FILE)
+    if consensus is not None:
+        return set(consensus["names"])
+    return dec.cited_names(oracle_spec(run_id), CFG, index, shared)
 
 
 def manifest_text(spec_root: Path) -> str:
@@ -69,36 +97,34 @@ def manifest_text(spec_root: Path) -> str:
 
 
 def manifest_expected(run_id: str, state: dict) -> str:
-    """MANIFEST.sha256: the frozen spec files, then the frozen reference decisions once they exist."""
+    """MANIFEST.sha256: the frozen spec files, then the frozen reference decisions and, for a
+    reference formed by consensus, consensus.json."""
     text = manifest_text(oracle_spec(run_id))
     if state.get("reference_decisions", {}).get("frozen"):
         text += f"{sha256_file(oracle_dir(run_id) / DECISIONS_FILE)}  {DECISIONS_FILE}\n"
+        if (oracle_dir(run_id) / CONSENSUS_FILE).exists():
+            text += f"{sha256_file(oracle_dir(run_id) / CONSENSUS_FILE)}  {CONSENSUS_FILE}\n"
     return text
 
 
 def verify_frozen(run_id: str, state: dict) -> None:
     if not state.get("frozen"):
-        die("the oracle spec is not frozen yet; review it and run `loop.py freeze`")
+        die("the reference is not frozen yet; run `loop.py oracle` (it freezes the reference once every "
+            "oracle is valid)")
     manifest = oracle_dir(run_id) / "MANIFEST.sha256"
     if manifest_expected(run_id, state) != manifest.read_text(encoding="utf-8"):
         die(f"the frozen oracle spec or reference decisions changed since freeze ({manifest}); "
             f"restore them before continuing")
 
 
-def reference_decisions(run_id: str, state: dict, allow_proposed: bool = False,
-                        required: bool = True) -> dict | None:
-    """The frozen reference decision table; with `allow_proposed`, the unconfirmed proposal."""
+def reference_decisions(run_id: str, state: dict, required: bool = True) -> dict | None:
     frozen = oracle_dir(run_id) / DECISIONS_FILE
     if state.get("reference_decisions", {}).get("frozen") and frozen.exists():
         return read_json(frozen)
-    proposed = oracle_dir(run_id) / "decisions.proposed.json"
-    if allow_proposed and proposed.exists():
-        log("warning: using the unconfirmed reference decisions (oracle/decisions.proposed.json); "
-            "results are provisional")
-        return read_json(proposed)
     if required:
-        die(f"the reference decisions of run '{run_id}' are not frozen: run `loop.py extract --run {run_id} "
-            f"--target oracle`, review oracle/decisions.review.md, then `loop.py freeze --run {run_id}`")
+        die(f"run '{run_id}' has a frozen spec but no reference decisions (it predates them); prepare a new run"
+            if state.get("frozen") else
+            f"the reference decisions of run '{run_id}' are not frozen: run `loop.py oracle --run {run_id}`")
     return None
 
 

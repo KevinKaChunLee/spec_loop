@@ -38,7 +38,7 @@ def extract_decisions(run_id: str, state: dict, stage: str, out_dir: Path, input
         return None
     write_json(out_dir / "decisions.json", table)
     write_json(out_dir / "validation.json", report)
-    stated = sum(1 for k in dec.KINDS for e in table[k].values() if e.get("value"))
+    stated = dec.stated_count(table)
     log(f"{title}: {stated} decisions stated, {len(report.get('dropped', []))} dropped as invalid, "
         f"{len(report.get('warnings', []))} warnings")
     return table

@@ -9,10 +9,11 @@ from pathlib import Path
 
 from lib.common import die, iter_dir, load_state, log, read_json, remove_tree, run_dir, state_update
 
-from .core import CFG, DIMENSIONS, oracle_dir, read_csv, sample_label, smoke, verify_frozen, write_csv
+from .core import (CFG, CONSENSUS_FILE, DIMENSIONS, manifest_text, oracle_dir, oracle_runs, oracle_spec, read_csv,
+                   sample_label, smoke, verify_frozen, write_csv)
 from .provenance import check_inputs_unchanged, spec_digest
 from .agents import run_labels, trajviz_stage
-from .oracle import cmd_extract, cmd_freeze, cmd_oracle, cmd_prepare
+from .oracle import cmd_oracle, cmd_prepare
 from .student import cmd_student, stale_students, student_prompt
 from .marks import best_playbook_iter, change_vs_best, iteration_scores, scored_count, scored_samples
 from .scoring import cmd_compare
@@ -97,13 +98,21 @@ def cmd_status(args) -> None:
     state = load_state(args.run)
     o = state["oracle"]
     print(f"run {args.run}{' (smoke)' if smoke(state) else ''}")
-    print(f"  oracle: {o.get('status')}  validate={o.get('validate_ok')}  frozen={state.get('frozen')}"
-          f"  session={o.get('session_id')}")
-    if o.get("problems"):
-        print(f"  oracle problems: {'; '.join(o['problems'])}")
+    print(f"  oracle: {o.get('status')}  frozen={state.get('frozen')}"
+          + (f"  validate={o['validate_ok']}" if "validate_ok" in o else "")
+          + (f"  reference spec of {o['medoid']}" if o.get("medoid") else ""))
+    for label, od in oracle_runs(args.run, state):
+        r = read_json(od / "oracle.json")
+        if r:
+            print(f"    {label}: {'valid' if r['valid'] else 'INVALID'}  repairs={r['repairs']}  attempts={r['attempts']}"
+                  + (f"  AGENTS.md conflicts left: {', '.join(r['contradictions'])}" if r["contradictions"] else "")
+                  + (f"  problems: {'; '.join(r['problems'])}" if r["problems"] else ""))
     if state.get("reference_decisions"):
         rdec = state["reference_decisions"]
+        consensus = read_json(oracle_dir(args.run) / CONSENSUS_FILE)
         print(f"  reference decisions: frozen={rdec.get('frozen')}  stated={rdec.get('stated')}"
+              + (f"  without a majority={len(consensus['contested'])}  set to AGENTS.md={len(consensus['overrides'])}"
+                 if consensus else "")
               + (f"  copied from {rdec['copied_from']}" if rdec.get("copied_from") else ""))
     for d in state.get("drift", []):
         print(f"  accepted input drift ({d['at']}): {'; '.join(d['changed'])}")
@@ -171,14 +180,8 @@ def cmd_smoke(args) -> None:
     state = load_state(args.run)
     if not smoke(state):
         die(f"run '{args.run}' is not a smoke run")
-    if state["oracle"].get("status") in ("pending", "failed"):
-        cmd_oracle(argparse.Namespace(run=args.run, revise=None, revise_file=None))
-    state = load_state(args.run)
-    if not state.get("reference_decisions", {}).get("frozen") and \
-            not (oracle_dir(args.run) / "decisions.proposed.json").exists():
-        cmd_extract(argparse.Namespace(run=args.run, target="oracle", passes=1, out=None))
-    if not state.get("frozen") or not state.get("reference_decisions", {}).get("frozen"):
-        cmd_freeze(argparse.Namespace(run=args.run, force=True))
+    if not state.get("frozen"):
+        cmd_oracle(argparse.Namespace(run=args.run, allow_drift=False))
     verify_frozen(args.run, load_state(args.run))
     if not load_state(args.run)["iters"].get("0", {}).get("student"):
         cmd_student(argparse.Namespace(run=args.run, iter=0, samples=1, dry_run=False, allow_drift=False))
@@ -191,19 +194,29 @@ def cmd_smoke(args) -> None:
     checks = []
     rd = run_dir(args.run)
     sfx = sample_label(state, 1, 1)
-    for stage in ("oracle", f"iter-00/student{sfx}", f"iter-00/compare{sfx}/decisions",
+    oracles = [od.relative_to(rd).as_posix() for _label, od in oracle_runs(args.run, state)]
+    for stage in (*oracles, f"iter-00/student{sfx}", f"iter-00/compare{sfx}/decisions",
                   f"iter-00/compare{sfx}/soft", "iter-00/playbook"):
         meta = read_json(rd / stage / "trajectory.run.json", {})
         checks.append((f"{stage}: model reported '{meta.get('model_reported')}'", meta.get("model_ok")))
         checks.append((f"{stage}: run finished", meta.get("has_result") and not meta.get("is_error")))
         checks.append((f"{stage}: transcript copied", bool(meta.get("transcript_copy"))))
         checks.append((f"{stage}: trajectory.md rendered", (rd / stage / "trajectory.md").exists()))
-    for stage in ("oracle", f"iter-00/student{sfx}"):
+    for stage in (*oracles, f"iter-00/student{sfx}"):
         g = read_json(rd / stage / "guards.json", {})
         checks.append((f"{stage}: only openspec/ written", g.get("no_code", {}).get("ok")))
         checks.append((f"{stage}: openspec validate", g.get("validate", {}).get("ok")))
         checks.append((f"{stage}: leak-free", g.get("leak", {}).get("ok")))
-    checks.append(("oracle frozen and manifest verified", state.get("frozen")))
+    for stage in oracles:
+        checks.append((f"{stage}: two extractions agreed into decisions/agreed.json",
+                       (rd / stage / "decisions" / "agreed.json").exists()))
+    medoid = state["oracle"].get("medoid")
+    consensus = read_json(oracle_dir(args.run) / CONSENSUS_FILE, {})
+    checks.append((f"consensus of {len(oracles)} oracles written ({consensus.get('stated')} decisions, "
+                   f"{len(consensus.get('names', []))} coverage names)", bool(consensus)))
+    checks.append((f"reference spec is the medoid's ({medoid})", bool(medoid) and
+                   manifest_text(oracle_spec(args.run)) == manifest_text(oracle_dir(args.run) / medoid / "spec")))
+    checks.append(("reference frozen and manifest verified", state.get("frozen")))
     checks.append(("reference decisions frozen", state.get("reference_decisions", {}).get("frozen")))
     checks.append(("score.json valid and scored", state["iters"]["0"].get("score") is not None))
     checks.append(("playbook accepted", state["iters"]["0"].get("playbook", {}).get("ok")))

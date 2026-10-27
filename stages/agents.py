@@ -64,6 +64,15 @@ def trajviz_stage(out_dir: Path, label: str, ws: Path, title: str) -> None:
         log(f"  trajviz: {err}")
 
 
+VALIDATE_FAILS = "`openspec validate --all --strict` fails"
+
+
+def validate_failure(v: dict) -> str:
+    """One line summing up a failed guards.validate() result."""
+    issues = [f"{f['id']}: {i}" for f in v.get("failed", []) for i in f["issues"][:2]]
+    return f"{VALIDATE_FAILS}: " + ("; ".join(issues[:5]) or str(v.get("error", ""))[:300])
+
+
 def missing_deliverables(ws: Path) -> list[str]:
     """What an oracle or student workspace still lacks against the task's completion criteria."""
     os_root = ws / "openspec"
@@ -80,9 +89,7 @@ def missing_deliverables(ws: Path) -> list[str]:
     if not missing:
         v = guards.validate(ws)
         if not v["ok"]:
-            issues = [f"{f['id']}: {i}" for f in v.get("failed", []) for i in f["issues"][:2]]
-            missing.append("`openspec validate --all --strict` fails: " +
-                           ("; ".join(issues[:5]) or str(v.get("error", ""))[:300]))
+            missing.append(validate_failure(v))
     return missing
 
 

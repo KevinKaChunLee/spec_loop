@@ -3,12 +3,8 @@
 
 Typical flow:
   loop.py prepare --run r1
-  loop.py oracle  --run r1                   # oracle writes the reference spec
-  # review runs/r1/oracle/spec/openspec/: edit it directly, and/or
-  loop.py oracle  --run r1 --revise "..."    # resume the oracle session with feedback
-  loop.py extract --run r1 --target oracle   # propose the reference decision table
-  # review runs/r1/oracle/decisions.review.md, edit decisions.proposed.json if needed
-  loop.py freeze  --run r1                   # hash spec + decisions, read-only; never change again
+  loop.py oracle  --run r1                   # independent oracles, repaired against code checks; the
+                                             # reference is their consensus, frozen automatically
   loop.py iterate --run r1 --iters 3         # student -> compare -> synthesize, repeated
   loop.py status  --run r1
 
@@ -36,7 +32,7 @@ from lib.common import lock_run
 from lib.runner import set_parallel_limit, stop_agents
 
 from stages.core import CFG
-from stages.oracle import cmd_extract, cmd_freeze, cmd_oracle, cmd_prepare
+from stages.oracle import cmd_extract, cmd_oracle, cmd_prepare
 from stages.student import cmd_student
 from stages.scoring import cmd_compare, cmd_rescore
 from stages.synthesis import cmd_leak_check, cmd_synthesize
@@ -49,10 +45,10 @@ ALLOW_DRIFT_HELP = ("continue although prompts, rubric, vocabulary, config, skil
                     "changed since prepare (recorded in state.json)")
 # The run locks a command holds while it runs. Commands in different scopes may run side by side,
 # such as the baseline student while the oracle writes the reference; state.json updates are
-# serialised separately. status, trajviz, rescore, leak-check and extract of anything but the
-# oracle hold none: they write only their own outputs.
+# serialised separately. status, trajviz, rescore, leak-check and extract hold none: they write
+# only their own outputs.
 LOCK_SCOPES = {"prepare": ("oracle", "loop"), "smoke": ("oracle", "loop"), "oracle": ("oracle",),
-               "freeze": ("oracle",), "student": ("loop",), "compare": ("loop",), "noise": ("loop",),
+               "student": ("loop",), "compare": ("loop",), "noise": ("loop",),
                "synthesize": ("loop",), "ablate": ("loop",), "iterate": ("loop",), "reset": ("loop",)}
 
 
@@ -80,18 +76,11 @@ def main() -> None:
                         "it was extracted")
     p.set_defaults(fn=cmd_prepare)
 
-    p = sub.add_parser("oracle", help="run the oracle, or revise its spec with --revise")
+    p = sub.add_parser("oracle", help="run the independent oracles (valid ones are reused), then form and "
+                                      "freeze the reference")
     p.add_argument("--run", required=True)
-    g = p.add_mutually_exclusive_group()
-    g.add_argument("--revise", help="reviewer feedback; resumes the oracle session")
-    g.add_argument("--revise-file", help="file containing reviewer feedback")
+    p.add_argument("--allow-drift", action="store_true", help=ALLOW_DRIFT_HELP)
     p.set_defaults(fn=cmd_oracle)
-
-    p = sub.add_parser("freeze", help="hash the reviewed oracle spec and reference decisions, make them "
-                                      "read-only (an already frozen spec gets its decisions frozen)")
-    p.add_argument("--run", required=True)
-    p.add_argument("--force", action="store_true", help="freeze even if validation fails")
-    p.set_defaults(fn=cmd_freeze)
 
     p = sub.add_parser("extract", help="extract a decision table from a spec or a playbook")
     p.add_argument("--run", required=True)
@@ -197,8 +186,7 @@ def main() -> None:
     p.set_defaults(fn=cmd_smoke)
 
     args = ap.parse_args()
-    scopes = ("oracle",) if args.cmd == "extract" and args.target == "oracle" else LOCK_SCOPES.get(args.cmd, ())
-    lock_run(args.run, scopes, " ".join(sys.argv[1:]))
+    lock_run(args.run, LOCK_SCOPES.get(args.cmd, ()), " ".join(sys.argv[1:]))
     for sig in (signal.SIGINT, signal.SIGTERM):
         signal.signal(sig, stop)
     set_parallel_limit(CFG.get("max_parallel_agents", 8))

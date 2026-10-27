@@ -1,35 +1,43 @@
-"""prepare, oracle, extract and freeze: the run, its reference spec and the reference decisions."""
+"""prepare, oracle and extract: the run, and its reference formed from several oracles.
+
+`oracle` runs independent oracles. Each oracle's spec is repaired, in the same session, only
+against checks code can make: `openspec validate --strict` and, once it validates, the values
+AGENTS.md settles, read from two extraction passes. Then the reference is formed in code: the
+decisions a majority of the oracles state, the HMOS names a majority cite, and the spec of the
+oracle closest to that consensus (the medoid). No human review is involved.
+"""
 
 from __future__ import annotations
 
-import json
 import shutil
 
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+from lib import consensus as cons
 from lib import decisions as dec
-from lib import guards, spec_metrics, workspace
-from lib.common import (ROOT, copy_tree, die, git, load_state, log, make_readonly, make_writable, read_json,
-                        remove_tree, run_dir, save_state, sha256_bytes, sha256_file, state_update, timestamp,
-                        write_json, write_text_atomic)
+from lib import workspace
+from lib.common import (ROOT, copy_tree, die, git, keep_attempt, load_state, log, make_readonly, make_writable,
+                        read_json, remove_tree, run_dir, save_state, sha256_bytes, sha256_file, state_update,
+                        timestamp, write_json, write_text_atomic)
 
-from .core import (CFG, DECISIONS_FILE, base_dir, hmos_index, manifest_expected, manifest_text, oracle_dir,
-                   oracle_spec, task_text, verify_frozen)
-from .provenance import changed_files, current_inputs, file_hashes, reference_drift, reference_inputs
-from .agents import post_spec_stage, spec_run
+from .core import (CFG, CONSENSUS_FILE, DECISIONS_FILE, base_dir, hmos_index, manifest_expected, model_for,
+                   oracle_dir, oracle_runs, shared_idents, task_text, verify_frozen)
+from .provenance import (check_inputs_unchanged, current_inputs, file_hashes, json_digest, reference_drift,
+                         reference_inputs)
+from .agents import VALIDATE_FAILS, post_spec_stage, spec_run, validate_failure
 from .extraction import extract_playbook, extract_spec
 
 
-REVISE_PROMPT = """A human reviewer read the OpenSpec you wrote in this workspace and asks for the changes below.
-The files under openspec/ may also contain edits the reviewer made directly; keep those.
-Apply the feedback, keep every rule of the original task (write only under openspec/, no questions,
+REPAIR_PROMPT = """An automatic check of the OpenSpec you wrote in this workspace found the problems below.
+Fix them in the spec. Keep every rule of the original task (write only under openspec/, no questions,
 zh-CN prose), and finish only when `openspec validate --all --strict` passes.
 
-Reviewer feedback:
+Problems:
 
-{feedback}
+{problems}
 """
+EXTRACTION_FAILED = "the extractor failed on the validated spec (`loop.py oracle` runs only the extraction again)"
 
 
 def cmd_prepare(args) -> None:
@@ -41,7 +49,7 @@ def cmd_prepare(args) -> None:
         src_state = load_state(src)
         verify_frozen(src, src_state)
         if not src_state.get("reference_decisions", {}).get("frozen"):
-            die(f"run '{src}' has no frozen reference decisions; freeze them first")
+            die(f"run '{src}' has no frozen reference decisions; run `loop.py oracle --run {src}` first")
         src_sha = read_json(run_dir(src) / "inputs.lock.json", {}).get("base_sha")
         if src_sha != CFG["base_sha"]:
             die(f"run '{src}' was prepared at base {src_sha}, config.json has {CFG['base_sha']}; "
@@ -79,20 +87,21 @@ def cmd_prepare(args) -> None:
     hmos_index(args.run)
     state = {"run": args.run, "smoke": bool(args.smoke), "naming": "sN",
              "oracle": {"status": "pending"}, "frozen": False, "iters": {}}
+    od = oracle_dir(args.run)
+    remove_tree(od)
     if src:
-        od, sd = oracle_dir(args.run), oracle_dir(src)
-        remove_tree(od)
+        sd = oracle_dir(src)
         copy_tree(sd / "spec", od / "spec")
         make_readonly(od / "spec")
-        for name in ("MANIFEST.sha256", DECISIONS_FILE, "guards.json", "metrics.json"):
+        for name in ("MANIFEST.sha256", DECISIONS_FILE, CONSENSUS_FILE, "consensus.md", "guards.json", "metrics.json"):
             if (sd / name).exists():
                 shutil.copy2(sd / name, od / name)
-        make_readonly(od / DECISIONS_FILE)
-        src_state = load_state(src)
+                if name in (DECISIONS_FILE, CONSENSUS_FILE):
+                    make_readonly(od / name)
         state.update(frozen=True, frozen_at=src_state.get("frozen_at"),
                      reference_decisions={**src_state["reference_decisions"], "copied_from": src})
         state["oracle"] = {"status": "frozen", "reference_from": src,
-                           "validate_ok": src_state["oracle"].get("validate_ok")}
+                           **{k: src_state["oracle"][k] for k in ("validate_ok", "medoid") if k in src_state["oracle"]}}
         lock["reference_from"] = {"run": src, "manifest_sha256": sha256_file(od / "MANIFEST.sha256"),
                                   "decisions_sha256": sha256_file(od / DECISIONS_FILE),
                                   **({"accepted_drift": ref_drift} if ref_drift else {})}
@@ -104,134 +113,207 @@ def cmd_prepare(args) -> None:
         f"{f', frozen reference and decisions from {src}' if src else ''})")
 
 
+def oracle_keys(run_id: str, state: dict, text: str) -> tuple[str, str]:
+    """(spec key, extraction key): what an oracle's spec, and its extraction, were made under. A
+    spec made under another key is run again; only an extraction made under another key is only
+    extracted again."""
+    spec = json_digest({"prompt": sha256_bytes(text.encode("utf-8")),
+                        "lock": sha256_file(run_dir(run_id) / "inputs.lock.json"), "model": model_for(state, "oracle")})
+    extraction = json_digest({"inputs": file_hashes(reference_inputs(state)), "model": model_for(state, "extractor")})
+    return spec, extraction
+
+
+def oracle_problems(meta: dict, result: dict) -> list[str]:
+    """Why an oracle run cannot be used. A failing `openspec validate` is not among them: the
+    repair rounds handle it."""
+    missing = [m for m in meta.get("incomplete") or [] if not m.startswith(VALIDATE_FAILS)]
+    return [p for p, bad in (("the agent run failed", not meta.get("ok")),
+                             ("leak", not result["leak"]["ok"]),
+                             ("files were written outside openspec/", not result["no_code"]["ok"]),
+                             ("deliverables missing: " + "; ".join(missing), bool(missing))) if bad]
+
+
+def agreed_decisions(run_id: str, state: dict, od: Path, label: str, vocab: dict) -> dict | None:
+    """Extract the oracle's spec twice in parallel and keep the values both passes agree on
+    (decisions/pass-1, pass-2, agreement.json, agreed.json); None when a pass fails."""
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        a, b = pool.map(lambda p: extract_spec(run_id, state, od / "spec", od / "decisions" / f"pass-{p}",
+                                               f"extract-oracle-{label}-p{p}", f"extract oracle {label} pass {p}"),
+                        (1, 2))
+    if a is None or b is None:
+        return None
+    agreed = cons.agreed_table(a, b, vocab)
+    ag = dec.extraction_agreement(a, b, vocab)
+    write_json(od / "decisions" / "agreement.json", ag)
+    write_json(od / "decisions" / "agreed.json", agreed)
+    log(f"oracle {label}: extraction passes agree on {ag['stated_agreement']:.1%} of the {ag['stated_items']} "
+        f"stated keys; {len(ag['diffs'])} abstained")
+    return agreed
+
+
+def contradiction_line(c: dict) -> str:
+    quote = f" The spec says: “{c['quotes'][0][:200]}”" if c["quotes"] else ""
+    return (f"{c['label']}: the spec decides `{c['value']}` ({c['value_meaning']}), but AGENTS.md settles it as "
+            f"`{c['agents_value']}` ({c['agents_meaning']}).{quote}")
+
+
+def extract_again(run_id: str, state: dict, label: str, od: Path, old: dict, extraction_key: str,
+                  vocab: dict) -> dict:
+    """The spec stands; extract it again under the current extraction inputs (no repair: its
+    contradictions with AGENTS.md, if any, are overridden by the consensus)."""
+    log(f"oracle {label}: extracting its spec again")
+    agreed = agreed_decisions(run_id, state, od, label, vocab)
+    record = {**old, "valid": agreed is not None, "problems": [] if agreed else [EXTRACTION_FAILED],
+              "needs_extraction": agreed is None, "extraction_key": extraction_key,
+              "contradictions": [c["id"] for c in cons.agents_contradictions(agreed, vocab)] if agreed else [],
+              "finished_at": timestamp()}
+    write_json(od / "oracle.json", record)
+    return record
+
+
+def run_oracle_sample(run_id: str, state: dict, label: str, od: Path, text: str, keys: tuple[str, str],
+                      vocab: dict) -> dict:
+    """One oracle in a fresh workspace, then repair rounds in its session (at most
+    `oracle_repair_rounds`): first until the spec validates, then while two extractions show it
+    contradicting AGENTS.md. A repair that breaks a validated spec, with no round left to fix it,
+    is undone. Retried from scratch while unusable (`oracle_retries`), except when only the
+    extraction failed; earlier runs are kept as o<i>.attemptN."""
+    spec_key, extraction_key = keys
+    old = read_json(od / "oracle.json")
+    if old and old.get("spec_key") == spec_key and (old["valid"] or old.get("needs_extraction")):
+        if old["valid"] and old.get("extraction_key") == extraction_key:
+            log(f"oracle {label}: reusing the valid run in {od}")
+            return old
+        return extract_again(run_id, state, label, od, old, extraction_key, vocab)
+    snapshot = od.parent / f".{od.name}.validated"
+    for attempt in range(CFG["oracle_retries"] + 1):
+        if od.exists() and any(od.iterdir()):
+            keep_attempt(od)
+        ws = workspace.build(CFG, run_id, f"oracle-{label}")
+        labels, session, todo, needs_extraction = [], None, [], False
+        remove_tree(snapshot)
+        while True:
+            labels.append(f"repair{len(labels)}" if labels else "trajectory")
+            prompt_text = REPAIR_PROMPT.format(problems="\n".join(f"- {p}" for p in todo)) if todo else text
+            meta = spec_run(state, "oracle", ws, prompt_text, od, labels[-1], resume_session=session)
+            session = session or meta.get("session_id")
+            result = post_spec_stage(run_id, ws, od, labels, f"oracle {label}")
+            problems, contradictions = oracle_problems(meta, result), []
+            if problems:
+                break
+            if result["validate"]["ok"]:
+                agreed = agreed_decisions(run_id, state, od, label, vocab)
+                if agreed is None:
+                    problems, needs_extraction = [EXTRACTION_FAILED], True
+                    break
+                contradictions = cons.agents_contradictions(agreed, vocab)
+                todo = [contradiction_line(c) for c in contradictions]
+                if todo:
+                    copy_tree(od / "spec", snapshot)
+            else:
+                todo = [validate_failure(result["validate"])]
+            if not todo:
+                break
+            if not session or len(labels) > CFG["oracle_repair_rounds"]:
+                if not result["validate"]["ok"] and snapshot.exists():
+                    log(f"oracle {label}: the repair broke the validated spec; restoring it")
+                    copy_tree(snapshot / "openspec", ws / "openspec")
+                    result = post_spec_stage(run_id, ws, od, labels, f"oracle {label}")
+                    contradictions = cons.agents_contradictions(read_json(od / "decisions" / "agreed.json"), vocab)
+                if not result["validate"]["ok"]:
+                    problems = [f"{VALIDATE_FAILS} after {len(labels) - 1} repair round(s)"
+                                + ("" if session else " (no session to repair)")]
+                break
+            log(f"oracle {label}: {len(todo)} problem(s) for code checks; repair round {len(labels)}")
+        remove_tree(snapshot)
+        record = {"oracle": label, "valid": not problems, "problems": problems, "spec_key": spec_key,
+                  "extraction_key": extraction_key, "needs_extraction": needs_extraction, "repairs": len(labels) - 1,
+                  "contradictions": [c["id"] for c in contradictions],
+                  "attempts": 1 + len(list(od.parent.glob(f"{od.name}.attempt*"))), "finished_at": timestamp()}
+        write_json(od / "oracle.json", record)
+        if not problems or needs_extraction:
+            log(f"oracle {label}: " + ("; ".join(problems) if problems else f"valid after {record['repairs']} repair "
+                                       f"round(s)") + (f"; contradicts AGENTS.md on {', '.join(record['contradictions'])}"
+                                                       f" (the consensus takes AGENTS.md's values)" if contradictions else ""))
+            break
+        log(f"oracle {label}: unusable ({'; '.join(problems)})"
+            + (f"; retrying from scratch ({attempt + 1}/{CFG['oracle_retries']})" if attempt < CFG["oracle_retries"]
+               else ""))
+    return record
+
+
 def cmd_oracle(args) -> None:
+    """Run the oracles (reusing valid ones made under the same inputs), then form and freeze the
+    reference; every oracle must be usable."""
     state = load_state(args.run)
     if state.get("frozen"):
-        die("the oracle spec is frozen; it cannot be regenerated or revised")
-    od = oracle_dir(args.run)
-    ostate = state["oracle"]
-    feedback = args.revise
-    if args.revise_file:
-        feedback = Path(args.revise_file).read_text(encoding="utf-8")
-
-    if feedback is None:
-        ws = workspace.build(CFG, args.run, "oracle")
-        labels = ["trajectory"]
-        meta = spec_run(state, "oracle", ws, task_text(state), od, "trajectory")
-    else:
-        if ostate.get("status") in (None, "pending") or not ostate.get("session_id"):
-            die("there is no oracle session to revise; run `loop.py oracle` first")
-        ws = Path(ostate["workspace"])
-        copy = oracle_spec(args.run) / "openspec"
-        if copy.exists() and manifest_text(copy) != manifest_text(ws / "openspec"):
-            log("syncing reviewer edits from runs/.../oracle/spec into the oracle workspace")
-            copy_tree(copy, ws / "openspec")
-        labels = ostate.get("labels", ["trajectory"])
-        label = f"revise{sum(1 for x in labels if x.startswith('revise')) + 1}"
-        labels = [*labels, label]
-        meta = spec_run(state, "oracle", ws, REVISE_PROMPT.format(feedback=feedback.strip()), od,
-                        label, resume_session=ostate["session_id"])
-
-    result = post_spec_stage(args.run, ws, od, labels, "oracle")
-    fatal = []
-    if not meta["ok"]:
-        fatal.append("the agent run did not finish cleanly (see the .run.json)")
-    if meta["incomplete"]:
-        fatal.append("deliverables missing after nudges: " + "; ".join(meta["incomplete"]))
-    if not result["no_code"]["ok"]:
-        fatal.append("files were written outside openspec/")
-    if not result["leak"]["ok"]:
-        fatal.append("the trajectory touched forbidden paths")
-    with state_update(args.run) as state:
-        state["oracle"] = {
-            "status": "failed" if fatal else "awaiting-review",
-            "problems": fatal,
-            "session_id": meta.get("session_id") or ostate.get("session_id"),
-            "workspace": str(ws),
-            "labels": labels,
-            "validate_ok": result["validate"]["ok"],
-        }
-    if fatal:
-        log("oracle run FAILED: " + "; ".join(fatal))
-    else:
-        log(f"oracle spec ready for review: {oracle_spec(args.run) / 'openspec'}")
-        if not result["validate"]["ok"]:
-            log("note: `openspec validate --all --strict` fails; see oracle/guards.json")
-        log("next: edit the spec directly and/or `loop.py oracle --revise ...`, then `loop.py freeze`")
+        die("the reference is frozen; it cannot be regenerated")
+    check_inputs_unchanged(args.run, args.allow_drift)
+    runs, text, vocab = oracle_runs(args.run, state), task_text(state), dec.load_vocab()
+    keys = oracle_keys(args.run, state, text)
+    log(f"{len(runs)} independent oracles")
+    with ThreadPoolExecutor(max_workers=len(runs)) as pool:
+        records = list(pool.map(lambda r: run_oracle_sample(args.run, state, *r, text, keys, vocab), runs))
+    invalid = [r for r in records if not r["valid"]]
+    if invalid:
+        with state_update(args.run) as st:
+            st["oracle"]["status"] = "failed"
+        die("the reference needs every oracle, and these are still unusable after their retries: " +
+            "; ".join(f"{r['oracle']}: {', '.join(r['problems'])}" for r in invalid) +
+            f". Fix the cause and run `loop.py oracle --run {args.run}` again: valid oracles are reused, and an "
+            f"oracle whose extraction failed is only extracted again.")
+    form_reference(args.run, state, runs, vocab)
 
 
-def freeze_reference_decisions(run_id: str) -> None:
-    """Freeze oracle/decisions.proposed.json (as reviewed by the human) into oracle/decisions.json."""
-    proposed = oracle_dir(run_id) / "decisions.proposed.json"
-    if not proposed.exists():
-        log(f"the reference decisions are not extracted yet: run `loop.py extract --run {run_id} --target "
-            f"oracle`, review oracle/decisions.review.md, then `loop.py freeze --run {run_id}` again "
-            f"(compare needs them)")
-        return
-    vocab = dec.load_vocab()
-    clean, report = dec.validate_extraction(dec.to_raw(read_json(proposed)), vocab,
-                                            dec.spec_corpus(oracle_spec(run_id), CFG), hmos_index(run_id),
-                                            base_dir(run_id), CFG["hmos_dir"])
-    if report["errors"]:
-        die("oracle/decisions.proposed.json does not validate:\n" +
-            "\n".join(f"- {e}" for e in report["errors"]))
-    under = read_json(oracle_dir(run_id) / "decisions.proposed.provenance.json", {})
-    changed = changed_files(under)
-    if changed:
-        log(f"warning: {', '.join(changed)} changed since the reference decisions were extracted")
-    dst = oracle_dir(run_id) / DECISIONS_FILE
-    if dst.exists():
-        make_writable(dst)
-    write_json(dst, clean)
-    make_readonly(dst)
-    with state_update(run_id) as state:
-        state["reference_decisions"] = {
-            "frozen": True, "frozen_at": timestamp(), "sha256": sha256_file(dst),
-            "stated": sum(1 for k in dec.KINDS for e in clean[k].values() if e.get("value")),
-            "extracted_under": under}
-    write_text_atomic(oracle_dir(run_id) / "MANIFEST.sha256", manifest_expected(run_id, state))
-    log(f"reference decisions frozen ({state['reference_decisions']['stated']} stated): {dst}")
+def form_reference(run_id: str, state: dict, runs: list[tuple[str, Path]], vocab: dict) -> None:
+    """The consensus decisions (decisions.json), coverage names and votes (consensus.json,
+    consensus.md), and the medoid's spec, guards and metrics; hashed in MANIFEST.sha256 and
+    read-only, then the run is marked frozen."""
+    labels, dirs = [lab for lab, _d in runs], [d for _lab, d in runs]
+    index, shared = hmos_index(run_id), shared_idents(run_id, state)
+    tables = [read_json(d / "decisions" / "agreed.json") for d in dirs]
+    name_sets = [dec.cited_names(d / "spec", CFG, index, shared) for d in dirs]
+    cv = cons.consensus_values(tables, vocab)
+    names = cons.consensus_names(name_sets)
+    scores = [(cons.agreement(t, cv["values"], vocab), cons.jaccard(s, names)) for t, s in zip(tables, name_sets)]
+    m = cons.pick_medoid(scores)
+    table = cons.consensus_table(tables, cv["values"], m, labels, vocab)
 
-
-def cmd_freeze(args) -> None:
-    state = load_state(args.run)
-    if state.get("frozen"):
-        verify_frozen(args.run, state)
-        if state.get("reference_decisions", {}).get("frozen"):
-            log("already frozen (spec and reference decisions)")
-        else:
-            freeze_reference_decisions(args.run)
-        return
-    if state["oracle"].get("status") != "awaiting-review" and not args.force:
-        die(f"oracle status is '{state['oracle'].get('status')}'; only a reviewed spec can be frozen "
-            f"(use --force to override)")
-    spec_root = oracle_spec(args.run)
-    v = guards.validate(spec_root)
-    if not v["ok"] and not args.force:
-        die("`openspec validate --all --strict` fails on the oracle spec:\n" +
-            json.dumps(v.get("failed") or v.get("error"), ensure_ascii=False, indent=2) +
-            "\nfix it (edit or --revise) or pass --force")
-    metrics = spec_metrics.collect(spec_root, base_dir(args.run), CFG, hmos_index(args.run))
-    write_json(oracle_dir(args.run) / "metrics.json", metrics)
-    guards_path = oracle_dir(args.run) / "guards.json"
-    g = read_json(guards_path, {})
-    g["validate"] = v
-    write_json(guards_path, g)
-    write_text_atomic(oracle_dir(args.run) / "MANIFEST.sha256", manifest_text(spec_root))
-    make_readonly(spec_root)
-    with state_update(args.run) as state:
-        state["frozen"] = True
-        state["frozen_at"] = timestamp()
-        state["oracle"]["status"] = "frozen"
-    log(f"oracle spec frozen ({sum(1 for p in spec_root.rglob('*') if p.is_file())} files); "
-        f"manifest at {oracle_dir(args.run) / 'MANIFEST.sha256'}")
-    freeze_reference_decisions(args.run)
+    od = oracle_dir(run_id)
+    copy_tree(dirs[m] / "spec", od / "spec")
+    for name in ("guards.json", "metrics.json"):
+        shutil.copy2(dirs[m] / name, od / name)
+    report = {"oracles": labels, "majority": cons.majority(len(runs)), "medoid": labels[m],
+              "stated": dec.stated_count(table), "contested": cv["contested"], "overrides": cv["overrides"],
+              "medoid_dissent": cons.dissent(tables[m], cv["values"], vocab), "votes": cv["votes"],
+              "names": sorted(names),
+              "per_oracle": {lab: {"agreement": a, "names_jaccard": j} for lab, (a, j) in zip(labels, scores)},
+              "formed_at": timestamp()}
+    for name, data in ((DECISIONS_FILE, table), (CONSENSUS_FILE, report)):
+        make_writable(od / name)
+        write_json(od / name, data)
+        make_readonly(od / name)
+    write_text_atomic(od / "consensus.md", cons.render_md(report))
+    make_readonly(od / "spec")
+    write_text_atomic(od / "MANIFEST.sha256", manifest_expected(run_id, {"reference_decisions": {"frozen": True}}))
+    with state_update(run_id) as st:
+        st.update(frozen=True, frozen_at=timestamp())
+        st["oracle"] = {"status": "frozen", "medoid": labels[m]}
+        st["reference_decisions"] = {"frozen": True, "frozen_at": st["frozen_at"],
+                                     "sha256": sha256_file(od / DECISIONS_FILE), "stated": report["stated"],
+                                     "extracted_under": file_hashes(reference_inputs(st))}
+    log(f"reference frozen from {len(runs)} oracles: spec of {labels[m]} (closest to the consensus; it differs on "
+        f"{len(report['medoid_dissent'])} decisions), {report['stated']} decisions with a majority, "
+        f"{len(cv['contested'])} without (not scored), {len(cv['overrides'])} set to AGENTS.md's value, "
+        f"{len(names)} coverage names; {od / 'consensus.md'}")
 
 
 def cmd_extract(args) -> None:
     """Extract a decision table from a spec (a run-relative directory holding spec/) or a playbook
-    (a run-relative .md file), in N parallel passes. For --target oracle this proposes the
-    reference decisions for human review."""
+    (a run-relative .md file), in N parallel passes. An offline check: it touches neither
+    state.json nor the reference."""
+    if not args.out and Path(args.target).parts[:1] == ("oracle",):
+        die("the oracle directories hold the reference's own extractions; pass --out to write elsewhere")
     state = load_state(args.run)
     rd = run_dir(args.run)
     target = rd / args.target
@@ -240,8 +322,6 @@ def cmd_extract(args) -> None:
         die(f"no playbook at {target}")
     if not is_playbook and not (target / "spec" / "openspec").is_dir():
         die(f"no spec at {target / 'spec' / 'openspec'}")
-    if args.target == "oracle" and state.get("reference_decisions", {}).get("frozen"):
-        log("note: the reference decisions are already frozen; this only writes a new proposal")
     out_root = rd / args.out if args.out else (target.parent / "decisions" if is_playbook
                                                else target / "decisions")
     slug = args.target.strip("/").replace("/", "-").removesuffix(".md")
@@ -258,20 +338,10 @@ def cmd_extract(args) -> None:
     ok = [t for t in tables if t is not None]
     if not ok:
         die("every extraction pass failed")
-    vocab = dec.load_vocab()
-    ag = None
     if len(ok) >= 2:
-        ag = dec.extraction_agreement(ok[0], ok[1], vocab)
+        ag = dec.extraction_agreement(ok[0], ok[1], dec.load_vocab())
         write_json(out_root / "agreement.json", ag)
         log(f"passes agree on {ag['agreement']:.1%} of {ag['items']} keys "
             f"({ag['stated_agreement']:.1%} of the {ag['stated_items']} keys at least one pass states)")
         for d in ag["diffs"]:
             log(f"  differs: {d['id']}: {d['a']} vs {d['b']}")
-    if args.target == "oracle":
-        write_json(oracle_dir(args.run) / "decisions.proposed.json", ok[0])
-        write_json(oracle_dir(args.run) / "decisions.proposed.provenance.json", file_hashes(reference_inputs(state)))
-        mod = dec.module_table(oracle_spec(args.run), hmos_index(args.run), CFG)
-        (oracle_dir(args.run) / "decisions.review.md").write_text(
-            dec.render_review(ok[0], mod, vocab, ag, ok[1] if len(ok) >= 2 else None), encoding="utf-8")
-        log(f"proposed reference decisions: {oracle_dir(args.run) / 'decisions.proposed.json'}; review "
-            f"{oracle_dir(args.run) / 'decisions.review.md'}, then `loop.py freeze --run {args.run}`")

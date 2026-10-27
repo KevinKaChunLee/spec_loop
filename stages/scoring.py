@@ -15,8 +15,8 @@ from lib import spec_metrics, workspace
 from lib.common import ROOT, die, iter_dir, load_state, log, prompt, read_json, run_dir, state_update, write_json
 
 from .core import (CFG, DIMENSIONS, SCORING, base_dir, hmos_index, iteration_samples, oracle_dir, oracle_spec,
-                   read_csv, reference_decisions, reuse_json, sample_label, score_judges, student_valid,
-                   task_text, verify_frozen, write_csv)
+                   read_csv, reference_decisions, reference_names, reuse_json, sample_label, score_judges,
+                   shared_idents, student_valid, task_text, verify_frozen, write_csv)
 from .provenance import check_inputs_unchanged, reuse_mode, score_provenance
 from .agents import run_checked_agent
 from .extraction import extract_spec
@@ -132,13 +132,6 @@ def render_code_checks(coverage: dict, behaviour: dict, grounding: float, tasks:
     return "\n".join(out) + "\n"
 
 
-def shared_idents(run_id: str, state: dict) -> set[str]:
-    base = base_dir(run_id)
-    texts = [(base / rel).read_text(encoding="utf-8", errors="replace")
-             for rel in ("AGENTS.md", "openspec/config.yaml") if (base / rel).exists()]
-    return dec.allowed_symbols([*texts, task_text(state)])[0]
-
-
 def score_sample(run_id: str, state: dict, stage: str, stu_dir: Path, out_dir: Path,
                  ref_table: dict, provenance: dict, stu_table: dict | None = None, reuse: bool = False,
                  judges: int = 1) -> dict | None:
@@ -172,7 +165,7 @@ def score_sample(run_id: str, state: dict, stage: str, stu_dir: Path, out_dir: P
     build = dec.build_coverage(oracle_spec(run_id), stu_dir / "spec", base_dir(run_id), CFG)
     rules = dec.rule_checklist(stu_dir / "spec", CFG, stu_guards.get("validate", {}).get("ok"), stu_mod)
     shared = shared_idents(run_id, state)
-    behaviour = dec.behaviour_coverage(dec.cited_names(oracle_spec(run_id), CFG, index, shared),
+    behaviour = dec.behaviour_coverage(reference_names(run_id, index, shared),
                                        dec.cited_names(stu_dir / "spec", CFG, index, shared),
                                        SCORING["coverage_padding_ratio"])
     (out_dir / "code_checks.md").write_text(
@@ -408,7 +401,7 @@ def cmd_rescore(args) -> None:
         stu_table = read_json(rd / args.student_decisions)
         log(f"reusing the student decision table {args.student_decisions}")
     score = score_sample(args.run, state, f"iter-{args.iter:02d}-{args.out}", stu_dir, out_dir,
-                         reference_decisions(args.run, state, allow_proposed=True),
+                         reference_decisions(args.run, state),
                          score_provenance(args.run, state, stu_dir, args.judges), stu_table,
                          reuse=args.reuse, judges=args.judges)
     if score is None:

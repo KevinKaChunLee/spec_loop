@@ -458,10 +458,12 @@ def validate_extraction(data, vocab: dict, corpus: dict[str, str], index: dict, 
     return clean, {"errors": errors[:60], "warnings": warnings[:80], "dropped": dropped}
 
 
-def to_raw(table: dict) -> dict:
-    """A clean table back in extractor format (None -> "unstated"), for re-validation."""
-    return {kind: {key: {**e, "value": e.get("value") or "unstated"}
-                   for key, e in table.get(kind, {}).items()} for kind in KINDS}
+def table_value(table: dict, kind: str, key: str):
+    return table.get(kind, {}).get(key, {}).get("value")
+
+
+def stated_count(table: dict) -> int:
+    return sum(1 for k in KINDS for e in table[k].values() if e.get("value"))
 
 
 def extraction_agreement(a: dict, b: dict, vocab: dict) -> dict:
@@ -470,7 +472,7 @@ def extraction_agreement(a: dict, b: dict, vocab: dict) -> dict:
     diffs = []
     items = list(vocab_items(vocab))
     for kind, key, _item, _allowed in items:
-        va, vb = a.get(kind, {}).get(key, {}).get("value"), b.get(kind, {}).get(key, {}).get("value")
+        va, vb = table_value(a, kind, key), table_value(b, kind, key)
         same += va == vb
         if va is not None or vb is not None:
             stated += 1
@@ -494,10 +496,10 @@ def compare(ref: dict, stu: dict, ref_mod: dict, stu_mod: dict, vocab: dict, ind
                       "ref": r["value"], "stu": s,
                       "status": "agree" if s == r["value"] else "missing" if s is None else "differ"})
     for kind, key, item, _allowed in vocab_items(vocab):
-        rv = ref.get(kind, {}).get(key, {}).get("value")
+        rv = table_value(ref, kind, key)
         if rv is None:
             continue
-        sv = stu.get(kind, {}).get(key, {}).get("value")
+        sv = table_value(stu, kind, key)
         no_code = kind == "macros" and key not in index["idents"]
         if sv == rv or (no_code and sv is not None):
             status = "agree"
@@ -857,39 +859,8 @@ def check_gaps(coverage_missing: list[str], behaviour: dict, rules: dict, tasks:
 
 # ---------------------------------------------------------------- reports
 
-def _fmt(v) -> str:
+def fmt_value(v) -> str:
     return "-" if v is None else str(v)
-
-
-def render_review(table: dict, mod: dict, vocab: dict, agreement_info: dict | None,
-                  other: dict | None = None) -> str:
-    """Human review sheet for proposed reference decisions."""
-    out = ["# 参考决策表（待人工确认）", "",
-           "由 extractor 从参考 spec 抽取。确认无误后运行 `loop.py freeze --run <run>` 冻结；",
-           "需要更正时直接编辑 `decisions.proposed.json` 的 value（可选值见 decision_vocab.json）。", ""]
-    if agreement_info:
-        out += [f"两次抽取一致率：{agreement_info['agreement']:.1%}（{agreement_info['same']}/"
-                f"{agreement_info['items']}），有值项一致率 {agreement_info['stated_agreement']:.1%}。"
-                "下表「第二次」列只在两次不一致时出现值。", ""]
-    out += ["## 模块（代码解析：裁剪范围表 + ## Purpose 目录）", "",
-            "| 模块目录 | 处置 | 归属能力 |", "|---|---|---|"]
-    for m, r in mod["modules"].items():
-        out.append(f"| `{m}` | {MODULE_VALUES[r['value']]} | {', '.join(r['owners'])} |")
-    for p in mod["problems"]:
-        out.append(f"\n- 注意：{p}")
-    for kind in KINDS:
-        spec = vocab["kinds"][kind]
-        out += ["", f"## {spec['label']}（{kind}）", "",
-                "| key | 值 | AGENTS.md | 第二次 | 证据 |", "|---|---|---|---|---|"]
-        for key, item in spec["items"].items():
-            e = table[kind].get(key, {})
-            alt = (other or {}).get(kind, {}).get(key, {}).get("value") if other else None
-            alt_s = _fmt(alt) if other and alt != e.get("value") else ""
-            ev = e.get("evidence", [{}])[0].get("quote", "") if e.get("evidence") else ""
-            ev = ev.replace("|", "\\|").replace("\n", " ")[:120]
-            out.append(f"| {key} | **{_fmt(e.get('value'))}** | {_fmt(item.get('agents_value'))} | "
-                       f"{alt_s} | {ev} |")
-    return "\n".join(out) + "\n"
 
 
 def render_report(score: dict, items: list[dict], rulings: dict, mod_cov: dict, behaviour: dict,
@@ -917,7 +888,7 @@ def render_report(score: dict, items: list[dict], rulings: dict, mod_cov: dict, 
         for it in diff:
             r = rulings.get(it["id"], {})
             reason = str(r.get("reason", "")).replace("|", "\\|").replace("\n", " ")
-            out.append(f"| `{it['id']}` | {it['group']} | {_fmt(it['ref'])} | {_fmt(it['stu'])} | "
+            out.append(f"| `{it['id']}` | {it['group']} | {fmt_value(it['ref'])} | {fmt_value(it['stu'])} | "
                        f"{r.get('ruling', '-')} | {r.get('severity', '-')} | {reason} |")
     out += ["", "## 代码检查", "",
             f"- 模块目录覆盖：{mod_cov['value']:.2f}；未覆盖：{', '.join(mod_cov['missing']) or '无'}",
@@ -1018,7 +989,7 @@ def decision_leaks(pb_table: dict, ref_table: dict, vocab: dict, lines: list[str
             v = e.get("value")
             if v is None:
                 continue
-            ref_v = ref_table.get(kind, {}).get(key, {}).get("value")
+            ref_v = table_value(ref_table, kind, key)
             if not strict and (v != ref_v or agents_settled(vocab, kind, key, v)):
                 continue
             for ev in e.get("evidence", []):

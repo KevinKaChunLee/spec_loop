@@ -247,7 +247,7 @@ def cmd_leak_check(args) -> None:
     name = "leak-strict" if args.strict else "leak"
     out_dir = pb.parent / name
     pb_table = read_json(rd / args.decisions) if args.decisions else None
-    ref = reference_decisions(args.run, state, allow_proposed=True)
+    ref = reference_decisions(args.run, state)
     report = playbook_report(args.run, state, pb, ref, out_dir, f"{pb.parent.parent.name}-{name}",
                              args.strict, pb_table)
     write_json(out_dir / "leak_report.json", report)

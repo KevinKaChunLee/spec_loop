@@ -10,31 +10,31 @@
 
   <!-- Title -->
   <text x="40" y="48" font-size="30" font-weight="700" fill="#0f172a">spec_loop &#8212; Architecture</text>
-  <text x="42" y="74" font-size="13.5" fill="#64748b">Oracle / student OpenSpec loop on the Cursor CLI &#183; GLM 5.3 Max oracle, extractor, judge and synthesizer &#183; GLM 5.3 High student &#183; HMOS &#8594; liteOS call_manager</text>
+  <text x="42" y="74" font-size="13.5" fill="#64748b">Oracle / student playbook distillation for any agent workload &#183; strong oracle model, weaker student model &#183; example workload: HMOS &#8594; liteOS call_manager OpenSpec</text>
 
   <!-- ============ 1. SHARED INPUTS ============ -->
   <rect x="20" y="94" width="1200" height="126" rx="14" fill="#f5f8ff" stroke="#c7d7f5" stroke-width="1.5" stroke-dasharray="4 4"/>
   <circle cx="44" cy="120" r="11" fill="#334155"/><text x="44" y="125" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">1</text>
-  <text x="64" y="125" font-size="15" font-weight="700" fill="#334155">SHARED INPUTS &#8212; frozen at base_sha, present in every agent's workspace</text>
+  <text x="64" y="125" font-size="15" font-weight="700" fill="#334155">SHARED INPUTS &#8212; one workload, frozen at base_sha, present in every agent's workspace</text>
 
   <rect x="40" y="138" width="188" height="62" rx="8" fill="#ffffff" stroke="#bcd0f0" stroke-width="1.5"/>
-  <text x="56" y="165" font-size="14" font-weight="700" fill="#0f172a">AGENTS.md</text>
-  <text x="56" y="185" font-size="11.5" fill="#64748b">scope &#183; macros &#183; deps</text>
+  <text x="56" y="165" font-size="14" font-weight="700" fill="#0f172a">Task rules</text>
+  <text x="56" y="185" font-size="11.5" fill="#64748b">e.g. AGENTS.md: fixed decisions</text>
 
   <rect x="238" y="138" width="188" height="62" rx="8" fill="#ffffff" stroke="#bcd0f0" stroke-width="1.5"/>
-  <text x="254" y="165" font-size="13.5" font-weight="700" fill="#0f172a">openspec/config.yaml</text>
-  <text x="254" y="185" font-size="11.5" fill="#64748b">context &#183; artifact rules</text>
+  <text x="254" y="165" font-size="14" font-weight="700" fill="#0f172a">Output format</text>
+  <text x="254" y="185" font-size="11.5" fill="#64748b">e.g. OpenSpec config.yaml</text>
 
   <rect x="436" y="138" width="188" height="62" rx="8" fill="#ffffff" stroke="#bcd0f0" stroke-width="1.5"/>
-  <text x="452" y="165" font-size="14" font-weight="700" fill="#0f172a">HMOS baseline</text>
-  <text x="452" y="185" font-size="11.5" fill="#64748b">telephony_call_manager/</text>
+  <text x="452" y="165" font-size="14" font-weight="700" fill="#0f172a">Source material</text>
+  <text x="452" y="185" font-size="11.5" fill="#64748b">e.g. the HMOS module to port</text>
 
   <rect x="634" y="138" width="188" height="62" rx="8" fill="#ffffff" stroke="#bcd0f0" stroke-width="1.5"/>
-  <text x="650" y="165" font-size="14" font-weight="700" fill="#0f172a">.cursor/skills</text>
-  <text x="650" y="185" font-size="11.5" fill="#64748b">openspec-propose &amp; co.</text>
+  <text x="650" y="165" font-size="14" font-weight="700" fill="#0f172a">Agent skills</text>
+  <text x="650" y="185" font-size="11.5" fill="#64748b">e.g. openspec-* skills</text>
 
   <rect x="832" y="138" width="188" height="62" rx="8" fill="#ffffff" stroke="#bcd0f0" stroke-width="1.5"/>
-  <text x="848" y="165" font-size="14" font-weight="700" fill="#0f172a">prompts/task.md</text>
+  <text x="848" y="165" font-size="14" font-weight="700" fill="#0f172a">Task prompt</text>
   <text x="848" y="185" font-size="11.5" fill="#64748b">same task for both</text>
 
   <rect x="1036" y="138" width="164" height="62" rx="8" fill="#fff7ec" stroke="#e0913a" stroke-width="1.5"/>
@@ -61,7 +61,7 @@
 
   <rect x="620" y="294" width="270" height="62" rx="10" fill="#ffffff" stroke="#8fd6b8" stroke-width="1.5"/>
   <text x="636" y="321" font-size="15" font-weight="700" fill="#0f172a">guards.py</text>
-  <text x="636" y="342" font-size="11.5" fill="#64748b">only openspec/ &#183; validate &#183; leak check</text>
+  <text x="636" y="342" font-size="11.5" fill="#64748b">output scope &#183; validation &#183; leak check</text>
   <polyline points="600,325 618,325" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#ah-grey)"/>
 
   <rect x="910" y="294" width="290" height="62" rx="10" fill="#ffffff" stroke="#8fd6b8" stroke-width="1.5"/>
@@ -69,7 +69,7 @@
   <text x="926" y="342" font-size="11.5" fill="#64748b">trajectory.md &#183; stats &#183; TrajViz JSON</text>
   <polyline points="890,325 908,325" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#ah-grey)"/>
 
-  <text x="40" y="377" font-size="11.5" fill="#64748b">scratch: spec-loop-ws/&lt;run&gt;/&lt;stage&gt;/   &#8594;   results copied to runs/&lt;run&gt;/&lt;stage&gt;/   &#183;   at most max_parallel_agents sessions at once</text>
+  <text x="40" y="377" font-size="11.5" fill="#64748b">scratch: &lt;workspace_root&gt;/&lt;run&gt;/&lt;stage&gt;/   &#8594;   results copied to runs/&lt;run&gt;/&lt;stage&gt;/   &#183;   at most max_parallel_agents sessions at once</text>
 
   <!-- agent runs -> oracle -->
   <polyline points="145,388 145,414" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
@@ -78,35 +78,44 @@
   <!-- ============ 3. ORACLE ============ -->
   <rect x="20" y="416" width="1200" height="160" rx="14" fill="#f6f0ff" stroke="#d6c4f5" stroke-width="1.5" stroke-dasharray="4 4"/>
   <circle cx="44" cy="442" r="11" fill="#8b5cf6"/><text x="44" y="447" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">3</text>
-  <text x="64" y="447" font-size="15" font-weight="700" fill="#6b3fd4">ORACLE &#8212; once per run, then frozen; later runs reuse it with prepare --reference-from</text>
+  <text x="64" y="447" font-size="15" font-weight="700" fill="#6b3fd4">ORACLE &#8212; independent oracles; their consensus is the frozen reference, no human review</text>
+  <text x="1200" y="447" font-size="12" fill="#6b3fd4" text-anchor="end">loop.py oracle &#183; reused via prepare --reference-from</text>
 
-  <!-- revise loop -->
-  <polyline points="645,490 645,474 145,474 145,488" fill="none" stroke="#e07b39" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#ah-orange)"/>
-  <rect x="306" y="466" width="178" height="16" fill="#f6f0ff"/><text x="395" y="478" font-size="11.5" fill="#c25f1f" font-style="italic" text-anchor="middle">--revise resumes the session</text>
+  <!-- repair loop: back into the same oracle session -->
+  <polyline points="400,484 400,466 145,466 145,474" fill="none" stroke="#e07b39" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#ah-orange)"/>
+  <rect x="168" y="458" width="210" height="16" fill="#f6f0ff"/><text x="273" y="470" font-size="11.5" fill="#c25f1f" font-style="italic" text-anchor="middle">repair in the same session, &#8804;2 rounds</text>
 
-  <rect x="40" y="490" width="210" height="62" rx="10" fill="#ffffff" stroke="#8b5cf6" stroke-width="1.5"/>
-  <text x="56" y="517" font-size="15" font-weight="700" fill="#0f172a">Oracle</text>
-  <text x="56" y="538" font-size="11.5" fill="#64748b">GLM 5.3 Max &#183; baseline + change</text>
+  <!-- three oracles, drawn as stacked cards -->
+  <rect x="52" y="476" width="210" height="76" rx="10" fill="#ffffff" stroke="#c4b0f2" stroke-width="1.2"/>
+  <rect x="46" y="480" width="210" height="76" rx="10" fill="#ffffff" stroke="#a98be8" stroke-width="1.2"/>
+  <rect x="40" y="484" width="210" height="76" rx="10" fill="#ffffff" stroke="#8b5cf6" stroke-width="1.5"/>
+  <text x="56" y="508" font-size="15" font-weight="700" fill="#0f172a">Oracle &#215; 3</text>
+  <text x="56" y="528" font-size="11.5" fill="#64748b">oracle model &#183; in parallel</text>
+  <text x="56" y="545" font-size="11.5" fill="#64748b">oracle/o1 &#8230; o3 &#183; valid ones reused</text>
 
-  <rect x="290" y="490" width="210" height="62" rx="10" fill="#ffffff" stroke="#8b5cf6" stroke-width="1.5"/>
-  <text x="306" y="517" font-size="15" font-weight="700" fill="#0f172a">Extractor</text>
-  <text x="306" y="538" font-size="11.5" fill="#64748b">reference decisions &#183; 2 passes</text>
-  <polyline points="250,521 288,521" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
+  <rect x="290" y="484" width="220" height="76" rx="10" fill="#ffffff" stroke="#8fd6b8" stroke-width="1.5"/>
+  <text x="306" y="508" font-size="15" font-weight="700" fill="#0f172a">Code checks</text>
+  <text x="306" y="528" font-size="11.5" fill="#64748b">1. output format validates</text>
+  <text x="306" y="545" font-size="11.5" fill="#64748b">2. extractor &#215; 2 vs task rules</text>
+  <polyline points="262,522 288,522" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
 
-  <rect x="540" y="490" width="210" height="62" rx="10" fill="#fff7ec" stroke="#e0913a" stroke-width="1.5"/>
-  <text x="556" y="517" font-size="15" font-weight="700" fill="#0f172a">Human review</text>
-  <text x="556" y="538" font-size="11.5" fill="#64748b">spec + decisions.review.md</text>
-  <polyline points="500,521 538,521" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
+  <rect x="550" y="484" width="220" height="76" rx="10" fill="#ffffff" stroke="#8b5cf6" stroke-width="1.5"/>
+  <text x="566" y="508" font-size="15" font-weight="700" fill="#0f172a">Consensus</text>
+  <text x="566" y="528" font-size="11.5" fill="#64748b">decisions &amp; names a majority share</text>
+  <text x="566" y="545" font-size="11.5" fill="#64748b">artifact: the medoid oracle's</text>
+  <polyline points="510,522 548,522" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
 
-  <rect x="790" y="490" width="170" height="62" rx="10" fill="#ffffff" stroke="#8b5cf6" stroke-width="1.5"/>
-  <text x="806" y="517" font-size="15" font-weight="700" fill="#0f172a">freeze</text>
-  <text x="806" y="538" font-size="11.5" fill="#64748b">MANIFEST &#183; read-only</text>
-  <polyline points="750,521 788,521" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
+  <rect x="810" y="484" width="150" height="76" rx="10" fill="#ffffff" stroke="#8b5cf6" stroke-width="1.5"/>
+  <text x="826" y="508" font-size="15" font-weight="700" fill="#0f172a">freeze</text>
+  <text x="826" y="528" font-size="11.5" fill="#64748b">MANIFEST &#183; read-only</text>
+  <text x="826" y="545" font-size="11.5" fill="#64748b">automatic</text>
+  <polyline points="770,522 808,522" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
 
-  <rect x="1000" y="490" width="200" height="62" rx="12" fill="#dbe8ff" stroke="#3b6fe0" stroke-width="2"/>
-  <text x="1100" y="516" font-size="15" font-weight="700" fill="#1e3a8a" text-anchor="middle">Frozen reference</text>
-  <text x="1100" y="537" font-size="11.5" fill="#3b5b9e" text-anchor="middle">spec + decisions.json</text>
-  <polyline points="960,521 998,521" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
+  <rect x="1000" y="484" width="200" height="76" rx="12" fill="#dbe8ff" stroke="#3b6fe0" stroke-width="2"/>
+  <text x="1100" y="510" font-size="15" font-weight="700" fill="#1e3a8a" text-anchor="middle">Frozen reference</text>
+  <text x="1100" y="530" font-size="11.5" fill="#3b5b9e" text-anchor="middle">artifact + decisions.json</text>
+  <text x="1100" y="547" font-size="11.5" fill="#3b5b9e" text-anchor="middle">+ consensus.json</text>
+  <polyline points="960,522 998,522" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
 
   <!-- ============ 4. BASELINE & NOISE ============ -->
   <rect x="20" y="606" width="1200" height="140" rx="14" fill="#fff8e6" stroke="#f0d58c" stroke-width="1.5" stroke-dasharray="4 4"/>
@@ -115,12 +124,12 @@
   <text x="1200" y="637" font-size="12" fill="#975a16" text-anchor="end">student --samples 3 &#183; compare --judges 2 &#183; noise</text>
 
   <!-- reference -> scoring (here and in every iteration) and synthesizer; never the student -->
-  <polyline points="1100,552 1100,591 600,591 600,648" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
+  <polyline points="1100,560 1100,591 600,591 600,648" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
   <rect x="740" y="583" width="212" height="17" fill="#ffffff"/><text x="846" y="596" font-size="12" fill="#2563eb" font-style="italic" text-anchor="middle">reference (scoring + synthesizer)</text>
 
   <rect x="40" y="650" width="300" height="76" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="6 4"/>
   <text x="56" y="676" font-size="15" font-weight="700" fill="#0f172a">3 students, no playbook</text>
-  <text x="56" y="697" font-size="11.5" fill="#64748b">GLM 5.3 High &#183; in parallel</text>
+  <text x="56" y="697" font-size="11.5" fill="#64748b">student model &#183; in parallel</text>
   <text x="56" y="715" font-size="11.5" fill="#64748b">iter-00/student-s1 &#8230; s3</text>
   <rect x="282" y="658" width="48" height="18" rx="9" fill="#fef2f2" stroke="#dc2626" stroke-width="1.2"/><text x="306" y="671" font-size="11" fill="#dc2626" text-anchor="middle">blind</text>
 
@@ -149,14 +158,14 @@
   <!-- Student (blind) -->
   <rect x="40" y="838" width="230" height="96" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="6 4"/>
   <text x="56" y="864" font-size="15" font-weight="700" fill="#0f172a">Student</text>
-  <text x="56" y="885" font-size="11.5" fill="#64748b">GLM 5.3 High</text>
+  <text x="56" y="885" font-size="11.5" fill="#64748b">student model</text>
   <text x="56" y="903" font-size="11.5" fill="#64748b">repo snapshot + task + playbook_k</text>
   <text x="56" y="921" font-size="11.5" fill="#64748b">student-sN/ &#183; M samples in parallel</text>
   <rect x="212" y="846" width="48" height="18" rx="9" fill="#fef2f2" stroke="#dc2626" stroke-width="1.2"/><text x="236" y="859" font-size="11" fill="#dc2626" text-anchor="middle">blind</text>
 
   <rect x="310" y="838" width="230" height="96" rx="10" fill="#ffffff" stroke="#5b8def" stroke-width="1.5"/>
   <text x="326" y="864" font-size="15" font-weight="700" fill="#0f172a">Student outputs</text>
-  <text x="326" y="885" font-size="11.5" fill="#64748b">spec &#183; trajectory &#183; stats</text>
+  <text x="326" y="885" font-size="11.5" fill="#64748b">artifact &#183; trajectory &#183; stats</text>
   <text x="326" y="903" font-size="11.5" fill="#64748b">guards &#183; metrics &#183; TrajViz</text>
   <polyline points="270,886 308,886" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
 
@@ -198,7 +207,7 @@
   <rect x="960" y="992" width="240" height="96" rx="10" fill="#ffffff" stroke="#8fd6b8" stroke-width="1.5"/>
   <text x="976" y="1018" font-size="15" font-weight="700" fill="#0f172a">Playbook checker</text>
   <text x="976" y="1039" font-size="11.5" fill="#64748b">no copied text &#183; &#8804;300 lines</text>
-  <text x="976" y="1057" font-size="11.5" fill="#64748b">leaks: open decisions &#183; HMOS facts</text>
+  <text x="976" y="1057" font-size="11.5" fill="#64748b">leaks: open decisions &#183; source facts</text>
   <text x="976" y="1075" font-size="11.5" fill="#64748b">and names &#8594; rewrite, then strip</text>
   <polyline points="960,1040 922,1040" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
   <text x="941" y="1033" font-size="11" fill="#2563eb" font-style="italic" text-anchor="middle">pass</text>
@@ -245,7 +254,7 @@
 
   <rect x="40" y="1392" width="380" height="86" rx="10" fill="#fffaf4" stroke="#e0913a" stroke-width="1.5"/>
   <text x="56" y="1418" font-size="15" font-weight="700" fill="#0f172a">runs/&lt;run&gt;/</text>
-  <text x="56" y="1438" font-size="11.5" fill="#64748b">committed: specs &#183; scores &#183; reports &#183; playbooks</text>
+  <text x="56" y="1438" font-size="11.5" fill="#64748b">committed: artifacts &#183; scores &#183; reports &#183; playbooks</text>
   <text x="56" y="1456" font-size="11.5" fill="#64748b">local only: raw jsonl &#183; transcripts &#183; TrajViz files</text>
 
   <rect x="440" y="1392" width="220" height="86" rx="10" fill="#fffaf4" stroke="#e0913a" stroke-width="1.5"/>
@@ -268,7 +277,7 @@
   <g font-size="12.5" fill="#334155">
     <polyline points="40,1540 74,1540" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ah-blue)"/><text x="86" y="1544">Artifact flow</text>
     <polyline points="200,1540 234,1540" fill="none" stroke="#17a673" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#ah-green)"/><text x="246" y="1544">Playbook feedback</text>
-    <polyline points="396,1540 430,1540" fill="none" stroke="#e07b39" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#ah-orange)"/><text x="442" y="1544">Review / retry loop</text>
+    <polyline points="396,1540 430,1540" fill="none" stroke="#e07b39" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#ah-orange)"/><text x="442" y="1544">Repair / retry loop</text>
     <polyline points="640,1540 674,1540" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#ah-grey)"/><text x="686" y="1544">Internal step</text>
     <rect x="800" y="1532" width="34" height="16" rx="4" fill="#ffffff" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5 3"/><text x="846" y="1544">Blind: repo snapshot, no reference or rubric</text>
   </g>

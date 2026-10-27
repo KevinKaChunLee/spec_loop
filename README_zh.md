@@ -2,7 +2,7 @@
 
 [English](README.md) | 简体中文
 
-**教一个较弱的模型写 OpenSpec。** 由强模型 oracle 写出参考 OpenSpec，经人工审阅后冻结。较弱的 student 模型针对同一任务写出自己的 spec，全程看不到参考答案。随后 oracle 对两者的差距打分，并写出一份 playbook（执行手册），student 在下一次尝试时会拿到这份手册。循环运行固定轮数，分数变化对照实测的噪声阈值判断，最后用新样本做消融实验，检验最好的 playbook 是否真的有用。
+**教一个较弱的模型写 OpenSpec。** 由强模型 oracle 独立运行三次、各写一份 OpenSpec，再由代码取其中多数一致的内容组成参考答案并冻结。较弱的 student 模型针对同一任务写出自己的 spec，全程看不到参考答案。随后 oracle 对两者的差距打分，并写出一份 playbook（执行手册），student 在下一次尝试时会拿到这份手册。循环运行固定轮数，分数变化对照实测的噪声阈值判断，最后用新样本做消融实验，检验最好的 playbook 是否真的有用。
 
 任务内容：把 HMOS 的 `telephony_call_manager` 模块（OpenHarmony v6.0）移植到 liteOS 手表平台，约束见 `communication_mcu/AGENTS.md`。本阶段只产出规划文档：HMOS 模块的 baseline 能力规格，以及一个迁移 change `migrate-call-manager-to-liteos`，不写任何产品代码。
 
@@ -16,7 +16,12 @@
 
 1. **共享输入。** `AGENTS.md`、`openspec/config.yaml`、HMOS 模块、OpenSpec skills 和 `prompts/task.md` 固定在 `base_sha`，对每个 agent 完全相同。`inputs.lock.json` 记录它们的哈希和 CLI 版本。
 2. **隔离的 agent 运行。** 每一次 oracle、student、extractor（决策抽取）、judge（评审）和 synthesizer（手册生成）调用都使用一份没有 git 历史的新快照，经 `runner.py` 运行，再由 `guards.py` 检查。其执行轨迹会被渲染成便于阅读的文本，并导出给 TrajViz。
-3. **Oracle。** oracle 只写一次参考 spec，extractor 提出它的决策表。你审阅两者，可以直接编辑，也可以让 oracle 修改，然后冻结。之后的运行用 `prepare --reference-from` 复用冻结的参考答案。
+3. **Oracle。** `oracle_samples`（3）个 oracle 并行、互相独立地各写一份 spec。extractor 对每份 spec 抽取两次，两次一致的值才算该 oracle 的表态。若某个 oracle 的 spec 未通过 `openspec validate --strict`，或与 AGENTS.md 已定的值相矛盾，就在同一会话中让它修复（最多 `oracle_repair_rounds` 次）。这些都是代码能做的检查；没有模型来评判参考答案，评分指标也不会反馈给它。随后由代码组成参考答案并冻结：
+   - 决策取多数 oracle 一致的值；
+   - 覆盖目标取多数 oracle 都引用的 HMOS 名称；
+   - spec 正文取与这一共识最接近的那个 oracle 的 spec。
+
+   不需要人工审阅。之后的运行用 `prepare --reference-from` 复用冻结的参考答案。
 4. **基线与噪声。** 第 0 轮运行多个不带 playbook 的 student，每个都与冻结的参考答案对比，由两次独立评审打分。第一份 playbook 依据全部样本的差距（反复出现的优先）以及中位数样本的完整报告和执行轨迹写成。样本间、评审间与两次提取之间的离散度给出噪声估计，代码从第 1 轮起使用它：判断分数变化是噪声内还是显著，以及决定 synthesizer 何时撤回一次 playbook 修订。
 5. **教学循环。** 第 1 到 N 轮。student 在看不到参考答案的情况下写 spec。评分先在代码中把它的决策表与参考比对，再由 judge 裁定不一致项并给四个质量分项打分，总分由代码计算。synthesizer 根据差距和 student 的执行轨迹写出下一版 playbook，脚本检查其中是否抄了原文或泄漏答案；循环运行固定轮数。
 6. **验证。** 循环结束后，用新的 student 重测最高分的 playbook，并与第 0 轮不带 playbook 的基线 student 对照。
@@ -44,7 +49,13 @@ cd spec_loop
 python3 loop.py smoke --run smoke1
 ```
 
-它依次运行 oracle、冻结、student、judge 和 synthesizer，最后打印 PASS/FAIL 检查清单，内容包括：每次运行实际报告的模型、对话记录是否已复制、各项检查、冻结清单、合法的分数、被接受的 playbook，以及 playbook 是否已插入下一轮 student 的提示词。
+单元测试（只用标准库，不运行 agent）检查共识规则和 oracle 阶段的控制流程：`cd spec_loop && python3 -m unittest discover -s tests -t .`。
+
+冒烟测试运行两个 oracle 并组成共识，再运行 student、judge 和 synthesizer，最后打印 PASS/FAIL 检查清单，内容包括：
+- 每次运行实际报告的模型、对话记录是否已复制、各项检查；
+- 每个 oracle 两次抽取一致的结果、共识，以及参考 spec 是否取自 medoid；
+- 冻结清单；
+- 合法的分数、被接受的 playbook，以及 playbook 是否已插入下一轮 student 的提示词。
 
 ---
 
@@ -53,24 +64,21 @@ python3 loop.py smoke --run smoke1
 ```bash
 cd spec_loop
 python3 loop.py prepare --run r1             # 锁定输入，解出 base 快照
-python3 loop.py oracle  --run r1             # oracle 写参考 spec
+python3 loop.py oracle  --run r1             # 三个 oracle，然后冻结它们的共识参考答案
 python3 loop.py student --run r1 --iter 0    # 可选：并行启动基线 student
 ```
 
-审阅 `runs/r1/oracle/spec/openspec/`。可以直接编辑文件，也可以让 oracle 修改，或两者结合。修改会恢复 oracle 原来的会话，并先把你的直接编辑同步进它的工作区：
+所有 oracle 都有效后，`oracle` 会自己冻结参考答案。冻结后参考 spec 和决策表都不再改变，之后每个阶段都会校验其哈希。`runs/r1/oracle/consensus.md` 说明参考答案是怎样组成的：
+- 每个 oracle 与共识的一致率，可作为解读 student 分数的上限；
+- 没有多数的决策，这些不计分；
+- 改取 AGENTS.md 值的已定决策，以及 medoid 是哪一个。
 
-```bash
-python3 loop.py oracle --run r1 --revise "在 design.md 中说明 VoIP 决策并引用 AGENTS.md"
-python3 loop.py oracle --run r1 --revise-file review-notes.md
-```
-
-满意后抽取参考 spec 的决策表，人工核对，再一起冻结。冻结后两者都不再改变，之后每个阶段都会校验其哈希：
-
-```bash
-python3 loop.py extract --run r1 --target oracle   # 两次抽取；写出 oracle/decisions.review.md
-# 阅读 oracle/decisions.review.md；需要更正时直接改 oracle/decisions.proposed.json 中的值
-python3 loop.py freeze  --run r1
-```
+规则如下：
+- **不可用的 oracle。** 运行失败、泄漏、写到 `openspec/` 之外、缺交付物，或修复后仍校验不通过的 oracle 会从头重试（`oracle_retries`）。仍不可用时 `oracle` 停下；重新运行会复用已有效的 oracle。
+- **修复不会让可用的 oracle 失效。** 若修复 AGENTS.md 冲突时破坏了已通过校验的 spec，且已没有修复轮可用，这次修复会被撤销：恢复最后一份通过校验的 spec，其冲突由共识覆盖。
+- **抽取失败。** 若只有抽取失败，spec 会保留，下次运行 `oracle` 只重新抽取，不重跑该 oracle。
+- **多数。** 一项决策的参考值是超过半数 oracle 一致的值。对 AGENTS.md 已定的决策，只要多数 oracle 对它有表态，就取 AGENTS.md 的值。
+- **复用。** 只有任务提示词、该 run 的输入锁和 oracle 模型都相同时，oracle 的 spec 才会被复用，否则重跑该 oracle。只有抽取提示词、词表和抽取模型都相同时，它的抽取结果才会被复用，否则只重新抽取。和其他会运行 agent 的阶段一样，锁定的输入自 `prepare` 以来有变时 `oracle` 会停下（`--allow-drift` 可放行）。`prepare --force` 会删除旧的 oracle。
 
 之后的运行可以复用已冻结的参考答案，不必再跑 oracle。先测一次噪声，再迭代，最后检验最好的 playbook：
 
@@ -86,7 +94,7 @@ python3 loop.py status  --run r2
 
 `iterate` 运行固定轮数，不会提前停止：每轮只有一个样本时，大多数分数变化都在噪声范围内，提前停止只会在噪声上停下。它会跳过已完成的阶段，因此中断后重新运行是安全的；最后一轮不写 playbook。已完成的阶段只有记录对得上才算数：用别的提示词跑出的 student 会让循环停下（请 reset 该轮），由别的 student spec 得出的分数会重新打分。使用 `--samples M` 时，每一轮并行运行 M 个 student：该轮分数取其中有效样本的平均值，synthesizer 从中位数那个样本中学习。使用 `--judges N`（默认取 config.json 的 `judges`）时，每个样本由 N 次独立评审打分，样本分为它们的平均值。
 
-各阶段耗时较长：oracle 约 45 分钟，student 30 到 70 分钟，两次评审的 compare 约 25 分钟，synthesize 连同泄漏检查 15 到 35 分钟。建议后台运行：
+各阶段耗时较长：oracle 约 45 分钟（三个并行运行，另加抽取和可能的修复），student 30 到 70 分钟，两次评审的 compare 约 25 分钟，synthesize 连同泄漏检查 15 到 35 分钟。建议后台运行：
 
 ```bash
 nohup python3 -u loop.py iterate --run r2 --start 0 --iters 4 > runs/r2-iterate.log 2>&1 &
@@ -104,12 +112,13 @@ nohup python3 -u loop.py iterate --run r2 --start 0 --iters 4 > runs/r2-iterate.
 ## 如何保证实验公平
 
 - **同一个任务。** `prompts/task.md` 原样发给 oracle 和 student。student 的运行只在模型和附加在任务后面的 playbook 上有所不同。
-- **锁定输入。** `prepare` 记录 `base_sha`、AGENTS.md、config.yaml、skills、每个提示词、评分标准和决策词表的哈希，config.json 的指纹（除 `iterations`、`judges`、`max_parallel_agents`、`model_notes`、`workspace_root` 以外的全部键），模型，以及 CLI 版本。之后只要其中任何一项变了，每个会运行 agent 的阶段都会停下，除非传入 `--allow-drift`；放行的变化记入 `state.json`，`status` 会显示。agent CLI 会自动更新，因此每次运行还会记录自己实际使用的 CLI 版本（`.run.json` 中的 `agent_cli`）。`prepare --reference-from` 在参考决策表提取之后词表、提取提示词或任务有变时也会停下（在冻结时记录，并沿着复制它的 run 一路追溯）。
+- **锁定输入。** `prepare` 记录 `base_sha`、AGENTS.md、config.yaml、skills、每个提示词、评分标准和决策词表的哈希，config.json 的指纹（除 `iterations`、`judges`、`max_parallel_agents`、`model_notes`、`workspace_root` 和只影响冻结参考答案的 `oracle_*` 键以外的全部键），模型，以及 CLI 版本。之后只要其中任何一项变了，每个会运行 agent 的阶段都会停下，除非传入 `--allow-drift`；放行的变化记入 `state.json`，`status` 会显示。agent CLI 会自动更新，因此每次运行还会记录自己实际使用的 CLI 版本（`.run.json` 中的 `agent_cli`）。`prepare --reference-from` 在参考决策表提取之后词表、提取提示词或任务有变时也会停下（在冻结时记录，并沿着复制它的 run 一路追溯）。
 - **来源记录。** 每个 `score.json` 都带着它所依据的输入、student spec 的哈希、参考答案清单、评审次数和评分代码。`compare` 和 `ablate` 只在这些全部一致时才复用分数（`compare --fresh` 强制重新评审）；只有评分代码变了时，用已保存的模型输出重算总分。每次 student 运行都写出 `provenance.json`，记录提示词哈希和尝试次数。
 - **只有有效的 student 运行才算数。** 运行失败、催促后仍缺交付物或发生泄漏的 student 运行会从头重跑（`student_retries`）；之前的尝试保留为 `student-sN.attemptN`，尝试次数写入 `scores.csv` 和消融报告。仍然无效的运行不打分，也不计入该轮均值、差距表、噪声基线和消融；`status` 会列出它。某个有效样本打分失败时，该轮在 `compare` 对每个有效样本都成功之前没有分数。裁定 judge 在修复一次后仍漏掉某个裁定，同样算作失败，而不是记在 student 头上。
 - **各处评审条件相同。** 每一轮、噪声基线和消融中，judge 拿到的输入都一样；特别是它从不看到上一轮的差距。
 - **盲测工作区。** 每个 agent 都在一份全新的 `git archive` 快照中工作，只有一个提交、没有历史；原仓库的历史和分支里保存着早期的 spec。oracle 的产出存放在 student 工作区之外。泄漏检查会扫描每一次工具调用（包括子 agent 的对话记录），以及工具输出中暴露的路径。只要运行触碰了 `spec_loop/`、其他阶段的工作区、原始工作区、其他项目的 agent 对话记录或早期的 GLM 导出，该次运行即判为失败。
-- **冻结的参考答案。** `freeze` 写出 `MANIFEST.sha256`，并把 spec 和人工核对过的参考决策表设为只读；之后每个阶段都会重新校验。
+- **参考答案不由单次运行决定。** 参考决策和覆盖目标取多个独立 oracle 中多数一致的内容。oracle 意见分歧的决策没有参考值，不计分，因此 student 不会因为选了另一个 oracle 也选的值而失分。修复轮只用代码检查（校验、AGENTS.md 已定的值），参考答案不会被调向 student 的评分指标。
+- **冻结的参考答案。** 冻结时写出 `MANIFEST.sha256`，并把参考 spec、共识决策表和 `consensus.json` 设为只读；之后每个阶段都会重新校验。
 - **只做规划。** 无代码检查读取工作区中的 `git status`。凡写到 `openspec/` 之外的内容，oracle 运行判为失败，student 运行则不计入评分。
 - **评分以代码为主，且与教学分开。** 决策以表格形式在代码中比对，只有不一致项交给模型裁定；模型只给四个质量分项打分（见[评分方式](#评分方式)）。每个差距都会被标记为 `student_wrong`、`student_defensible` 或 `reference_questionable`；只有 `student_wrong` 的差距会被写进 playbook。
 - **playbook 不得泄漏答案。** 如果 playbook 与参考 spec 有较长的相同段落（AGENTS.md、config.yaml、任务说明或 HMOS 源码中本来就有的文字除外）、列出了参考 spec 大部分的能力 id，或超过行数上限，脚本会拒绝它。此外还会标出泄漏答案的行：extractor 读 playbook，标出对 AGENTS.md 未定的决策给出参考答案、或直接陈述 HMOS 代码行为结论的行；代码标出点名 AGENTS.md、config.yaml 和任务说明之外的 HMOS 标识符或文件名的行（目录不受限）。synthesizer 拿着被标出的行最多重写两次；之后仍被标出的行会被自动删除，并记录在 `state.json` 的 `auto_stripped` 和 changelog 中。其他拒绝原因仍会停止循环。
@@ -121,9 +130,7 @@ nohup python3 -u loop.py iterate --run r2 --start 0 --iters 4 > runs/r2-iterate.
 
 | 阶段 | 模型（配置中的角色） | 读取 | 写入（位于 `runs/<run>/` 下） |
 |---|---|---|---|
-| `oracle` | `oracle` | task.md 和共享输入 | `oracle/spec/`、执行轨迹、检查结果、指标 |
-| `extract --target oracle` | `extractor` | 参考 spec、`decision_vocab.json` | `oracle/decisions/pass-N/`、`decisions.proposed.json`、`decisions.review.md` |
-| `freeze` | 无 | `oracle/spec/`、`oracle/decisions.proposed.json` | `oracle/MANIFEST.sha256`、`oracle/decisions.json` |
+| `oracle` | `oracle`、`extractor`（oracle 的 spec 每次通过校验后抽取两次） | task.md 和共享输入 | `oracle/oN/`：spec、执行轨迹、检查结果、指标、`decisions/pass-N/`、`decisions/agreed.json`、`oracle.json`；然后是 `oracle/spec/`（medoid 的）、`decisions.json`、`consensus.json`、`consensus.md`、`MANIFEST.sha256` |
 | `student --iter k` | `student` | task.md 和第 k-1 轮的 playbook | `iter-k/student[-sN]/` |
 | `compare --iter k` | 先 `extractor`，再 `judge`（裁定、软性分项） | 任务、评分标准、参考 spec 与决策表、student 的 spec、`metrics.md`、脚本检查结果 | `iter-k/compare[-sN]/score.json`、`report.md`、`decisions_compare.json`；`scores.csv` 中的一行 |
 | `noise` | `extractor`（第二次提取） | 第 0 轮各样本的分数与 spec | `noise.json`、`noise.md`、`iter-00/compare-sN/decisions-pass2/`；`state.json` 中的 `noise` |
@@ -149,12 +156,17 @@ runs/<run>/
   inputs.lock.json  state.json  scores.csv
   base/                      # base_sha 快照，用于计算指标（仅本地）
   oracle/
-    spec/openspec/           # 参考 spec；审阅时在这里编辑
-    decisions/pass-N/        # 各次抽取；agreement.json 比较它们
-    decisions.proposed.json  decisions.review.md        # 供人工核对
-    decisions.json  MANIFEST.sha256                     # 冻结后生成
-    trajectory.md  stats.json  guards.json  metrics.json  *.run.json  *.prompt.md
-    trajectory.jsonl  transcripts/  trajviz/            # 仅本地
+    o1/ o2/ o3/              # 每个独立 oracle 一个目录
+      spec/openspec/  oracle.json                       # 它的 spec；是否有效、修复轮数、尝试次数
+      decisions/pass-N/  decisions/agreed.json          # 两次抽取；两次一致的值
+      trajectory.md  trajectory.repairN.md  stats.json  guards.json  metrics.json  *.run.json  *.prompt.md
+      trajectory.jsonl  transcripts/  trajviz/          # 仅本地
+    o1.attempt1/             # 之前一次不可用的 oracle 运行（如有）
+    spec/openspec/           # 参考 spec：medoid oracle 的（只读）
+    guards.json  metrics.json                           # medoid 的
+    decisions.json           # 共识决策表（只读）
+    consensus.json  consensus.md                        # 投票、无多数的项、覆盖名称、medoid
+    MANIFEST.sha256
   iter-00/
     student-s1/    spec/  provenance.json  trajectory.md  stats.json  guards.json  metrics.json ...
     student-s1.attempt1/                                # 之前一次无效的尝试（如果有）
@@ -187,7 +199,7 @@ TrajViz 自带的采集器（`agent-trajviz-collect cursor`）从 Cursor IDE 的
 
 ```bash
 python3 loop.py trajviz --run r1                  # 所有阶段
-python3 loop.py trajviz --run r1 --stage oracle
+python3 loop.py trajviz --run r1 --stage oracle/o1
 ```
 
 两点注意：
@@ -212,6 +224,7 @@ python3 loop.py trajviz --run r1 --stage oracle
 | `judges` | 每个样本的独立评审次数（裁定与软性分项） |
 | `max_parallel_agents` | 跨样本、评审和消融组同时运行的 agent 会话上限 |
 | `student_retries`、`judge_fix_retries`、`extract_fix_retries`、`synth_fix_retries` | 无效 student 运行、无效 judge 或裁定 JSON、无效抽取结果、被拒 playbook 的重试次数 |
+| `oracle_samples`、`oracle_retries`、`oracle_repair_rounds` | 组成参考答案的独立 oracle 数（冒烟测试用 2 个）；不可用的 oracle 从头重试的次数；每个 oracle 针对校验失败和 AGENTS.md 冲突的修复轮数 |
 | `completion_nudges` | oracle 或 student 的一轮在交付物尚未写完或校验未通过时就结束，会话最多被恢复的次数 |
 | `scoring` | `weights` 各维度权重（合计 100）、`parts` 各维度的分项组成、`llm_parts` 由 judge 打分的分项 |
 | `playbook_limits` | 行数上限、n-gram 长度、抄袭段落限制、参考能力 id 的最大占比 |
@@ -227,10 +240,8 @@ python3 loop.py trajviz --run r1 --stage oracle
 | 命令 | 用途 |
 |---|---|
 | `prepare --run R [--smoke] [--force] [--reference-from R0 [--allow-drift]]` | 创建 run：锁定输入，解出 base 快照；带 `--reference-from` 时复制 R0 冻结的参考答案与决策表 |
-| `oracle --run R` | 在全新工作区中运行 oracle |
-| `oracle --run R --revise TEXT`（或 `--revise-file F`） | 带着审阅意见恢复 oracle 会话 |
-| `extract --run R --target T [--passes N]` | 从 `T`（含 `spec/` 的运行内目录，或 playbook `.md`）抽取决策表；`--target oracle` 提出参考决策表 |
-| `freeze --run R [--force]` | 校验、计算哈希，并把参考 spec 设为只读；spec 已冻结时，冻结核对过的参考决策表 |
+| `oracle --run R` | 运行各个独立 oracle（已有效的复用，抽取失败的只重新抽取），每个按代码检查修复，然后组成并冻结参考答案 |
+| `extract --run R --target T [--passes N] [--out O]` | 从 `T`（含 `spec/` 的运行内目录，或 playbook `.md`）抽取决策表；离线检查。`oracle/` 下的目标须指定 `--out`，以免覆盖参考答案自身的抽取结果 |
 | `student --run R --iter K [--samples M] [--dry-run]` | 运行 student；`--dry-run` 只打印提示词 |
 | `compare --run R --iter K [--judges N] [--fresh]` | 给某一轮有效的 student spec 打分，每个样本 N 次评审；来源记录一致的分数直接复用，`--fresh` 强制重评 |
 | `noise --run R [--iter K] [--extract-passes 1\|2]` | 样本间、评审间与（默认）两次提取之间的离散度；写出 `noise.md` 和阈值 |
@@ -244,9 +255,9 @@ python3 loop.py trajviz --run r1 --stage oracle
 | `trajviz --run R [--stage S]` | （重新）为 TrajViz 导出运行记录 |
 | `smoke --run R` | 端到端冒烟测试 |
 
-`student`、`compare`、`noise`、`synthesize`、`ablate` 和 `iterate` 都接受 `--allow-drift`，在锁定的输入有变时仍继续运行。
+`oracle`、`student`、`compare`、`noise`、`synthesize`、`ablate` 和 `iterate` 都接受 `--allow-drift`，在锁定的输入有变时仍继续运行。
 
-命令运行期间持有 run 锁（`runs/.<run>.<scope>.lock`），两个 `loop.py` 进程不能同时处理同一个 run 的同一部分。`oracle`、`freeze` 和 `extract --target oracle` 持有 oracle 范围；`student`、`compare`、`noise`、`synthesize`、`ablate`、`iterate` 和 `reset` 持有 loop 范围；`prepare` 和 `smoke` 两个都持有。范围被占用时命令立即停下，并给出占用它的进程。因此基线 student 仍可在 oracle 撰写参考答案时运行；`status`、`trajviz`、`rescore`、`leak-check` 以及其他目标的 `extract` 只写自己的产出，不加锁。每次修改 `state.json` 都是一次加锁的"读取—修改—写回"，两个范围的命令不会丢失彼此的更新。JSON 和 CSV 记录先写入临时文件并 fsync，再改名替换，读取方或中途崩溃都不会看到写了一半的文件。按 Ctrl-C 或用 `kill` 停止命令时，它的 agent 会话也一起停止，锁释放后不会有遗留的 agent 继续运行。
+命令运行期间持有 run 锁（`runs/.<run>.<scope>.lock`），两个 `loop.py` 进程不能同时处理同一个 run 的同一部分。`oracle` 持有 oracle 范围；`student`、`compare`、`noise`、`synthesize`、`ablate`、`iterate` 和 `reset` 持有 loop 范围；`prepare` 和 `smoke` 两个都持有。范围被占用时命令立即停下，并给出占用它的进程。因此基线 student 仍可在 oracle 撰写参考答案时运行；`status`、`trajviz`、`rescore`、`leak-check` 和 `extract` 只写自己的产出，不加锁。每次修改 `state.json` 都是一次加锁的"读取—修改—写回"，两个范围的命令不会丢失彼此的更新。JSON 和 CSV 记录先写入临时文件并 fsync，再改名替换，读取方或中途崩溃都不会看到写了一半的文件。按 Ctrl-C 或用 `kill` 停止命令时，它的 agent 会话也一起停止，锁释放后不会有遗留的 agent 继续运行。
 
 ---
 
@@ -281,7 +292,7 @@ stages/
   provenance.py         锁定的输入、输入变化检查、分数的来源记录
   agents.py             运行 agent 并收尾各阶段（检查、执行轨迹、TrajViz）
   extraction.py         从 spec 或 playbook 提取决策表
-  oracle.py             prepare、oracle、extract、freeze
+  oracle.py             prepare、oracle（各独立 oracle、其修复与共识）、extract
   student.py            student 的提示词、运行、尝试次数与有效性
   marks.py              哪些样本计入、轮分数方差与阈值、标记、差距 id
   scoring.py            compare、rescore：裁定、软性评审、单个样本的总分

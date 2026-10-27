@@ -15,7 +15,9 @@ from .core import CFG, manifest_text, oracle_dir, smoke, task_file
 
 
 # Config keys that change how a run is operated, not what its scores mean.
-OPERATIONAL_KEYS = ("iterations", "judges", "max_parallel_agents", "model_notes", "workspace_root")
+# The oracle_* keys shape only the reference, which the manifest and consensus.json pin once frozen.
+OPERATIONAL_KEYS = ("iterations", "judges", "max_parallel_agents", "model_notes", "workspace_root",
+                    "oracle_samples", "oracle_retries", "oracle_repair_rounds")
 # Hashed once, at import: a stamp must describe the code this process runs, even if the files are
 # edited during a long run.
 SCORING_CODE_SHA = sha256_bytes(b"".join((ROOT / p).read_bytes()
@@ -39,7 +41,9 @@ def changed_files(recorded: dict[str, str]) -> list[str]:
 
 
 def prompt_files() -> list[str]:
-    return ["rubric.md", "decision_vocab.json", *[f"prompts/{p.name}" for p in sorted(PROMPTS.glob("*.md"))]]
+    """The loop's prompts; swe_*.md belong to swe_loop.py, which locks its own."""
+    return ["rubric.md", "decision_vocab.json",
+            *[f"prompts/{p.name}" for p in sorted(PROMPTS.glob("*.md")) if not p.name.startswith("swe_")]]
 
 
 def config_fingerprint() -> str:
