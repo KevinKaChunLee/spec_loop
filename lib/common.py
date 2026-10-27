@@ -149,6 +149,14 @@ def remove_tree(path: Path) -> None:
         shutil.rmtree(path)
 
 
+def keep_attempt(out_dir: Path) -> None:
+    """Move a superseded run aside as <out_dir>.attemptN (not read as a sample)."""
+    n = 1
+    while out_dir.with_name(f"{out_dir.name}.attempt{n}").exists():
+        n += 1
+    out_dir.rename(out_dir.with_name(f"{out_dir.name}.attempt{n}"))
+
+
 def copy_tree(src: Path, dst: Path) -> None:
     remove_tree(dst)
     shutil.copytree(src, dst, symlinks=True)

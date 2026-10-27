@@ -53,7 +53,7 @@ def main() -> None:
 
     p = sub.add_parser("prepare", help="select the tasks, write the run, pull images, check the gold patches")
     p.add_argument("--run", required=True)
-    p.add_argument("--force", action="store_true", help="prepare an existing run again")
+    p.add_argument("--force", action="store_true", help="delete an existing run and prepare it again")
     p.add_argument("--no-pull", action="store_true", help="do not pull the task images now")
     p.add_argument("--skip-gold-check", action="store_true", help="do not evaluate the gold patches")
     p.set_defaults(fn=cmd_prepare)

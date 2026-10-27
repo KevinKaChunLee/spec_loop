@@ -17,7 +17,7 @@ from pathlib import Path
 
 from lib.common import die, load_state, log, read_json, run_dir, state_update, timestamp, write_json, write_text_atomic
 
-from .core import CFG, json_digest, stage_dir, tasks
+from .core import CFG, attempt_dir, json_digest, tasks
 from .env import docker_available
 
 RESULT_FIELDS = ["stage", "role", "instance_id", "sample", "playbook", "valid", "resolved", "applied", "f2p_pass",
@@ -25,16 +25,19 @@ RESULT_FIELDS = ["stage", "role", "instance_id", "sample", "playbook", "valid", 
                  "tool_calls", "input_tokens", "output_tokens", "problems"]
 
 
-def as_list(value) -> list:
-    return json.loads(value) if isinstance(value, str) else list(value or [])
-
-
 def stage_attempts(run_id: str, stage: str) -> list[tuple[dict, Path]]:
+    """The current attempt of every task and sample the stage was last solved with (attempts set
+    aside as sN.attemptK, and directories of other tasks or samples, are not part of it)."""
+    s = load_state(run_id).get("stages", {}).get(stage)
+    if not s:
+        return []
     out = []
-    for path in sorted(stage_dir(run_id, stage).glob("*/s*/attempt.json")):
-        rec = read_json(path)
-        if rec:
-            out.append((rec, path.parent))
+    for iid in s["tasks"]:
+        for sample in range(1, s["samples"] + 1):
+            d = attempt_dir(run_id, stage, iid, sample)
+            rec = read_json(d / "attempt.json")
+            if rec:
+                out.append((rec, d))
     return out
 
 
@@ -58,8 +61,7 @@ def run_harness(run_id: str, harness_id: str, ids: list[str], predictions: str) 
         die(f"the SWE-bench harness needs Docker: {why} (see README_swe.md, setup)")
     hdir = run_dir(run_id) / "harness"
     (hdir / "reports").mkdir(parents=True, exist_ok=True)
-    ds = CFG["dataset"]
-    cmd = [CFG["python"], "-m", "swebench.harness.run_evaluation", "-d", ds["name"], "-s", ds["split"],
+    cmd = [CFG["python"], "-m", "swebench.harness.run_evaluation", "-d", str(run_dir(run_id) / "dataset.json"),
            "-i", *ids, "-p", predictions, "-id", harness_id, "--max_workers", str(CFG["harness"]["max_workers"]),
            "-t", str(CFG["harness"]["timeout_s"]), "--report_dir", str(hdir / "reports")]
     log(f"harness {harness_id}: {len(ids)} task(s)")

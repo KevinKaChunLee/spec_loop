@@ -9,7 +9,7 @@ from __future__ import annotations
 from lib.common import die, load_state, log, run_dir, state_update, timestamp, write_json, write_text_atomic
 from lib.stats import mcnemar_exact, sign_flip
 
-from .core import CFG, iteration_stage, stage_dir, tasks
+from .core import CFG, iteration_stage, playbook_path, tasks
 from .evaluate import evaluate_stage
 from .noise import outcomes
 from .solve import solve_stage
@@ -23,13 +23,13 @@ def choose_playbook(run_id: str, wanted: str | None) -> str:
     resolved the most training attempts (ties go to the later playbook)."""
     state = load_state(run_id)
     if wanted:
-        if not (stage_dir(run_id, wanted) / "playbook" / "playbook.md").exists():
-            die(f"no playbook at {stage_dir(run_id, wanted) / 'playbook' / 'playbook.md'}")
+        if not playbook_path(run_id, wanted).exists():
+            die(f"no playbook at {playbook_path(run_id, wanted)}")
         return wanted
     candidates = []
     for k in range(CFG["iterations"]):
         src, used_in = iteration_stage(k), state.get("stages", {}).get(iteration_stage(k + 1), {})
-        if (stage_dir(run_id, src) / "playbook" / "playbook.md").exists() and used_in.get("resolve_rate") is not None:
+        if playbook_path(run_id, src).exists() and used_in.get("resolve_rate") is not None:
             candidates.append((used_in["resolve_rate"], k, src))
     if not candidates:
         die("no playbook has been tried on the training tasks yet; run `iterate` first, or pass --playbook iter-NN")
@@ -49,7 +49,7 @@ def cmd_test(run_id: str, samples: int, wanted: str | None, allow_drift: bool) -
     none, full = outcomes(run_id, "test-none"), outcomes(run_id, "test-full")
     rows = []
     for t in test_tasks:
-        a, b = none.get(t["instance_id"], []), full.get(t["instance_id"], [])
+        a, b = list(none.get(t["instance_id"], {}).values()), list(full.get(t["instance_id"], {}).values())
         rows.append({"instance_id": t["instance_id"], "difficulty": t.get("difficulty"),
                      "none": round(sum(a) / len(a), 4) if a else None, "full": round(sum(b) / len(b), 4) if b else None,
                      "none_samples": len(a), "full_samples": len(b)})
@@ -63,8 +63,8 @@ def cmd_test(run_id: str, samples: int, wanted: str | None, allow_drift: bool) -
                 "p": round(sign_flip([r["full"] - r["none"] for r in paired]), 4)}
     test["min_p"] = round(min(1.0, 2 / 2 ** len(paired)), 4) if paired else None
     result = {"playbook": src, "samples": samples, "tasks": rows, "paired": len(paired), "test": test,
-              "resolve_rate": {arm: round(sum(r[key] for r in paired) / len(paired), 4) if paired else None
-                               for arm, key in (("none", "none"), ("full", "full"))},
+              "resolve_rate": {arm: round(sum(r[arm] for r in paired) / len(paired), 4) if paired else None
+                               for arm in ("none", "full")},
               "measured_at": timestamp()}
     write_json(run_dir(run_id) / "test" / "ablation.json", result)
     write_text_atomic(run_dir(run_id) / "test" / "report.md", render(result))

@@ -6,7 +6,8 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from lib import workspace
-from lib.common import die, iter_dir, load_state, log, read_json, sha256_bytes, state_update, timestamp, write_json
+from lib.common import (die, iter_dir, keep_attempt, load_state, log, read_json, sha256_bytes, state_update,
+                        timestamp, write_json)
 
 from .core import (CFG, iteration_samples, key_label, sample_label, student_problems, student_valid, task_text,
                    verify_frozen)
@@ -30,14 +31,6 @@ def student_prompt(state: dict, run_id: str, k: int) -> str:
     if not pb.exists():
         die(f"iteration {k} needs the playbook from iteration {k - 1}: {pb} is missing")
     return playbook_prompt(state, pb.read_text(encoding="utf-8"))
-
-
-def keep_attempt(out_dir: Path) -> None:
-    """Move a superseded student run aside as <out_dir>.attemptN (not read as a sample)."""
-    n = 1
-    while out_dir.with_name(f"{out_dir.name}.attempt{n}").exists():
-        n += 1
-    out_dir.rename(out_dir.with_name(f"{out_dir.name}.attempt{n}"))
 
 
 def run_student(run_id: str, state: dict, out_dir: Path, stage: str, text: str, title: str,

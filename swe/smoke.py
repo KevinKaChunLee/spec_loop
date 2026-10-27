@@ -12,8 +12,10 @@ from lib.common import load_state, read_json, remove_tree, run_dir
 
 from . import fake_llm
 from .ablation import cmd_test
-from .core import CFG, stage_dir
+from .core import CFG
+from .evaluate import read_results, stage_attempts
 from .pipeline import cmd_iterate, cmd_oracle, cmd_status, write_run
+from .synthesis import playbook_text
 
 CALC = """def add(a, b):
     return a - b  # add
@@ -110,8 +112,7 @@ def cmd_smoke(args) -> None:
 
 def report(run_id: str) -> None:
     state = load_state(run_id)
-    stages = state.get("stages", {})
-    pbs = state.get("playbooks", {})
+    stages, pbs = state["stages"], state["playbooks"]
     checks = [
         ("oracle resolves all 3 training tasks", stages.get("oracle", {}).get("resolved") == 3),
         ("iteration 0: 2 samples x 3 tasks, the add task resolved in both", stages.get("iter-00", {}).get("scored") == 6
@@ -119,15 +120,15 @@ def report(run_id: str) -> None:
         ("noise baseline written, no flips", (read_json(run_dir(run_id) / "noise.json") or {}).get("flip_rate") == 0),
         ("two playbooks written", pbs.get("iter-00", {}).get("ok") and pbs.get("iter-01", {}).get("ok")),
         ("the leaky line was stripped from both", all(pbs.get(s, {}).get("stripped", 0) >= 1 for s in ("iter-00", "iter-01"))),
-        ("no stripped line left in a playbook", all("calc.py" not in (stage_dir(run_id, s) / "playbook" / "playbook.md")
-                                                     .read_text(encoding="utf-8") for s in ("iter-00", "iter-01"))),
+        ("no stripped line left in a playbook", all("calc.py" not in playbook_text(run_id, s)
+                                                     for s in ("iter-00", "iter-01"))),
         ("iterations 1 and 2 used the previous playbook", all((stages.get(s, {}).get("playbook") or {}).get("source") == p
                                                               for s, p in (("iter-01", "iter-00"), ("iter-02", "iter-01")))),
         ("the second synthesis revised the first", pbs.get("iter-01", {}).get("based_on") == "iter-00"),
         ("held-out test: both arms scored on 2 tasks", (state.get("test") or {}).get("paired") == 2),
-        ("transcripts exported", all((p / "trajectory.transcript.json").exists()
-                                     for p in stage_dir(run_id, "iter-00").glob("*/s*"))),
-        ("results.csv has every attempt", sum(1 for _ in open(run_dir(run_id) / "results.csv")) - 1 == 3 + 6 + 3 + 3 + 2 + 2),
+        ("transcripts exported", all((d / "trajectory.transcript.json").exists()
+                                     for _rec, d in stage_attempts(run_id, "iter-00"))),
+        ("results.csv has every attempt", len(read_results(run_id)) == 3 + 6 + 3 + 3 + 2 + 2),
     ]
     print("\nsmoke checks:")
     for name, ok in checks:

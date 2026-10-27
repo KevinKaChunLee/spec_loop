@@ -9,6 +9,8 @@ from pathlib import Path
 
 # opencode tools that reach the internet; any use of them invalidates a solve.
 WEB_TOOLS = {"webfetch", "websearch", "codesearch"}
+# Shell commands that look like network access. Matching ones are reported, not invalidating:
+# legitimate work matches too (grepping for URLs, URLValidator tests), and egress is blocked anyway.
 NETWORK_RE = re.compile(r"\b(curl|wget|pip\s+(install|download)|git\s+(clone|fetch|pull|ls-remote)|"
                         r"apt(-get)?\s+install|conda\s+install)\b|https?://", re.I)
 
@@ -49,10 +51,6 @@ def tool_calls(events: list[dict]) -> list[dict]:
                       "exit": meta.get("exit"), "seconds": round((times.get("end", 0) - times.get("start", 0)) / 1000, 1)
                       if times.get("end") else None})
     return calls
-
-
-def texts(events: list[dict]) -> list[str]:
-    return [e["part"].get("text", "") for e in events if e.get("type") == "text" and e.get("part")]
 
 
 def errors(events: list[dict]) -> list[dict]:
@@ -120,20 +118,22 @@ def _short(value, limit: int) -> str:
     return text if len(text) <= limit else text[:limit] + f" ...[+{len(text) - limit} chars]"
 
 
+def _describe(c: dict, limit: int) -> str:
+    what = c["input"].get("command") or c["input"].get("filePath") or c["input"].get("pattern") or c["title"]
+    status = c["status"] if c["exit"] is None else f"exit {c['exit']}"
+    return f"{c['tool']} {_short(what, limit)} -> {status}"
+
+
 def digest(events: list[dict], limit: int = 80) -> list[str]:
     """One line per tool call, for the synthesizer: the call, its exit code and a little output."""
-    lines = []
-    for i, c in enumerate(tool_calls(events), 1):
-        what = c["input"].get("command") or c["input"].get("filePath") or c["input"].get("pattern") or c["title"]
-        status = c["status"] if c["exit"] is None else f"exit {c['exit']}"
-        lines.append(f"{i}. {c['tool']} {_short(what, 160)} -> {status}: {_short(c['output'] or '', 120)}")
+    lines = [f"{i}. {_describe(c, 160)}: {_short(c['output'] or '', 120)}" for i, c in enumerate(tool_calls(events), 1)]
     if len(lines) > limit:
         lines = lines[: limit // 2] + [f"... {len(lines) - limit} calls omitted ..."] + lines[-limit // 2:]
     return lines
 
 
-def render(events: list[dict], title: str) -> str:
-    st = stats(events)
+def render(events: list[dict], title: str, st: dict) -> str:
+    """trajectory.md: `st` is stats(events)."""
     u = st["usage"]
     out = [f"# {title}", "",
            f"- session {st['session_id']}, {st['tool_calls_total']} tool calls in {u['steps']} steps, "
@@ -151,9 +151,7 @@ def render(events: list[dict], title: str) -> str:
         if e.get("type") == "tool_use":
             n += 1
             c = tool_calls([e])[0]
-            what = c["input"].get("command") or c["input"].get("filePath") or c["input"].get("pattern") or c["input"]
-            status = c["status"] if c["exit"] is None else f"exit {c['exit']}"
-            out.append(f"[{n:04d}] {c['tool']} {_short(what, 300)} -> {status}, {len(str(c['output'] or ''))} chars")
+            out.append(f"[{n:04d}] {_describe(c, 300)}, {len(str(c['output'] or ''))} chars")
         elif e.get("type") == "text" and part.get("text", "").strip():
             out.append(f"**SAY**: {_short(part['text'], 800)}")
         elif e.get("type") == "reasoning" and part.get("text", "").strip():

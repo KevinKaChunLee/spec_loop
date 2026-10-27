@@ -8,18 +8,20 @@ import subprocess
 import tempfile
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from lib.common import ROOT, die, load_state, log, read_json, run_dir, save_state, timestamp, write_json
+from lib.common import ROOT, die, load_state, log, remove_tree, run_dir, save_state, state_update, timestamp, \
+    write_json
 from lib.opencode_runner import opencode_version
 
 from .core import (CFG, ROLES, api_key, base_url, iteration_stage, model_for, opencode_bin, served_models,
-                   swebench_version, tasks, write_lock)
-from .env import EGRESS_BLOCKED, OC_IN_CONTAINER, docker, docker_available, egress_probe, ensure_image
-from .evaluate import as_list, evaluate_stage, gold_check
+                   stage_dir, swebench_version, tasks, write_lock)
+from .env import EGRESS_BLOCKED, OC_IN_CONTAINER, docker, docker_available, egress_probe, ensure_image, network_exists
+from .evaluate import evaluate_stage, gold_check
 from .noise import cmd_noise
 from .solve import solve_stage
-from .synthesis import playbook_text, synthesize
+from .synthesis import playbook_current, playbook_text, synthesize
 
 
 def task_record(row: dict) -> dict:
@@ -27,11 +29,6 @@ def task_record(row: dict) -> dict:
     return {k: row.get(k) for k in ("instance_id", "repo", "base_commit", "version", "difficulty", "image",
                                     "problem_statement", "created_at")} | \
         {"reinstall": "python setup.py install" in (row.get("eval_script") or "")}
-
-
-def gold_record(row: dict) -> dict:
-    return {"patch": row.get("patch") or "", "test_patch": row.get("test_patch") or "",
-            "FAIL_TO_PASS": as_list(row.get("FAIL_TO_PASS")), "PASS_TO_PASS": as_list(row.get("PASS_TO_PASS"))}
 
 
 def select_tasks(rows: list[dict]) -> tuple[list[dict], list[dict]]:
@@ -46,30 +43,25 @@ def select_tasks(rows: list[dict]) -> tuple[list[dict], list[dict]]:
 
 
 def write_run(run_id: str, train: list[dict], test: list[dict], backend: str, extra: dict | None = None) -> None:
-    """tasks.json (what agents may see), gold/<id>.json (only for the harness, the synthesizer and
-    the leak check), the input lock and a fresh state."""
+    """tasks.json (what agents may see), dataset.json (the full rows: what the harness evaluates
+    against, and the gold patches and tests for the synthesizer and the leak check), the input lock
+    and a fresh state."""
     rd = run_dir(run_id)
-    (rd / "gold").mkdir(parents=True, exist_ok=True)
+    rd.mkdir(parents=True, exist_ok=True)
     add = extra or {}
     write_json(rd / "tasks.json", {"train": [task_record(r) | add.get(r["instance_id"], {}) for r in train],
                                     "test": [task_record(r) | add.get(r["instance_id"], {}) for r in test]})
-    for r in train + test:
-        write_json(rd / "gold" / f"{r['instance_id']}.json", gold_record(r))
+    write_json(rd / "dataset.json", train + test)
     write_lock(run_id, served_models())
     save_state(run_id, {"run": run_id, "backend": backend, "created": timestamp(), "stages": {}, "playbooks": {}})
 
 
-def ensure_network() -> None:
-    name = CFG["docker"]["network"]
-    if subprocess.run(["docker", "network", "inspect", name], capture_output=True).returncode != 0:
-        docker("network", "create", name)
-        log(f"created the Docker network {name}; restrict its outbound traffic with swe/setup/egress.sh")
-
-
 def cmd_prepare(args) -> None:
     rd = run_dir(args.run)
-    if (rd / "state.json").exists() and not args.force:
-        die(f"run '{args.run}' already exists (use --force to prepare it again)")
+    if (rd / "state.json").exists():
+        if not args.force:
+            die(f"run '{args.run}' already exists (use --force to delete it and prepare it again)")
+        remove_tree(rd)
     ds = CFG["dataset"]
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "rows.json"
@@ -88,17 +80,19 @@ def cmd_prepare(args) -> None:
     if why:
         log(f"warning: Docker is not available ({why}); images are not pulled and the gold check is skipped")
         return
-    ensure_network()
+    if not network_exists(CFG["docker"]["network"]):
+        docker("network", "create", CFG["docker"]["network"])
+        log(f"created the Docker network {CFG['docker']['network']}; restrict its outbound traffic with "
+            f"swe/setup/egress.sh")
     if not args.no_pull:
-        for t in tasks(args.run, "train") + tasks(args.run, "test"):
-            ensure_image(t["image"])
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            list(pool.map(ensure_image, sorted({r["image"] for r in train + test})))
     if args.skip_gold_check:
         return
-    ids = [t["instance_id"] for t in tasks(args.run, "train") + tasks(args.run, "test")]
+    ids = [r["instance_id"] for r in train + test]
     result = gold_check(args.run, ids)
-    state = load_state(args.run)
-    state["gold_check"] = result
-    save_state(args.run, state)
+    with state_update(args.run) as state:
+        state["gold_check"] = result
     bad = [i for i, ok in result.items() if not ok]
     if bad:
         die(f"the gold patch does not resolve {', '.join(bad)} in this environment; check the harness logs under "
@@ -125,7 +119,7 @@ def probe_tool_call(role: str) -> str | None:
 
 
 def cmd_check(args) -> None:
-    """The environment checks of the plan's phase 0, runnable on the server."""
+    """Everything the loop needs from the server, before any task is solved."""
     results: list[tuple[str, bool, str]] = []
 
     def add(name: str, ok: bool, hint: str = "") -> None:
@@ -148,19 +142,23 @@ def cmd_check(args) -> None:
                                         f"parser {s['server']['tool_call_parser']}, reasoning parser "
                                         f"{s['server']['reasoning_parser']}" if s else ""),
             s is not None, "cannot be reached")
+    probed = set()
     for role in ROLES:
         mid, s = model_for(role)["id"], served[base_url(role)]
-        if s is None:
+        if s is None or (base_url(role), mid) in probed:
             continue
+        probed.add((base_url(role), mid))
         add(f"{role} model {mid} served", mid in s["models"], f"{base_url(role)} serves {', '.join(s['models'])}")
         if mid in s["models"]:
             err = probe_tool_call(role)
             add(f"{role} model {mid} makes tool calls", err is None, err or "")
     image = args.image or (next((t["image"] for t in tasks(args.run, "train")), None) if args.run else None)
     if why is None:
-        net = subprocess.run(["docker", "network", "inspect", CFG["docker"]["network"]], capture_output=True).returncode == 0
+        net = network_exists(CFG["docker"]["network"])
         add(f"Docker network {CFG['docker']['network']}", net, "create it with swe/setup/egress.sh")
-        if image:
+        if not image:
+            add("egress probe", False, "pass --run (a prepared run) or --image to test a task image")
+        else:
             ensure_image(image)
             r = subprocess.run(["docker", "run", "--rm", "-v", f"{oc}:{OC_IN_CONTAINER}:ro", "--entrypoint",
                                 OC_IN_CONTAINER, image, "--version"], capture_output=True, text=True, timeout=300)
@@ -176,8 +174,6 @@ def cmd_check(args) -> None:
                     add(f"containers {'cannot' if blocked else 'can'} reach {url}", ok != blocked,
                         "restrict the network with swe/setup/egress.sh" if blocked else
                         "allow it in swe/setup/egress.sh; if SGLang runs on this host, use the network's gateway address")
-        elif not image:
-            add("egress probe", False, "pass --run (a prepared run) or --image to test a task image")
     print("\nchecks:")
     for name, ok, hint in results:
         print(f"  [{'PASS' if ok else 'FAIL'}] {name}" + (f"  ({hint})" if hint and not ok else ""))
@@ -193,33 +189,31 @@ def cmd_oracle(args) -> None:
 
 
 def cmd_iterate(args) -> None:
-    """Iteration 0: the student, no playbook, iteration0_samples per task (the noise baseline), then
-    the first synthesis. Iterations 1..N: the student with the previous iteration's playbook, then a
-    synthesis except after the last. With iterations = 2 that is two syntheses."""
-    last = CFG["iterations"]
+    """Iteration 0: the student, no playbook, iteration0_samples per task (the noise baseline).
+    Iterations 1..N: the student with the playbook synthesized from the previous iteration, which
+    is written again when it is missing, was rejected, or its iteration's results changed. With
+    iterations = 2 that is two syntheses."""
     train = tasks(args.run, "train")
-    for k in range(args.start, last + 1):
+    for k in range(args.start, CFG["iterations"] + 1):
         stage = iteration_stage(k)
         playbook = src = None
         if k > 0:
             src = iteration_stage(k - 1)
-            if not load_state(args.run).get("playbooks", {}).get(src, {}).get("ok"):
+            if not playbook_current(args.run, src):
                 synthesize(args.run, k - 1, args.allow_drift)
             playbook = playbook_text(args.run, src)
             if not playbook:
-                die(f"no acceptable playbook from {src}; inspect {run_dir(args.run) / src / 'playbook'}")
+                die(f"no acceptable playbook from {src}; inspect {stage_dir(args.run, src) / 'playbook'}")
         samples = CFG["iteration0_samples"] if k == 0 else 1
         solve_stage(args.run, stage, "student", train, samples, playbook, args.allow_drift, playbook_source=src)
         evaluate_stage(args.run, stage)
         if k == 0 and samples >= 2:
             cmd_noise(args.run)
-        if k < last and not load_state(args.run).get("playbooks", {}).get(stage, {}).get("ok"):
-            synthesize(args.run, k, args.allow_drift)
 
 
 def cmd_status(args) -> None:
     state = load_state(args.run)
-    print(f"run {args.run} ({state.get('backend')} backend, created {state.get('created')})")
+    print(f"run {args.run} ({state['backend']} backend, created {state['created']})")
     for split in ("train", "test"):
         print(f"  {split}: {', '.join(t['instance_id'] for t in tasks(args.run, split))}")
     for d in state.get("drift", []):
@@ -227,16 +221,15 @@ def cmd_status(args) -> None:
     if state.get("gold_check"):
         bad = [i for i, ok in state["gold_check"].items() if not ok]
         print(f"  gold check: {'all resolve' if not bad else 'FAILS for ' + ', '.join(bad)}")
-    for stage, s in sorted(state.get("stages", {}).items()):
+    for stage, s in sorted(state["stages"].items()):
         rate = s.get("resolve_rate")
-        pb = s.get("playbook") or {}
-        print(f"  {stage:10s} {s.get('role', '?'):8s} {s.get('valid', 0)}/{s.get('attempts', 0)} valid"
-              + (f", resolved {s.get('resolved')}/{s.get('scored')} ({rate:.0%})" if rate is not None else ", not scored")
-              + (f", playbook of {pb.get('source')}" if pb else "")
+        print(f"  {stage:10s} {s['role']:8s} {s['valid']}/{s['attempts']} valid"
+              + (f", resolved {s['resolved']}/{s['scored']} ({rate:.0%})" if rate is not None else ", not scored")
+              + (f", playbook of {s['playbook']['source']}" if s["playbook"] else "")
               + (f", unscored: {', '.join(s['unscored'])}" if s.get("unscored") else ""))
-    for stage, p in sorted(state.get("playbooks", {}).items()):
-        print(f"  playbook {stage}: {'ok' if p.get('ok') else 'REJECTED'}, {p.get('lines')} lines, "
-              f"{p.get('stripped', 0)} line(s) stripped" + (f", revises {p['based_on']}" if p.get("based_on") else ""))
+    for stage, p in sorted(state["playbooks"].items()):
+        print(f"  playbook {stage}: {'ok' if p['ok'] else 'REJECTED'}, {p['lines']} lines, "
+              f"{p['stripped']} line(s) stripped" + (f", revises {p['based_on']}" if p["based_on"] else ""))
     if state.get("noise"):
         n = state["noise"]
         print(f"  noise: {n['flip_rate']:.0%} of {n['tasks']} tasks flip between samples; resolve rate per sample "
@@ -245,6 +238,4 @@ def cmd_status(args) -> None:
         t = state["test"]
         print(f"  test ({t['paired']} tasks, playbook {t['playbook']}): no playbook {t['resolve_rate']['none']}, "
               f"playbook {t['resolve_rate']['full']}, p = {t['p']}")
-    report = read_json(run_dir(args.run) / "test" / "ablation.json")
-    if report:
         print(f"  report: {run_dir(args.run) / 'test' / 'report.md'}")

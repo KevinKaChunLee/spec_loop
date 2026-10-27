@@ -73,7 +73,7 @@ python3 swe_loop.py test    --run p1     # held-out tasks: no playbook vs the be
 python3 swe_loop.py status  --run p1
 ```
 
-- **prepare** loads the dataset with the swebench Python. It filters Django tasks by difficulty and draws a seeded sample (`dataset.seed`), so the split is reproducible. It writes `tasks.json`, which is what agents may see. It writes `gold/<id>.json` (gold patch, test patch, tests), which only the harness, the synthesizer and the leak check read. Then it pulls the images and runs the harness on the gold patches. Every gold patch must resolve; if one does not, the environment is broken for that task. In that case, look at `runs/p1/harness/`, or change `dataset.seed` and prepare again. `inputs.lock.json` records the config, the prompts, the opencode and swebench versions, and, per role, what the SGLang server reports.
+- **prepare** loads the dataset with the swebench Python. It filters Django tasks by difficulty and draws a seeded sample (`dataset.seed`), so the split is reproducible. It writes `tasks.json`, which is what agents may see. It writes `dataset.json`, the full rows of the 20 tasks (gold patch, test patch, tests). The harness evaluates against this frozen copy, and the synthesizer and the leak check read it; agents never do. `--force` deletes an existing run and starts over. Then it pulls the images and runs the harness on the gold patches. Every gold patch must resolve; if one does not, the environment is broken for that task. In that case, look at `runs/p1/harness/`, or change `dataset.seed` and prepare again. `inputs.lock.json` records the config, the prompts, the opencode and swebench versions, and, per role, what the SGLang server reports.
 - **oracle** gives the synthesizer contrastive evidence (how the stronger model fixed the same issues) and an upper bound.
 - **iterate** works as follows:
   - Iteration 0 runs the student without a playbook, twice per task (`iteration0_samples`), and writes the noise baseline.
@@ -85,14 +85,14 @@ python3 swe_loop.py status  --run p1
 
 Each stage runs up to `max_parallel_agents` attempts at once. A stage's worst-case duration is about attempts × `timeouts_min` / `max_parallel_agents`, plus harness time. Ctrl-C stops the agents and removes their containers. Rerunning the command continues where it stopped.
 
-If prompts, config, the opencode or swebench version, or a model server's launch arguments change after `prepare`, commands refuse to continue, because results would no longer be comparable. Pass `--allow-drift` to continue anyway; the drift is recorded in `state.json`. Server URLs and operational keys (`workspace_root`, `python`, `max_parallel_agents`) can change freely.
+If prompts, config, the opencode or swebench version, or a model server's launch arguments change after `prepare`, commands refuse to continue, because results would no longer be comparable. Pass `--allow-drift` to continue anyway; the drift is recorded in `state.json`. Some settings can change freely because they don't affect what an attempt's result means: server URLs, `workspace_root`, `python`, `max_parallel_agents`, `iterations`, the sample counts, `harness.max_workers` and `docker.network`. For example, you can extend a run by raising `iterations`.
 
 ---
 
 ## What keeps it fair
 
-- **Validity.** An attempt is invalid, and retried (`infra_retries`), only for reasons outside the model: the endpoint failed, or a network command or web tool got through. A timeout, an empty patch or a model that gives up counts as unresolved, so failures are never dropped from a resolve rate. A task that the harness could not evaluate is reported as unscored, not as resolved or unresolved.
-- **No access to the fix.** Each attempt runs in a fresh container of the task's image. The repository gets a new one-commit git history, because the image's history can contain the upstream fix. opencode's web tool is denied, and egress is limited to the model servers. Every bash call is also scanned for network attempts.
+- **Validity.** An attempt is invalid, and retried (`infra_retries`), only for reasons outside the model: the endpoint failed, or a web tool got through. A timeout, an empty patch or a model that gives up counts as unresolved, so failures are never dropped from a resolve rate. A task that the harness could not evaluate is reported as unscored, not as resolved or unresolved.
+- **No access to the fix.** Each attempt runs in a fresh container of the task's image. The repository gets a new one-commit git history, because the image's history can contain the upstream fix. opencode's web tool is denied, and egress is limited to the model servers. Shell commands that look like network access are listed in each attempt's `guards.json`, but they don't make an attempt invalid: ordinary Django work matches too, such as grepping for URLs or testing URL validation.
 - **Playbook leak check.** A playbook must give general advice. Before use, a script checks every line against the following material from all 20 tasks, including the held-out tasks: paths, defined names and failing-test names from the gold and test patches, plus 40-character n-grams of the gold patches' added code. The synthesizer gets one chance to rewrite. Lines still flagged after that are removed and listed in the changelog. Length is capped by `playbook_limits`.
 - **Noise.** Iteration 0's two samples per task show how often a task flips between resolved and unresolved by chance (`noise.md`). A playbook effect smaller than that flip rate does not mean much.
 - **Statistics.** The held-out comparison is paired by task. It uses McNemar's exact test with one sample per arm, and a sign-flip permutation test with more (`test --samples N`). `report.md` states the smallest p the test set allows.
@@ -103,7 +103,7 @@ If prompts, config, the opencode or swebench version, or a model server's launch
 
 ```
 runs/<run>/
-  tasks.json, gold/<id>.json, inputs.lock.json, state.json
+  tasks.json, dataset.json, inputs.lock.json, state.json
   results.csv                       one row per attempt: stage, task, sample, valid, resolved, tests, tokens, minutes
   oracle/<id>/s1/                   attempt.json, patch.diff, eval.json, trajectory.md/.jsonl/.transcript.json, guards.json
   iter-00/<id>/s1, s2/              student, no playbook

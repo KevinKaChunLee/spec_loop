@@ -12,6 +12,7 @@ import subprocess
 import threading
 import time
 from pathlib import Path
+from typing import Callable
 
 from .common import log, write_json
 from .stream import parse_events, tool_call_key, usage_total
@@ -39,7 +40,7 @@ _slots = threading.BoundedSemaphore(8)
 # outlives this process unless it is stopped explicitly.
 _live: set[int] = set()
 # Callables that stop agents this process cannot signal itself, such as one running in a container.
-_stop_hooks: set = set()
+_stop_hooks: set[Callable[[], object]] = set()
 
 
 def stop_agents() -> None:
@@ -48,7 +49,7 @@ def stop_agents() -> None:
         with contextlib.suppress(ProcessLookupError):
             os.killpg(pgid, signal.SIGTERM)
     for hook in list(_stop_hooks):
-        with contextlib.suppress(Exception):
+        with contextlib.suppress(OSError, subprocess.SubprocessError, RuntimeError):
             hook()
 
 
@@ -60,11 +61,11 @@ def untrack_process(pgid: int) -> None:
     _live.discard(pgid)
 
 
-def add_stop_hook(hook) -> None:
+def add_stop_hook(hook: Callable[[], object]) -> None:
     _stop_hooks.add(hook)
 
 
-def remove_stop_hook(hook) -> None:
+def remove_stop_hook(hook: Callable[[], object]) -> None:
     _stop_hooks.discard(hook)
 
 

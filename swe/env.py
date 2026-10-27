@@ -4,8 +4,8 @@ history, launch opencode with an isolated configuration, and collect the patch."
 
 from __future__ import annotations
 
-import json
 import os
+import re
 import shlex
 import shutil
 import subprocess
@@ -18,10 +18,15 @@ from lib.opencode_runner import OPENCODE_ENV
 # The image's history can contain the upstream fix; the agent gets only the base state.
 FRESH_GIT = ("rm -rf .git && git init -q && git add -A && "
              "git -c user.name=swe -c user.email=swe@localhost commit -qm base")
-# Files the agent's tooling may create that are not part of a fix.
-PATCH_EXCLUDES = (".opencode",)
+# Everything the agent changed, except what its own tooling may create (.opencode).
+PATCH_SCRIPT = "git add -A -- . ':(exclude).opencode' && git diff --cached HEAD"
 OC_IN_CONTAINER = "/opt/opencode/opencode"
 OC_HOME = "/root/.oc"
+EGRESS_BLOCKED = ("https://pypi.org/simple/", "https://github.com")
+
+
+def container_name(*parts: str) -> str:
+    return re.sub(r"[^a-zA-Z0-9_.-]", "-", "-".join(("swe", *parts)))
 
 
 def _isolated_env(home: str) -> dict:
@@ -29,13 +34,8 @@ def _isolated_env(home: str) -> dict:
             **OPENCODE_ENV}
 
 
-def _patch_script(excludes: tuple[str, ...]) -> str:
-    spec = " ".join(f"':(exclude){e}'" for e in excludes)
-    return f"git add -A -- . {spec} && git diff --cached HEAD"
-
-
-def docker(*args: str, timeout: float = 600, check: bool = True, input_text: str | None = None) -> str:
-    r = subprocess.run(["docker", *args], capture_output=True, text=True, timeout=timeout, input=input_text)
+def docker(*args: str, timeout: float = 600, check: bool = True) -> str:
+    r = subprocess.run(["docker", *args], capture_output=True, text=True, timeout=timeout)
     if check and r.returncode != 0:
         raise RuntimeError(f"docker {' '.join(args[:3])} failed ({r.returncode}): {(r.stderr or r.stdout)[-800:]}")
     return r.stdout
@@ -43,35 +43,32 @@ def docker(*args: str, timeout: float = 600, check: bool = True, input_text: str
 
 class DockerExecutor:
     """One container per attempt, started from the task's image; opencode is mounted read-only,
-    keeps its sessions inside the container, and reaches only what the container network allows."""
+    keeps its sessions inside the container, and reaches only what the container network allows.
+    `seed`, if given, is copied to `workdir` first (the synthesizer's inputs)."""
 
     def __init__(self, image: str, name: str, opencode_bin: str, config: dict, workdir: str = "/testbed",
-                 fresh_git: bool = True, conda_activate: str | None = None, seed: Path | None = None):
-        self.image, self.name, self.opencode_bin = image, name, opencode_bin
-        self.workdir, self.fresh_git, self.conda_activate, self.seed = workdir, fresh_git, conda_activate, seed
-        self.config = config
+                 seed: Path | None = None):
+        self.image, self.name, self.opencode_bin, self.config = image, name, opencode_bin, config
+        self.workdir, self.seed = workdir, seed
         self.env: dict = {}
         self._hook = lambda: docker("rm", "-f", self.name, check=False, timeout=60)
 
     def start(self) -> None:
         dc = self.config
         docker("rm", "-f", self.name, check=False, timeout=60)
+        runner.add_stop_hook(self._hook)
         docker("run", "-d", "--name", self.name, "--network", dc["network"], "--memory", dc["memory"],
                "--cpus", str(dc["cpus"]), "-v", f"{self.opencode_bin}:{OC_IN_CONTAINER}:ro",
                "-w", self.workdir, "--entrypoint", "/bin/sleep", self.image, "infinity")
-        runner.add_stop_hook(self._hook)
-        path = self.sh("echo $PATH", activate=True).strip()
-        self.env = {**_isolated_env(OC_HOME), "PATH": path or "/usr/local/bin:/usr/bin:/bin"}
-        self.sh(f"mkdir -p {self.workdir} {OC_HOME}")
         if self.seed:
-            self.copy_in(self.seed, self.workdir)
-        if self.fresh_git:
-            self.sh(f"cd {self.workdir} && {FRESH_GIT}")
+            docker("cp", f"{self.seed}/.", f"{self.name}:{self.workdir}", timeout=600)
+        # The agent's shell gets the PATH of the image's activated conda environment.
+        path = self.sh(f"mkdir -p {self.workdir} {OC_HOME} && cd {self.workdir} && {FRESH_GIT} && "
+                       f"{{ {dc['conda_activate']} >/dev/null 2>&1; echo \"$PATH\"; }}").strip().splitlines()
+        self.env = {**_isolated_env(OC_HOME), "PATH": path[-1] if path else "/usr/local/bin:/usr/bin:/bin"}
 
-    def sh(self, script: str, activate: bool = False, timeout: float = 600, check: bool = True) -> str:
-        if activate and self.conda_activate:
-            script = f"{self.conda_activate} >/dev/null 2>&1; {script}"
-        return docker("exec", self.name, "bash", "-c", script, timeout=timeout, check=check)
+    def sh(self, script: str) -> str:
+        return docker("exec", self.name, "bash", "-c", script)
 
     def launch(self, args: list[str], config_content: str) -> tuple[list[str], dict | None]:
         envs = [x for k, v in {**self.env, "OPENCODE_CONFIG_CONTENT": config_content}.items() for x in ("-e", f"{k}={v}")]
@@ -80,16 +77,13 @@ class DockerExecutor:
     def kill_agent(self) -> None:
         docker("exec", self.name, "pkill", "-f", OC_IN_CONTAINER, check=False, timeout=60)
 
-    def copy_in(self, src: Path, dst: str) -> None:
-        self.sh(f"mkdir -p {dst}")
-        docker("cp", f"{src}/.", f"{self.name}:{dst}", timeout=600)
-
-    def read(self, path: str) -> str | None:
+    def read(self, path: str) -> str:
+        """The file's text, or "" when it does not exist."""
         r = subprocess.run(["docker", "exec", self.name, "cat", path], capture_output=True, text=True, timeout=120)
-        return r.stdout if r.returncode == 0 else None
+        return r.stdout if r.returncode == 0 else ""
 
     def patch(self) -> str:
-        return self.sh(f"cd {self.workdir} && {_patch_script(PATCH_EXCLUDES)}")
+        return self.sh(f"cd {self.workdir} && {PATCH_SCRIPT}")
 
     def stop(self) -> None:
         runner.remove_stop_hook(self._hook)
@@ -100,8 +94,8 @@ class LocalExecutor:
     """For the smoke test: the workspace is a copy of a directory on the host, and opencode runs on
     the host with its own isolated configuration and data directories."""
 
-    def __init__(self, src: Path, root: Path, opencode_bin: str, fresh_git: bool = True):
-        self.src, self.root, self.opencode_bin, self.fresh_git = src, root, opencode_bin, fresh_git
+    def __init__(self, src: Path, root: Path, opencode_bin: str):
+        self.src, self.root, self.opencode_bin = src, root, opencode_bin
         self.workdir = str(root / "ws")
         self.env: dict = {}
 
@@ -109,36 +103,27 @@ class LocalExecutor:
         remove_tree(self.root)
         shutil.copytree(self.src, self.workdir, symlinks=True)
         self.env = {**_isolated_env(str(self.root / "home")), "PATH": os.environ.get("PATH", "/usr/bin:/bin")}
-        if self.fresh_git:
-            self.sh(f"cd {self.workdir} && {FRESH_GIT}")
+        self._git(FRESH_GIT)
 
-    def sh(self, script: str, activate: bool = False, timeout: float = 600, check: bool = True) -> str:
-        r = subprocess.run(["bash", "-c", script], capture_output=True, text=True, timeout=timeout)
-        if check and r.returncode != 0:
-            raise RuntimeError(f"{script[:80]} failed ({r.returncode}): {(r.stderr or r.stdout)[-800:]}")
-        return r.stdout
+    def _git(self, script: str) -> str:
+        return subprocess.run(["bash", "-c", script], cwd=self.workdir, capture_output=True, text=True,
+                              check=True).stdout
 
     def launch(self, args: list[str], config_content: str) -> tuple[list[str], dict | None]:
         return [self.opencode_bin, *args], {**self.env, "OPENCODE_CONFIG_CONTENT": config_content}
 
     def kill_agent(self) -> None:
-        pass
+        """Nothing to do: the agent runs in the process group the runner signals."""
 
-    def copy_in(self, src: Path, dst: str) -> None:
-        shutil.copytree(src, dst, dirs_exist_ok=True)
-
-    def read(self, path: str) -> str | None:
+    def read(self, path: str) -> str:
         p = Path(path)
-        return p.read_text(encoding="utf-8") if p.exists() else None
+        return p.read_text(encoding="utf-8") if p.exists() else ""
 
     def patch(self) -> str:
-        return self.sh(f"cd {self.workdir} && {_patch_script(PATCH_EXCLUDES)}")
+        return self._git(PATCH_SCRIPT)
 
     def stop(self) -> None:
         pass
-
-
-EGRESS_BLOCKED = ("https://pypi.org/simple/", "https://github.com")
 
 
 def egress_probe(image: str, docker_cfg: dict, allowed_urls: list[str]) -> dict:
@@ -178,11 +163,11 @@ def docker_available() -> str | None:
     return None if r.returncode == 0 else (r.stderr.strip() or "docker info failed")[:300]
 
 
+def network_exists(name: str) -> bool:
+    return subprocess.run(["docker", "network", "inspect", name], capture_output=True).returncode == 0
+
+
 def ensure_image(image: str) -> None:
     if subprocess.run(["docker", "image", "inspect", image], capture_output=True).returncode != 0:
         log(f"pulling {image}")
         docker("pull", image, timeout=3600)
-
-
-def config_json(cfg: dict) -> str:
-    return json.dumps(cfg, separators=(",", ":"))
