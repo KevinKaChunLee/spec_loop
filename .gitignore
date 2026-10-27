@@ -10,6 +10,10 @@ runs/**/transcripts/
 runs/**/_staging/
 runs/**/trajviz/
 runs/smoke*/
+runs/swe-smoke*/
+runs/*/harness/logs/
+runs/**/*.transcript.json
+runs/**/playbook/workspace/
 runs/**/*.log
 runs/.*.lock
 runs/**/.*.tmp

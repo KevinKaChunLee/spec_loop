@@ -8,6 +8,8 @@ The task: port the HMOS `telephony_call_manager` module (OpenHarmony v6.0) to th
 
 Every agent runs headless through the Cursor CLI (`agent -p`), each in its own throwaway snapshot of the repository. The tooling is standard-library Python.
 
+The same approach applied to SWE-bench (Qwen3 models on SGLang, opencode, the official harness) is `swe_loop.py`; see [README_swe.md](README_swe.md).
+
 ---
 
 ## Architecture

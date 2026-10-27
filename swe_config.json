@@ -1,0 +1,70 @@
+{
+  "workspace_root": "~/swe-loop-ws",
+  "python": "python3",
+
+  "dataset": {
+    "name": "SWE-bench/SWE-bench_Verified",
+    "split": "test",
+    "repo": "django/django",
+    "difficulties": ["<15 min fix", "15 min - 1 hour"],
+    "train": 15,
+    "test": 5,
+    "seed": 20261026
+  },
+
+  "server": {
+    "base_url": "http://GPU_HOST:30000/v1",
+    "api_key_env": "SGLANG_API_KEY"
+  },
+  "models": {
+    "oracle":      {"id": "Qwen/Qwen3-32B", "context": 65536, "output": 8192},
+    "synthesizer": {"id": "Qwen/Qwen3-32B", "context": 65536, "output": 8192},
+    "student":     {"id": "Qwen/Qwen3-8B",  "context": 65536, "output": 8192, "base_url": "http://GPU_HOST:30001/v1"}
+  },
+  "model_notes": "SGLang serves one model per server, so each model gets its own port; a model without its own base_url uses server.base_url. Launch each with --tool-call-parser qwen25 --reasoning-parser qwen3 --context-length 65536 and YaRN (--json-model-override-args '{\"rope_scaling\":{\"rope_type\":\"yarn\",\"factor\":2.0,\"original_max_position_embeddings\":32768}}'); the id is the server's --served-model-name (default: the model path). Containers reach these URLs, so do not use localhost: if SGLang runs on the Docker host, use the swe-loop network's gateway address and --host 0.0.0.0.",
+
+  "opencode": {
+    "bin": "opencode",
+    "version": "1.19.4"
+  },
+
+  "docker": {
+    "network": "swe-loop",
+    "memory": "4g",
+    "cpus": 2,
+    "conda_activate": "source /opt/miniconda3/bin/activate testbed"
+  },
+  "harness": {
+    "max_workers": 4,
+    "timeout_s": 1800
+  },
+
+  "timeouts_min": {
+    "oracle": 60,
+    "student": 45,
+    "synthesizer": 45
+  },
+  "iterations": 2,
+  "iteration0_samples": 2,
+  "test_samples": 1,
+  "max_parallel_agents": 4,
+  "infra_retries": 1,
+  "completion_nudges": 1,
+
+  "repo_hints": {
+    "django/django": "Django's tests run from /testbed with `./tests/runtests.py --verbosity 2 --settings=test_sqlite --parallel 1 <label>`, where a label is a test package, module, class or method under tests/ (for example `queries` or `queries.tests.Queries1Tests`). They need no database server."
+  },
+
+  "playbook_limits": {
+    "max_lines": 100,
+    "max_chars": 8000,
+    "ngram_chars": 40,
+    "min_identifier": 6
+  },
+  "digest_limits": {
+    "problem_chars": 3000,
+    "patch_chars": 4000,
+    "test_output_chars": 2500,
+    "trajectory_calls": 60
+  }
+}

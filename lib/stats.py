@@ -1,8 +1,11 @@
-"""Student's t distribution and Welch's two-sample test, without SciPy."""
+"""Student's t distribution, Welch's two-sample test and paired tests for binary outcomes, without
+SciPy."""
 
 from __future__ import annotations
 
+import itertools
 import math
+import random
 import statistics
 
 _TINY = 1e-300
@@ -71,3 +74,30 @@ def welch(a: list[float], b: list[float], alpha: float = 0.05) -> dict:
     return {"diff": round(diff, 2), "se": round(se, 2), "df": round(df, 1), "t": round(t, 2),
             "p": round(p, 4), "t_crit": round(crit, 2), "critical_diff": round(crit * se, 2),
             "significant": p < alpha}
+
+
+def mcnemar_exact(b: int, c: int) -> float:
+    """Two-sided exact McNemar p-value from the discordant pairs: b where only the first arm
+    succeeds, c where only the second does (a binomial test of b against n = b + c, p = 1/2)."""
+    n = b + c
+    if n == 0:
+        return 1.0
+    tail = sum(math.comb(n, i) for i in range(min(b, c) + 1)) / 2 ** n
+    return min(1.0, 2 * tail)
+
+
+def sign_flip(diffs: list[float], max_exact: int = 20, rounds: int = 200_000, seed: int = 0) -> float:
+    """Two-sided paired permutation p-value for mean(diffs) = 0: the share of sign assignments
+    whose |sum| is at least the observed one. Exact up to `max_exact` pairs, sampled beyond."""
+    observed = abs(sum(diffs))
+    if not diffs or observed == 0:
+        return 1.0
+    eps = 1e-12 * max(1.0, observed)
+    if len(diffs) <= max_exact:
+        signs = itertools.product((1, -1), repeat=len(diffs))
+        hits = sum(1 for s in signs if abs(sum(x * d for x, d in zip(s, diffs))) >= observed - eps)
+        return hits / 2 ** len(diffs)
+    rng = random.Random(seed)
+    hits = sum(1 for _ in range(rounds)
+               if abs(sum(d if rng.random() < 0.5 else -d for d in diffs)) >= observed - eps)
+    return (hits + 1) / (rounds + 1)

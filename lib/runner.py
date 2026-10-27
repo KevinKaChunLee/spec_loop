@@ -38,6 +38,8 @@ _slots = threading.BoundedSemaphore(8)
 # Process groups of the agent sessions running now; each session runs in its own group, so it
 # outlives this process unless it is stopped explicitly.
 _live: set[int] = set()
+# Callables that stop agents this process cannot signal itself, such as one running in a container.
+_stop_hooks: set = set()
 
 
 def stop_agents() -> None:
@@ -45,6 +47,30 @@ def stop_agents() -> None:
     for pgid in list(_live):
         with contextlib.suppress(ProcessLookupError):
             os.killpg(pgid, signal.SIGTERM)
+    for hook in list(_stop_hooks):
+        with contextlib.suppress(Exception):
+            hook()
+
+
+def track_process(pgid: int) -> None:
+    _live.add(pgid)
+
+
+def untrack_process(pgid: int) -> None:
+    _live.discard(pgid)
+
+
+def add_stop_hook(hook) -> None:
+    _stop_hooks.add(hook)
+
+
+def remove_stop_hook(hook) -> None:
+    _stop_hooks.discard(hook)
+
+
+def agent_slot() -> threading.BoundedSemaphore:
+    """The semaphore that caps agent sessions across all threads (and runners) of this process."""
+    return _slots
 
 
 def tool_version(cmd: list[str]) -> str:
