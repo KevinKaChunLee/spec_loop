@@ -15,9 +15,10 @@ from lib.common import ROOT, die, load_state, log, remove_tree, run_dir, save_st
     write_json
 from lib.opencode_runner import opencode_version
 
-from .core import (CFG, ROLES, api_key, base_url, iteration_stage, model_for, opencode_bin, served_models,
-                   stage_dir, swebench_version, tasks, write_lock)
-from .env import EGRESS_BLOCKED, OC_IN_CONTAINER, docker, docker_available, egress_probe, ensure_image, network_exists
+from .core import (CFG, ROLES, RUN_KIND, api_key, base_url, iteration_stage, model_for, opencode_bin, run_kind,
+                   served_models, stage_dir, swebench_version, tasks, write_lock)
+from .env import (EGRESS_BLOCKED, OC_IN_CONTAINER, docker, docker_available, egress_probe, ensure_image, host_port,
+                  network_exists)
 from .evaluate import evaluate_stage, gold_check
 from .noise import cmd_noise
 from .solve import solve_stage
@@ -53,12 +54,16 @@ def write_run(run_id: str, train: list[dict], test: list[dict], backend: str, ex
                                     "test": [task_record(r) | add.get(r["instance_id"], {}) for r in test]})
     write_json(rd / "dataset.json", train + test)
     write_lock(run_id, served_models())
-    save_state(run_id, {"run": run_id, "backend": backend, "created": timestamp(), "stages": {}, "playbooks": {}})
+    save_state(run_id, {"kind": RUN_KIND, "run": run_id, "backend": backend, "created": timestamp(), "stages": {},
+                        "playbooks": {}})
 
 
 def cmd_prepare(args) -> None:
     rd = run_dir(args.run)
-    if (rd / "state.json").exists():
+    kind = run_kind(args.run)
+    if kind is not None:
+        if kind != RUN_KIND:
+            die(f"run '{args.run}' belongs to {kind}; use another run name")
         if not args.force:
             die(f"run '{args.run}' already exists (use --force to delete it and prepare it again)")
         remove_tree(rd)
@@ -165,13 +170,13 @@ def cmd_check(args) -> None:
             add(f"opencode runs inside {image}", r.returncode == 0 and r.stdout.strip() == v,
                 (r.stdout + r.stderr).strip()[-300:])
         if net and image:
-            probe = egress_probe(image, CFG["docker"], [f"{b}/models" for b in served])
+            probe = egress_probe(image, CFG["docker"], sorted({host_port(b) for b in served}))
             if "error" in probe:
                 add("egress probe", False, probe["error"])
             else:
-                for url, ok in probe["reachable"].items():
-                    blocked = url in EGRESS_BLOCKED
-                    add(f"containers {'cannot' if blocked else 'can'} reach {url}", ok != blocked,
+                for target, ok in probe["reachable"].items():
+                    blocked = target in EGRESS_BLOCKED
+                    add(f"containers {'cannot' if blocked else 'can'} connect to {target}", ok != blocked,
                         "restrict the network with swe/setup/egress.sh" if blocked else
                         "allow it in swe/setup/egress.sh; if SGLang runs on this host, use the network's gateway address")
     print("\nchecks:")

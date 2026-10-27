@@ -38,9 +38,10 @@ The pilot uses 15 training tasks and 5 held-out tasks from `django/django`, with
 
    This creates the `swe-loop` Docker network if needed. It then lets containers on that network connect only to the endpoints in `swe_config.json`, so an agent cannot fetch the upstream fix from GitHub or install packages from PyPI. Run it again after a reboot.
 
-4. **Run the smoke test.** It runs the whole pipeline on a toy repository with a scripted fake model, on the host. It needs opencode, but no GPU, Docker or swebench:
+4. **Run the unit tests and the smoke test.** The unit tests cover the logic that would corrupt results silently if it were wrong: which attempts a stage counts, when a playbook is out of date, the leak checks, input fingerprints, the task split, harness reports and the statistics. The smoke test runs the whole pipeline on a toy repository with a scripted fake model, on the host. It needs opencode, but no GPU, Docker or swebench. Its run names must start with `swe-smoke`, because it deletes its run directory first.
 
    ```bash
+   python3 -m unittest discover -s tests -t .
    python3 swe_loop.py smoke
    ```
 
@@ -57,7 +58,7 @@ The pilot uses 15 training tasks and 5 held-out tasks from `django/django`, with
    - swebench and the Docker daemon;
    - each SGLang endpoint (version and parsers), and that each role's model is served and makes a tool call;
    - that opencode runs inside a task image;
-   - from a container on `swe-loop`, that the model endpoints can be reached and PyPI and GitHub cannot.
+   - from a container on `swe-loop`, that TCP connections to the model endpoints open, and connections to PyPI, GitHub and a literal IP address (1.1.1.1) do not.
 
    It exits non-zero if any check fails. After `prepare` you can use `--run R` instead of `--image`.
 
@@ -91,7 +92,7 @@ If prompts, config, the opencode or swebench version, or a model server's launch
 
 ## What keeps it fair
 
-- **Validity.** An attempt is invalid, and retried (`infra_retries`), only for reasons outside the model: the endpoint failed, or a web tool got through. A timeout, an empty patch or a model that gives up counts as unresolved, so failures are never dropped from a resolve rate. A task that the harness could not evaluate is reported as unscored, not as resolved or unresolved.
+- **Validity.** An attempt is invalid, and retried (`infra_retries`), only for reasons outside the model: the endpoint failed, or a web tool got through. A timeout, an empty patch or a model that gives up counts as unresolved, so failures are never dropped from a resolve rate. If an attempt is still invalid after its retries, or the harness could not evaluate a patch, the command stops and lists them, because the results would otherwise leave them out. Fix the cause and run the same command again: valid, evaluated attempts are reused, and only the listed ones run again.
 - **No access to the fix.** Each attempt runs in a fresh container of the task's image. The repository gets a new one-commit git history, because the image's history can contain the upstream fix. opencode's web tool is denied, and egress is limited to the model servers. Shell commands that look like network access are listed in each attempt's `guards.json`, but they don't make an attempt invalid: ordinary Django work matches too, such as grepping for URLs or testing URL validation.
 - **Playbook leak check.** A playbook must give general advice. Before use, a script checks every line against the following material from all 20 tasks, including the held-out tasks: paths, defined names and failing-test names from the gold and test patches, plus 40-character n-grams of the gold patches' added code. The synthesizer gets one chance to rewrite. Lines still flagged after that are removed and listed in the changelog. Length is capped by `playbook_limits`.
 - **Noise.** Iteration 0's two samples per task show how often a task flips between resolved and unresolved by chance (`noise.md`). A playbook effect smaller than that flip rate does not mean much.

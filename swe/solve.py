@@ -1,25 +1,31 @@
 """Solve stage: one opencode attempt per task and sample, each in a fresh workspace.
 
 An attempt is invalid, and retried, only when it failed for reasons outside the model (the endpoint
-was unreachable) or leaked (a web tool got through; egress is blocked by the network, so shell
-commands that look like network access are only reported). A timeout, an empty patch or a model
-that gives up are results: they count as unresolved, so the resolve rate is not flattered by
-leaving failures out."""
+was unreachable, the container failed) or leaked (a web tool got through; egress is blocked by the network, so shell
+commands that look like network access are only reported). An attempt still invalid after its
+retries stops the run. A timeout, an empty patch or a model that gives up are results: they count
+as unresolved, so the resolve rate is not flattered by leaving failures out."""
 
 from __future__ import annotations
 
+import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from lib import opencode_stream as ocs
-from lib.common import (keep_attempt, load_state, log, prompt, read_json, sha256_bytes, state_update, timestamp,
-                        write_json, write_text_atomic)
+from lib.common import (die, keep_attempt, load_state, log, prompt, read_json, sha256_bytes, state_update,
+                        timestamp, write_json, write_text_atomic)
 from lib.opencode_runner import run_opencode
 
 from .core import CFG, attempt_dir, check_inputs, model_for, opencode_bin, opencode_config_json
 from .env import DockerExecutor, LocalExecutor, container_name
 
 EMPTY_DIFF = "you have not changed any file of the repository yet"
+# Raised by docker and git when a container or workspace cannot start or dies mid-attempt: an
+# infrastructure failure of that attempt, retried like one, rather than an error of the stage.
+WORKSPACE_ERRORS = (RuntimeError, OSError, subprocess.SubprocessError)
+NO_RUN = {"infra_error": None, "nudges": 0, "timed_out": False, "finish_reason": None, "duration_s": 0.0,
+          "tool_calls": 0, "usage": {}}
 REINSTALL_HINT = ("- The repository is installed into the environment, not linked to this checkout: after changing "
                   "the code, run `python setup.py install` in `{workdir}` before running tests, or the tests use the "
                   "old code.\n")
@@ -68,6 +74,8 @@ def solve_attempt(run_id: str, backend: str, stage: str, role: str, task: dict, 
                                 completion_check=lambda: [] if ex.patch().strip() else [EMPTY_DIFF],
                                 max_nudges=CFG["completion_nudges"], kill_agent=ex.kill_agent)
             patch = ex.patch()
+        except WORKSPACE_ERRORS as e:
+            meta, patch = {**NO_RUN, "infra_error": f"the workspace failed: {str(e)[:300]}"}, ""
         finally:
             ex.stop()
         write_text_atomic(out / "patch.diff", patch)
@@ -108,4 +116,15 @@ def solve_stage(run_id: str, stage: str, role: str, task_list: list[dict], sampl
             "playbook": {"source": playbook_source, "sha256": sha256_bytes(playbook.encode("utf-8"))}
             if playbook else None,
             "valid": sum(1 for r in records if r["valid"]), "attempts": len(records), "solved_at": timestamp()}
+    require_valid(stage, records)
     return records
+
+
+def require_valid(stage: str, records: list[dict]) -> None:
+    """Stop when an attempt is still invalid after its retries: resolve rates, the noise baseline,
+    the synthesizer's view and the held-out comparison would silently leave it out."""
+    invalid = [f"{r['instance_id']}/s{r['sample']}: {'; '.join(r['problems'])}" for r in records if not r["valid"]]
+    if invalid:
+        die(f"{stage}: {len(invalid)} of {len(records)} attempts are still invalid after {CFG['infra_retries']} "
+            f"retries:\n  " + "\n  ".join(invalid) + "\nFix the cause (each attempt's attempt.json and "
+            "trajectory.stderr.log) and run the same command again: valid attempts are reused, only these are retried.")

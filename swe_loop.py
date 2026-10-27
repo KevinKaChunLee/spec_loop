@@ -25,7 +25,7 @@ from lib.common import lock_run
 from lib.runner import set_parallel_limit, stop_agents
 
 from swe.ablation import cmd_test
-from swe.core import CFG
+from swe.core import CFG, require_swe_run
 from swe.noise import cmd_noise
 from swe.pipeline import cmd_check, cmd_iterate, cmd_oracle, cmd_prepare, cmd_status
 from swe.smoke import cmd_smoke
@@ -89,6 +89,8 @@ def main() -> None:
     p.set_defaults(fn=cmd_smoke)
 
     args = ap.parse_args()
+    if args.cmd not in ("prepare", "smoke") and getattr(args, "run", None):
+        require_swe_run(args.run)
     if args.cmd not in UNLOCKED_COMMANDS and getattr(args, "run", None):
         lock_run(args.run, ("swe",), " ".join(sys.argv[1:]))
     for sig in (signal.SIGINT, signal.SIGTERM):

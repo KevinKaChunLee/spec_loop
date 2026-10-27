@@ -1,8 +1,8 @@
 """Evaluate stage: score a stage's patches with the official SWE-bench harness (in the smoke test, a
 check command per task), write eval.json beside each attempt and the stage's rows of results.csv.
 
-An empty patch is unresolved without running the harness. A task the harness could not evaluate
-(no report) gets `resolved: null` and is left out of resolve rates until it is evaluated again."""
+An empty patch is unresolved without running the harness. A patch the harness could not evaluate
+(no report) gets `resolved: null`, and the command stops until it is evaluated."""
 
 from __future__ import annotations
 
@@ -178,6 +178,9 @@ def evaluate_stage(run_id: str, stage: str) -> list[dict]:
         st.setdefault("stages", {}).setdefault(stage, {}).update(
             evaluated_at=timestamp(), scored=len(scored), resolved=resolved, unscored=unscored,
             resolve_rate=round(resolved / len(scored), 4) if scored else None)
-    log(f"{stage}: {resolved} of {len(scored)} scored attempts resolved"
-        + (f"; {len(unscored)} not scored (harness errors): {', '.join(unscored)}" if unscored else ""))
+    log(f"{stage}: {resolved} of {len(scored)} scored attempts resolved")
+    if unscored:
+        die(f"{stage}: the harness could not evaluate {len(unscored)} patch(es): {', '.join(unscored)}. Leaving them "
+            f"out would bias the resolve rate. Fix the cause (the harness logs under {run_dir(run_id) / 'harness'}) "
+            f"and run the same command again: evaluated attempts are kept, only these are evaluated again.")
     return rows

@@ -31,6 +31,22 @@ PROMPT_FILES = ("prompts/swe_task.md", "prompts/swe_synthesize.md", "prompts/swe
 # tasks.json is what agents may see; dataset.json holds the full rows (gold patch, tests) for the
 # harness, the synthesizer and the leak check.
 RUN_FILES = ("tasks.json", "dataset.json")
+# state.json's "kind": runs/ is shared with loop.py, whose runs swe_loop.py must never touch.
+RUN_KIND = "swe"
+
+
+def run_kind(run_id: str) -> str | None:
+    """RUN_KIND for a swe_loop run, something else for a loop.py run, None when nothing is there."""
+    state = read_json(run_dir(run_id) / "state.json")
+    return None if state is None else state.get("kind", "loop.py")
+
+
+def require_swe_run(run_id: str) -> None:
+    kind = run_kind(run_id)
+    if kind is None:
+        die(f"run '{run_id}' is not prepared; run `swe_loop.py prepare --run {run_id}` first")
+    if kind != RUN_KIND:
+        die(f"run '{run_id}' is not a swe_loop run (it belongs to {kind}); use another run name")
 
 
 def json_digest(obj) -> str:
@@ -153,15 +169,20 @@ def require_models(served: dict[str, dict | None], roles: tuple[str, ...]) -> No
             die(f"{base} does not serve the {r} model {mid} (it serves {', '.join(served[base]['models'])})")
 
 
-def current_inputs() -> dict:
-    cfg = copy.deepcopy(CFG)
+def outcome_config(cfg: dict) -> dict:
+    """`cfg` without OPERATIONAL_KEYS: the settings that change what an attempt's result means."""
+    cfg = copy.deepcopy(cfg)
     for key in OPERATIONAL_KEYS:
         *parents, last = key.split(".")
         node = cfg
         for p in parents:
             node = node.get(p, {})
         node.pop(last, None)
-    return {"config": json_digest(cfg),
+    return cfg
+
+
+def current_inputs() -> dict:
+    return {"config": json_digest(outcome_config(CFG)),
             "prompts": {p: sha256_file(ROOT / p) for p in PROMPT_FILES},
             "opencode": opencode_version(opencode_bin()), "swebench": swebench_version()}
 

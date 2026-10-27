@@ -9,6 +9,7 @@ import re
 import shlex
 import shutil
 import subprocess
+import urllib.parse
 from pathlib import Path
 
 from lib import runner
@@ -22,11 +23,18 @@ FRESH_GIT = ("rm -rf .git && git init -q && git add -A && "
 PATCH_SCRIPT = "git add -A -- . ':(exclude).opencode' && git diff --cached HEAD"
 OC_IN_CONTAINER = "/opt/opencode/opencode"
 OC_HOME = "/root/.oc"
-EGRESS_BLOCKED = ("https://pypi.org/simple/", "https://github.com")
+# host:port targets a container on the loop's network must not reach; the literal address catches
+# a setup where only DNS is blocked.
+EGRESS_BLOCKED = ("pypi.org:443", "github.com:443", "1.1.1.1:443")
 
 
 def container_name(*parts: str) -> str:
     return re.sub(r"[^a-zA-Z0-9_.-]", "-", "-".join(("swe", *parts)))
+
+
+def host_port(url: str) -> str:
+    p = urllib.parse.urlsplit(url)
+    return f"{p.hostname}:{p.port or (443 if p.scheme == 'https' else 80)}"
 
 
 def _isolated_env(home: str) -> dict:
@@ -71,11 +79,16 @@ class DockerExecutor:
         return docker("exec", self.name, "bash", "-c", script)
 
     def launch(self, args: list[str], config_content: str) -> tuple[list[str], dict | None]:
-        envs = [x for k, v in {**self.env, "OPENCODE_CONFIG_CONTENT": config_content}.items() for x in ("-e", f"{k}={v}")]
-        return ["docker", "exec", "-w", self.workdir, *envs, self.name, OC_IN_CONTAINER, *args], None
+        """The config holds the API key, so docker exec takes it from its own environment, not
+        from the command line, which any local user can read."""
+        envs = [x for k, v in self.env.items() for x in ("-e", f"{k}={v}")]
+        return (["docker", "exec", "-w", self.workdir, *envs, "-e", "OPENCODE_CONFIG_CONTENT", self.name,
+                 OC_IN_CONTAINER, *args], {**os.environ, "OPENCODE_CONFIG_CONTENT": config_content})
 
     def kill_agent(self) -> None:
-        docker("exec", self.name, "pkill", "-f", OC_IN_CONTAINER, check=False, timeout=60)
+        """Signal every process in the container except PID 1 (sleep): killing the docker exec
+        client does not stop what it started, and images need not have pkill."""
+        docker("exec", self.name, "bash", "-c", "kill -TERM -1", check=False, timeout=60)
 
     def read(self, path: str) -> str:
         """The file's text, or "" when it does not exist."""
@@ -126,29 +139,32 @@ class LocalExecutor:
         pass
 
 
-def egress_probe(image: str, docker_cfg: dict, allowed_urls: list[str]) -> dict:
-    """From a container on the loop's network: {url: reachable} for the model endpoints, which must
-    be reachable, and for EGRESS_BLOCKED, which must not be."""
+def egress_probe(image: str, docker_cfg: dict, allowed: list[str]) -> dict:
+    """From a container on the loop's network: {host:port: a TCP connection opens} for the model
+    endpoints (`allowed`), which must open, and for EGRESS_BLOCKED, which must not. A bare TCP
+    connection, so a TLS or HTTP failure cannot pass for a block."""
     name = "swe-loop-egress-probe"
-    urls = [*allowed_urls, *EGRESS_BLOCKED]
-    script = ("import sys, urllib.request\n"
-              "def ok(u):\n"
+    targets = [*allowed, *EGRESS_BLOCKED]
+    script = ("import socket, sys\n"
+              "def ok(t):\n"
+              "    host, port = t.rsplit(':', 1)\n"
               "    try:\n"
-              "        urllib.request.urlopen(u, timeout=8); return True\n"
-              "    except Exception as e:\n"
-              "        return 'HTTP Error' in str(e)\n"
-              "print(*(ok(u) for u in sys.argv[1:]))\n")
+              "        socket.create_connection((host, int(port)), timeout=8).close()\n"
+              "        return True\n"
+              "    except OSError:\n"
+              "        return False\n"
+              "print(*(ok(t) for t in sys.argv[1:]))\n")
     docker("rm", "-f", name, check=False, timeout=60)
     cmd = f"{docker_cfg['conda_activate']} >/dev/null 2>&1; python -c {shlex.quote(script)} " + \
-        " ".join(map(shlex.quote, urls))
+        " ".join(map(shlex.quote, targets))
     try:
         out = docker("run", "--rm", "--name", name, "--network", docker_cfg["network"], "--entrypoint", "bash",
                      image, "-c", cmd, timeout=180).split()
     except RuntimeError as e:
         return {"error": str(e)[:300]}
-    if len(out) < len(urls):
+    if len(out) < len(targets):
         return {"error": f"unexpected probe output: {' '.join(out)[:300]}"}
-    return {"reachable": dict(zip(urls, (x == "True" for x in out[-len(urls):])))}
+    return {"reachable": dict(zip(targets, (x == "True" for x in out[-len(targets):])))}
 
 
 def docker_available() -> str | None:

@@ -8,11 +8,11 @@ import argparse
 import difflib
 import socket
 
-from lib.common import load_state, read_json, remove_tree, run_dir
+from lib.common import die, load_state, read_json, remove_tree, run_dir
 
 from . import fake_llm
 from .ablation import cmd_test
-from .core import CFG
+from .core import CFG, RUN_KIND, run_kind
 from .evaluate import read_results, stage_attempts
 from .pipeline import cmd_iterate, cmd_oracle, cmd_status, write_run
 from .synthesis import playbook_text
@@ -85,6 +85,11 @@ def row(func: str) -> dict:
 
 def cmd_smoke(args) -> None:
     run_id = args.run
+    if not run_id.startswith("swe-smoke"):
+        die(f"smoke runs start over by deleting their run directory, so their names must start with swe-smoke "
+            f"(got '{run_id}')")
+    if run_kind(run_id) not in (None, RUN_KIND):
+        die(f"run '{run_id}' belongs to {run_kind(run_id)}; use another run name")
     remove_tree(run_dir(run_id))
     fixture = run_dir(run_id) / "fixture" / "calc"
     fixture.mkdir(parents=True)
