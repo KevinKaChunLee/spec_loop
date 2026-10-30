@@ -1,6 +1,6 @@
 # spec_loop
 
-[English](README.md) | 简体中文
+[English](README.md) | 简体中文 · [管理层简介](OVERVIEW_zh.md)
 
 **教一个较弱的模型写 OpenSpec。** 由强模型 oracle 独立运行三次、各写一份 OpenSpec，再由代码取其中多数一致的内容组成参考答案并冻结。较弱的 student 模型针对同一任务写出自己的 spec，全程看不到参考答案。随后 oracle 对两者的差距打分，并写出一份 playbook（执行手册），student 在下一次尝试时会拿到这份手册。循环运行固定轮数，分数变化对照实测的噪声阈值判断，最后用新样本做消融实验，检验最好的 playbook 是否真的有用。
 

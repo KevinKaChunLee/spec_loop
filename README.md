@@ -1,6 +1,6 @@
 # spec_loop
 
-English | [简体中文](README_zh.md)
+English | [简体中文](README_zh.md) · [管理层简介 (management overview, zh)](OVERVIEW_zh.md)
 
 **Teach a weaker model to write an OpenSpec.** Three runs of a strong oracle model independently write OpenSpecs, and code forms a frozen reference from what a majority of them agree on. A weaker student model writes its own spec for the same task without ever seeing the reference. The oracle then scores the gap and writes a playbook, which the student receives on its next attempt. The loop runs a fixed number of iterations, scores are judged against a measured noise threshold, and an ablation on fresh samples tests whether the best playbook really helps.
 
