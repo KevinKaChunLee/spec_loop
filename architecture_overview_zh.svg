@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 850" font-family="'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans SC', 'Source Han Sans SC', sans-serif">
+  <defs>
+    <marker id="ah-blue" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto"><path d="M0,0 L8,3.5 L0,7 Z" fill="#2563eb"/></marker>
+    <marker id="ah-green" markerWidth="10" markerHeight="10" refX="8" refY="3.5" orient="auto"><path d="M0,0 L8,3.5 L0,7 Z" fill="#17a673"/></marker>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="850" fill="#ffffff"/>
+
+  <!-- 标题 -->
+  <text x="40" y="52" font-size="30" font-weight="700" fill="#0f172a">模型蒸馏循环 · 总览</text>
+  <text x="42" y="84" font-size="15" fill="#64748b">强模型当「老师」，把经验写成文字「操作手册」；弱模型当「学生」，带着手册做同类任务。全程不训练、不微调模型。</text>
+
+  <!-- ① 准备 -->
+  <rect x="30" y="108" width="830" height="112" rx="14" fill="#f5f8ff" stroke="#c7d7f5" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <circle cx="56" cy="134" r="12" fill="#334155"/><text x="56" y="139" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+  <text x="78" y="140" font-size="16" font-weight="700" fill="#334155">准备：冻结输入，划分题目</text>
+
+  <rect x="50" y="154" width="230" height="52" rx="8" fill="#ffffff" stroke="#bcd0f0" stroke-width="1.5"/>
+  <text x="66" y="177" font-size="15" font-weight="700" fill="#0f172a">任务说明与规则</text>
+  <text x="66" y="196" font-size="12" fill="#64748b">例：AGENTS.md、任务提示词</text>
+
+  <rect x="300" y="154" width="230" height="52" rx="8" fill="#ffffff" stroke="#bcd0f0" stroke-width="1.5"/>
+  <text x="316" y="177" font-size="15" font-weight="700" fill="#0f172a">源材料</text>
+  <text x="316" y="196" font-size="12" fill="#64748b">例：要迁移的代码、待修的代码库</text>
+
+  <rect x="550" y="154" width="290" height="52" rx="8" fill="#ffffff" stroke="#bcd0f0" stroke-width="1.5"/>
+  <text x="566" y="177" font-size="15" font-weight="700" fill="#0f172a">题目划分</text>
+  <text x="566" y="196" font-size="12" fill="#64748b">学习题约 70% · 检验题约 30%，互不重叠</text>
+
+  <!-- ② 标准答案 -->
+  <rect x="30" y="240" width="830" height="112" rx="14" fill="#f6f0ff" stroke="#d6c4f5" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <circle cx="56" cy="266" r="12" fill="#8b5cf6"/><text x="56" y="271" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+  <text x="78" y="272" font-size="16" font-weight="700" fill="#6b3fd4">标准答案：由老师（强模型）建立</text>
+
+  <rect x="50" y="286" width="230" height="52" rx="8" fill="#ffffff" stroke="#8b5cf6" stroke-width="1.5"/>
+  <text x="66" y="309" font-size="15" font-weight="700" fill="#0f172a">老师独立作答多次</text>
+  <text x="66" y="328" font-size="12" fill="#64748b">强模型 · 多份并行</text>
+
+  <rect x="320" y="286" width="230" height="52" rx="8" fill="#ffffff" stroke="#8b5cf6" stroke-width="1.5"/>
+  <text x="336" y="309" font-size="15" font-weight="700" fill="#0f172a">取多数一致的结论</text>
+  <text x="336" y="328" font-size="12" fill="#64748b">由代码自动完成，无需人工</text>
+  <polyline points="280,312 318,312" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
+
+  <rect x="590" y="286" width="250" height="52" rx="10" fill="#dbe8ff" stroke="#3b6fe0" stroke-width="2"/>
+  <text x="606" y="309" font-size="15" font-weight="700" fill="#1e3a8a">标准答案（冻结）</text>
+  <text x="606" y="328" font-size="12" fill="#3b5b9e">SWE-bench：官方测试即标准答案</text>
+  <polyline points="550,312 588,312" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
+
+  <!-- 标准答案 → 自动评分 -->
+  <polyline points="715,338 715,362 435,362 435,422" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
+  <rect x="520" y="354" width="112" height="16" fill="#ffffff"/><text x="576" y="366" font-size="12" fill="#2563eb" text-anchor="middle">用于自动评分</text>
+
+  <!-- ③ 教学循环 -->
+  <rect x="30" y="372" width="830" height="220" rx="14" fill="#eef6ff" stroke="#bcd0f0" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <circle cx="56" cy="398" r="12" fill="#1d4ed8"/><text x="56" y="403" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+  <text x="78" y="404" font-size="16" font-weight="700" fill="#1d4ed8">教学循环：在学习题上反复改进手册</text>
+  <text x="840" y="404" font-size="13" fill="#1d4ed8" text-anchor="end">固定轮数，不提前停止</text>
+
+  <rect x="50" y="424" width="230" height="60" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="66" y="449" font-size="15" font-weight="700" fill="#0f172a">学生做题</text>
+  <text x="66" y="470" font-size="12" fill="#64748b">弱模型 · 看不到标准答案</text>
+
+  <rect x="320" y="424" width="230" height="60" rx="10" fill="#ffffff" stroke="#5b8def" stroke-width="1.5"/>
+  <text x="336" y="449" font-size="15" font-weight="700" fill="#0f172a">自动评分</text>
+  <text x="336" y="470" font-size="12" fill="#64748b">对照标准答案，找出差距</text>
+  <polyline points="280,454 318,454" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
+
+  <rect x="590" y="424" width="250" height="60" rx="10" fill="#ffffff" stroke="#8b5cf6" stroke-width="1.5"/>
+  <text x="606" y="449" font-size="15" font-weight="700" fill="#0f172a">老师分析失误</text>
+  <text x="606" y="470" font-size="12" fill="#64748b">总结共性问题，修订手册</text>
+  <polyline points="550,454 588,454" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
+
+  <rect x="320" y="516" width="230" height="56" rx="10" fill="#eefaf4" stroke="#17a673" stroke-width="1.5"/>
+  <text x="336" y="540" font-size="15" font-weight="700" fill="#0f172a">操作手册</text>
+  <text x="336" y="560" font-size="12" fill="#64748b">下一轮附在学生的任务后面</text>
+  <polyline points="715,484 715,544 552,544" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
+  <polyline points="320,544 165,544 165,486" fill="none" stroke="#17a673" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#ah-green)"/>
+  <text x="180" y="536" font-size="12" fill="#17a673">带着手册再做</text>
+
+  <!-- 最好的手册 → 检验 -->
+  <polyline points="435,572 435,656" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
+  <rect x="444" y="594" width="80" height="16" fill="#ffffff"/><text x="450" y="606" font-size="12" fill="#2563eb">最好的手册</text>
+
+  <!-- ④ 检验 -->
+  <rect x="30" y="612" width="830" height="112" rx="14" fill="#fdf2f8" stroke="#f0b8d4" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <circle cx="56" cy="638" r="12" fill="#be185d"/><text x="56" y="643" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">4</text>
+  <text x="78" y="644" font-size="16" font-weight="700" fill="#9d174d">检验：在没见过的题上对比</text>
+
+  <rect x="50" y="658" width="230" height="52" rx="8" fill="#ffffff" stroke="#e48ab6" stroke-width="1.5"/>
+  <text x="66" y="681" font-size="15" font-weight="700" fill="#0f172a">不带手册的学生</text>
+  <text x="66" y="700" font-size="12" fill="#64748b">做检验题（对照组）</text>
+
+  <text x="300" y="690" font-size="15" font-weight="700" fill="#9d174d" text-anchor="middle">对比</text>
+
+  <rect x="320" y="658" width="230" height="52" rx="8" fill="#ffffff" stroke="#e48ab6" stroke-width="1.5"/>
+  <text x="336" y="681" font-size="15" font-weight="700" fill="#0f172a">带手册的学生</text>
+  <text x="336" y="700" font-size="12" fill="#64748b">做同一批检验题</text>
+
+  <rect x="590" y="658" width="250" height="52" rx="8" fill="#ffffff" stroke="#e48ab6" stroke-width="1.5"/>
+  <text x="606" y="681" font-size="15" font-weight="700" fill="#0f172a">统计比较</text>
+  <text x="606" y="700" font-size="12" fill="#64748b">提升超过随机波动才算有效</text>
+  <polyline points="550,684 588,684" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#ah-blue)"/>
+
+  <!-- 产出 -->
+  <rect x="30" y="744" width="830" height="64" rx="14" fill="#fff4ea" stroke="#f0c79b" stroke-width="1.5"/>
+  <text x="54" y="772" font-size="16" font-weight="700" fill="#c25f1f">产出</text>
+  <text x="54" y="795" font-size="13" fill="#64748b">一份可读、可审查、可复用的操作手册 · 评分与评审报告 · 每次运行的完整记录</text>
+
+  <!-- 可信保障 -->
+  <rect x="880" y="108" width="290" height="700" rx="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="902" y="142" font-size="17" font-weight="700" fill="#0f172a">可信保障</text>
+  <g font-size="12" fill="#64748b">
+    <circle cx="910" cy="180" r="9" fill="#17a673"/><text x="910" y="184" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">✓</text>
+    <text x="928" y="185" font-size="14" font-weight="700" fill="#0f172a">学生看不到答案</text>
+    <text x="928" y="205">独立环境、没有历史记录、</text>
+    <text x="928" y="222">不能上网</text>
+
+    <circle cx="910" cy="268" r="9" fill="#17a673"/><text x="910" y="272" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">✓</text>
+    <text x="928" y="273" font-size="14" font-weight="700" fill="#0f172a">手册不许泄题</text>
+    <text x="928" y="293">自动检查抄写或直接给答案，</text>
+    <text x="928" y="310">违规内容重写或删除</text>
+
+    <circle cx="910" cy="356" r="9" fill="#17a673"/><text x="910" y="360" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">✓</text>
+    <text x="928" y="361" font-size="14" font-weight="700" fill="#0f172a">先测随机波动</text>
+    <text x="928" y="381">只有超出波动的提升才算数</text>
+
+    <circle cx="910" cy="427" r="9" fill="#17a673"/><text x="910" y="431" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">✓</text>
+    <text x="928" y="432" font-size="14" font-weight="700" fill="#0f172a">在没见过的题上检验</text>
+    <text x="928" y="452">不只看练习题上的表现</text>
+
+    <circle cx="910" cy="498" r="9" fill="#17a673"/><text x="910" y="502" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">✓</text>
+    <text x="928" y="503" font-size="14" font-weight="700" fill="#0f172a">标准答案不靠单次作答</text>
+    <text x="928" y="523">多个老师取共识；</text>
+    <text x="928" y="540">SWE-bench 用官方测试</text>
+
+    <circle cx="910" cy="586" r="9" fill="#17a673"/><text x="910" y="590" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">✓</text>
+    <text x="928" y="591" font-size="14" font-weight="700" fill="#0f172a">输入冻结，全程留痕</text>
+    <text x="928" y="611">所有输入记录指纹，可追溯</text>
+
+    <circle cx="910" cy="657" r="9" fill="#17a673"/><text x="910" y="661" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">✓</text>
+    <text x="928" y="662" font-size="14" font-weight="700" fill="#0f172a">出错即停</text>
+    <text x="928" y="682">运行失败不会被悄悄跳过</text>
+
+    <circle cx="910" cy="728" r="9" fill="#17a673"/><text x="910" y="732" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">✓</text>
+    <text x="928" y="733" font-size="14" font-weight="700" fill="#0f172a">不改动模型本身</text>
+    <text x="928" y="753">产出是文字手册，随时可审查</text>
+  </g>
+
+  <!-- 图例 -->
+  <g font-size="12.5" fill="#334155">
+    <polyline points="40,832 74,832" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ah-blue)"/><text x="86" y="836">流程</text>
+    <polyline points="150,832 184,832" fill="none" stroke="#17a673" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#ah-green)"/><text x="196" y="836">手册反馈给学生</text>
+    <rect x="320" y="824" width="34" height="16" rx="4" fill="#ffffff" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5 3"/><text x="366" y="836">学生在隔离环境中作答，看不到答案</text>
+  </g>
+</svg>
